@@ -1,0 +1,21 @@
+# Environment — NEVER commit API keys
+# NOTE: bare 'server/.env' does NOT match 'server/.env.backup-<ts>', which is
+# created when rotating keys and contains a real key. Glob every variant and
+# re-admit only the committable template.
+.env
+.env.*
+server/.env
+server/.env.*
+!.env.example
+!server/.env.example
+
+# Node
+node_modules/
+npm-debug.log*
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+*.swp

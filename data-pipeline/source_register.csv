@@ -1,0 +1,14 @@
+source_id,tier,publisher,title,year,url,verification_status,secondary_host,notes
+SRC-001,1,Embassy Office Parks REIT,Embassy REIT Annual Report 2024-25,2025,https://www.embassyofficeparks.com/investor-relations,Unverified,No,"Embassy REIT covers BKC, Whitefield, ORR, Manyata assets"
+SRC-002,1,Mindspace Business Parks REIT,Mindspace REIT Annual Report 2024-25,2025,https://www.mindspacereit.com/investor-relations,Unverified,No,"Mindspace covers Malad, Airoli, HITEC City, Madhapur, Pune assets"
+SRC-003,1,Brookfield India Real Estate Trust,Brookfield India REIT Annual Report 2024-25,2025,https://www.brookfieldindiareit.in/investor-relations,Unverified,No,Covers Candor TechSpace assets in Delhi NCR and Kolkata
+SRC-004,1,Nexus Select Trust,Nexus Select Trust Annual Report 2024-25,2025,https://www.nexusselecttrust.com/investor-relations,Unverified,No,India's first listed retail REIT; covers 17 consumption centres
+SRC-005,2,JLL India,India Office Market Report Q4 2024,2024,https://www.jll.co.in/en/trends-and-insights,Unverified,No,"City-level leasing, vacancy, rental data for major Indian office markets"
+SRC-006,2,CBRE South Asia,India Real Estate Market Outlook 2025,2025,https://www.cbre.co.in/insights,Unverified,No,"Cap rates, yield benchmarks, city outlook for office and retail"
+SRC-007,2,Knight Frank India,India Real Estate Outlook H1 2025,2025,https://www.knightfrank.co.in/research,Unverified,No,"Rental growth, capital values, residential and office segments"
+SRC-008,2,Colliers India,Colliers India Office Market Q1 2025,2025,https://www.colliers.com/en-in/research,Unverified,No,"Micro-market leasing activity, vacancy trends"
+SRC-009,2,ANAROCK Research,India Residential Market Report Q4 2024,2024,https://www.anarock.com/research,Unverified,No,"Residential launch, absorption, price appreciation data"
+SRC-010,2,Cushman & Wakefield India,India Office Leasing Outlook 2025,2025,https://www.cushmanwakefield.com/en/india/insights,Unverified,No,"Office demand drivers, supply pipeline, city-level benchmarks"
+SRC-011,3,Mint / Hindustan Times Media,India REIT market benchmark rentals 2024 (citing JLL),2024,https://www.livemint.com,Unverified,Yes,Secondary citation of JLL data on office rentals
+SRC-012,3,Economic Times Real Estate,Hyderabad commercial market overview citing Colliers 2024,2024,https://economictimes.indiatimes.com/real-estate,Unverified,Yes,Hyderabad HITEC City and Gachibowli rental ranges cited
+SRC-013,5,Academic Synthetic,REIT Target AI — Semi-Synthetic Assumption Set v1.0,2026,data-pipeline/assumptions.csv,N/A,No,Documented synthetic assumptions for markets lacking direct evidence

@@ -1,0 +1,233 @@
+{
+  "generator_version": "2.0.0",
+  "seed": 20260919,
+  "total_observations": 2156,
+  "planted_count": 24,
+  "contamination_rate_pct": 1.1132,
+  "mechanisms": [
+    {
+      "kind": "subtle_mispricing",
+      "severity": "subtle",
+      "count": 6,
+      "note": "Mildly mispriced against comparables — roughly 2.5-3.5 s.d. from its market. Near the detection boundary: the case that separates a sensitive detector from a blunt one."
+    },
+    {
+      "kind": "distressed_sale",
+      "severity": "moderate",
+      "count": 5,
+      "note": "Forced or distressed disposal: price marked down, rent unchanged, so the yield rises to roughly 5-7 s.d. above its market."
+    },
+    {
+      "kind": "trophy_asset",
+      "severity": "moderate",
+      "count": 4,
+      "note": "Trophy asset bid above comparables, compressing the yield to roughly 4-5 s.d. below its market."
+    },
+    {
+      "kind": "data_entry_error",
+      "severity": "gross",
+      "count": 3,
+      "note": "Keying error: a digit dropped from the sale price. Grossly outlying and should be caught by any method."
+    },
+    {
+      "kind": "bivariate_only",
+      "severity": "subtle",
+      "count": 6,
+      "note": "Each value individually unremarkable (each within ~1.5 s.d.); the COMBINATION of elevated yield with unusually low risk is not. Invisible to any single-variable rule — only a multivariate method can recover these."
+    }
+  ],
+  "outliers": [
+    {
+      "obs_id": "MKT-001_D052",
+      "market_id": "MKT-001",
+      "city": "Mumbai",
+      "property_type": "Commercial Office",
+      "mechanism": "subtle_mispricing",
+      "note": "Mildly mispriced against comparables — roughly 2.5-3.5 s.d. from its market. Near the detection boundary: the case that separates a sensitive detector from a blunt one."
+    },
+    {
+      "obs_id": "MKT-001_D065",
+      "market_id": "MKT-001",
+      "city": "Mumbai",
+      "property_type": "Commercial Office",
+      "mechanism": "subtle_mispricing",
+      "note": "Mildly mispriced against comparables — roughly 2.5-3.5 s.d. from its market. Near the detection boundary: the case that separates a sensitive detector from a blunt one."
+    },
+    {
+      "obs_id": "MKT-002_D031",
+      "market_id": "MKT-002",
+      "city": "Mumbai",
+      "property_type": "Commercial Office",
+      "mechanism": "bivariate_only",
+      "note": "Each value individually unremarkable (each within ~1.5 s.d.); the COMBINATION of elevated yield with unusually low risk is not. Invisible to any single-variable rule — only a multivariate method can recover these."
+    },
+    {
+      "obs_id": "MKT-007_D027",
+      "market_id": "MKT-007",
+      "city": "Bengaluru",
+      "property_type": "Commercial Office",
+      "mechanism": "trophy_asset",
+      "note": "Trophy asset bid above comparables, compressing the yield to roughly 4-5 s.d. below its market."
+    },
+    {
+      "obs_id": "MKT-007_D036",
+      "market_id": "MKT-007",
+      "city": "Bengaluru",
+      "property_type": "Commercial Office",
+      "mechanism": "subtle_mispricing",
+      "note": "Mildly mispriced against comparables — roughly 2.5-3.5 s.d. from its market. Near the detection boundary: the case that separates a sensitive detector from a blunt one."
+    },
+    {
+      "obs_id": "MKT-010_D007",
+      "market_id": "MKT-010",
+      "city": "Hyderabad",
+      "property_type": "Commercial Office",
+      "mechanism": "bivariate_only",
+      "note": "Each value individually unremarkable (each within ~1.5 s.d.); the COMBINATION of elevated yield with unusually low risk is not. Invisible to any single-variable rule — only a multivariate method can recover these."
+    },
+    {
+      "obs_id": "MKT-013_D026",
+      "market_id": "MKT-013",
+      "city": "Chennai",
+      "property_type": "Commercial Office",
+      "mechanism": "trophy_asset",
+      "note": "Trophy asset bid above comparables, compressing the yield to roughly 4-5 s.d. below its market."
+    },
+    {
+      "obs_id": "MKT-016_D072",
+      "market_id": "MKT-016",
+      "city": "Delhi NCR",
+      "property_type": "Commercial Office",
+      "mechanism": "bivariate_only",
+      "note": "Each value individually unremarkable (each within ~1.5 s.d.); the COMBINATION of elevated yield with unusually low risk is not. Invisible to any single-variable rule — only a multivariate method can recover these."
+    },
+    {
+      "obs_id": "MKT-003_D032",
+      "market_id": "MKT-003",
+      "city": "Mumbai",
+      "property_type": "Retail",
+      "mechanism": "subtle_mispricing",
+      "note": "Mildly mispriced against comparables — roughly 2.5-3.5 s.d. from its market. Near the detection boundary: the case that separates a sensitive detector from a blunt one."
+    },
+    {
+      "obs_id": "MKT-003_D060",
+      "market_id": "MKT-003",
+      "city": "Mumbai",
+      "property_type": "Retail",
+      "mechanism": "data_entry_error",
+      "note": "Keying error: a digit dropped from the sale price. Grossly outlying and should be caught by any method."
+    },
+    {
+      "obs_id": "MKT-009_D009",
+      "market_id": "MKT-009",
+      "city": "Bengaluru",
+      "property_type": "Retail",
+      "mechanism": "bivariate_only",
+      "note": "Each value individually unremarkable (each within ~1.5 s.d.); the COMBINATION of elevated yield with unusually low risk is not. Invisible to any single-variable rule — only a multivariate method can recover these."
+    },
+    {
+      "obs_id": "MKT-009_D013",
+      "market_id": "MKT-009",
+      "city": "Bengaluru",
+      "property_type": "Retail",
+      "mechanism": "distressed_sale",
+      "note": "Forced or distressed disposal: price marked down, rent unchanged, so the yield rises to roughly 5-7 s.d. above its market."
+    },
+    {
+      "obs_id": "MKT-017_D039",
+      "market_id": "MKT-017",
+      "city": "Delhi NCR",
+      "property_type": "Retail",
+      "mechanism": "distressed_sale",
+      "note": "Forced or distressed disposal: price marked down, rent unchanged, so the yield rises to roughly 5-7 s.d. above its market."
+    },
+    {
+      "obs_id": "MKT-017_D044",
+      "market_id": "MKT-017",
+      "city": "Delhi NCR",
+      "property_type": "Retail",
+      "mechanism": "trophy_asset",
+      "note": "Trophy asset bid above comparables, compressing the yield to roughly 4-5 s.d. below its market."
+    },
+    {
+      "obs_id": "MKT-011_D013",
+      "market_id": "MKT-011",
+      "city": "Hyderabad",
+      "property_type": "Residential",
+      "mechanism": "subtle_mispricing",
+      "note": "Mildly mispriced against comparables — roughly 2.5-3.5 s.d. from its market. Near the detection boundary: the case that separates a sensitive detector from a blunt one."
+    },
+    {
+      "obs_id": "MKT-012_D004",
+      "market_id": "MKT-012",
+      "city": "Hyderabad",
+      "property_type": "Residential",
+      "mechanism": "data_entry_error",
+      "note": "Keying error: a digit dropped from the sale price. Grossly outlying and should be caught by any method."
+    },
+    {
+      "obs_id": "MKT-015_D030",
+      "market_id": "MKT-015",
+      "city": "Chennai",
+      "property_type": "Residential",
+      "mechanism": "bivariate_only",
+      "note": "Each value individually unremarkable (each within ~1.5 s.d.); the COMBINATION of elevated yield with unusually low risk is not. Invisible to any single-variable rule — only a multivariate method can recover these."
+    },
+    {
+      "obs_id": "MKT-020_D029",
+      "market_id": "MKT-020",
+      "city": "Mumbai",
+      "property_type": "Commercial Office",
+      "mechanism": "distressed_sale",
+      "note": "Forced or distressed disposal: price marked down, rent unchanged, so the yield rises to roughly 5-7 s.d. above its market."
+    },
+    {
+      "obs_id": "MKT-020_D051",
+      "market_id": "MKT-020",
+      "city": "Mumbai",
+      "property_type": "Commercial Office",
+      "mechanism": "bivariate_only",
+      "note": "Each value individually unremarkable (each within ~1.5 s.d.); the COMBINATION of elevated yield with unusually low risk is not. Invisible to any single-variable rule — only a multivariate method can recover these."
+    },
+    {
+      "obs_id": "MKT-022_D033",
+      "market_id": "MKT-022",
+      "city": "Delhi NCR",
+      "property_type": "Commercial Office",
+      "mechanism": "data_entry_error",
+      "note": "Keying error: a digit dropped from the sale price. Grossly outlying and should be caught by any method."
+    },
+    {
+      "obs_id": "MKT-023_D017",
+      "market_id": "MKT-023",
+      "city": "Delhi NCR",
+      "property_type": "Commercial Office",
+      "mechanism": "distressed_sale",
+      "note": "Forced or distressed disposal: price marked down, rent unchanged, so the yield rises to roughly 5-7 s.d. above its market."
+    },
+    {
+      "obs_id": "MKT-026_D013",
+      "market_id": "MKT-026",
+      "city": "Bengaluru",
+      "property_type": "Commercial Office",
+      "mechanism": "trophy_asset",
+      "note": "Trophy asset bid above comparables, compressing the yield to roughly 4-5 s.d. below its market."
+    },
+    {
+      "obs_id": "MKT-035_D016",
+      "market_id": "MKT-035",
+      "city": "Chennai",
+      "property_type": "Commercial Office",
+      "mechanism": "distressed_sale",
+      "note": "Forced or distressed disposal: price marked down, rent unchanged, so the yield rises to roughly 5-7 s.d. above its market."
+    },
+    {
+      "obs_id": "MKT-036_D003",
+      "market_id": "MKT-036",
+      "city": "Chennai",
+      "property_type": "Commercial Office",
+      "mechanism": "subtle_mispricing",
+      "note": "Mildly mispriced against comparables — roughly 2.5-3.5 s.d. from its market. Near the detection boundary: the case that separates a sensitive detector from a blunt one."
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+# Runs both test suites on every push and pull request.
+# No dependencies to install — the suites use only the Node standard library.
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Application test suite
+        run: node tests/reit-tests.js
+
+      - name: Data pipeline test suite
+        run: node data-pipeline/tests/dataPipeline.test.js
+
+      - name: Data pipeline is reproducible
+        run: |
+          # Regenerating from the fixed seed must reproduce the committed data
+          # byte for byte. If it does not, either the seed leaked or someone
+          # edited generated output by hand.
+          cp data-pipeline/generated/observations.v2.json /tmp/before.json
+          node data-pipeline/scripts/generateObservations.js > /dev/null
+          diff -q /tmp/before.json data-pipeline/generated/observations.v2.json \
+            && echo "Reproducible: regenerated output is identical" \
+            || (echo "NOT reproducible — generated data differs from committed data" && exit 1)

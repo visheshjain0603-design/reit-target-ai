@@ -1,0 +1,37 @@
+# Publishes the browser application to GitHub Pages.
+#
+# Only public/ is deployed. The Node proxy in server/ is NOT deployed and
+# cannot be: Pages serves static files only. The application detects the
+# missing proxy and falls back to public/data/agent-cache.json, so the
+# published site shows complete agent output, clearly labelled as
+# pre-generated rather than live.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./public
+      - id: deployment
+        uses: actions/deploy-pages@v4

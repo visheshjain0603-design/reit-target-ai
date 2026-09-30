@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Rent Manager">
+  <defs>
+    <linearGradient id="fav-g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#fav-g)"/>
+  <g transform="translate(32 32) scale(0.8) translate(-32 -32)">
+    <g fill="#FFFFFF">
+      <path d="M32 32 L32 10 L50 24 Z"/>
+      <path d="M32 32 L54 32 L40 50 Z" opacity=".55"/>
+      <path d="M32 32 L32 54 L14 40 Z"/>
+      <path d="M32 32 L10 32 L24 14 Z" opacity=".55"/>
+    </g>
+    <circle cx="32" cy="32" r="4.5" fill="#1d4ed8"/>
+  </g>
+</svg>

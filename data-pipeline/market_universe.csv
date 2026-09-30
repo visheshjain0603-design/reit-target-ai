@@ -1,0 +1,51 @@
+market_id,city,locality,property_type,geography_level,locality_class,existing_id,analysis_ready,evidence_ready,confidence_grade,data_as_of,notes
+MKT-001,Mumbai,Bandra Kurla Complex,Commercial Office,Micro-market,Premium,True,True,True,B,,BKC is Mumbai's primary Grade-A office district; REIT-anchor market
+MKT-002,Mumbai,Andheri East (MIDC),Commercial Office,Micro-market,Established,True,True,True,B,,Embassy REIT anchor; major IT/ITES cluster
+MKT-004,Pune,Hinjewadi Phase 1,Commercial Office,Micro-market,Established,True,True,True,B,,JLL Q4 2024 direct locality data
+MKT-005,Pune,Kharadi,Commercial Office,Micro-market,Established,True,True,True,B,,JLL Q4 2024 direct locality data
+MKT-007,Bengaluru,Whitefield,Commercial Office,Micro-market,Established,True,True,True,B,,Knight Frank H1 2025; large established Grade-A market
+MKT-010,Hyderabad,HITEC City,Commercial Office,Micro-market,Established,True,True,True,C,,Mindspace REIT asset-level proxy; not locality median. Confidence C.
+MKT-013,Chennai,Old Mahabalipuram Road (OMR),Commercial Office,Micro-market,Established,True,True,True,B,,CBRE South Asia 2025 direct locality data
+MKT-016,Delhi NCR,Gurugram — Cyber Hub,Commercial Office,Micro-market,Premium,True,True,True,B,,JLL Q4 2024 direct data; prime Gurugram corridor
+MKT-018,Ahmedabad,SG Highway,Commercial Office,Micro-market,Established,True,True,True,C,,City-level estimate from JLL / Colliers Ahmedabad
+MKT-003,Mumbai,Lower Parel,Retail,Micro-market,Premium,True,True,True,B,,Nexus Select REIT asset-level data; high-street + mall
+MKT-009,Bengaluru,Koramangala,Retail,Micro-market,Established,True,True,True,B,,CBRE India direct high-street retail data
+MKT-014,Chennai,T Nagar,Retail,Micro-market,Premium,True,True,True,B,,Knight Frank India; among India's highest-density retail districts
+MKT-017,Delhi NCR,Noida — Sector 18,Retail,Micro-market,Established,True,True,True,C,,JLL / CBRE Noida retail; city-level adjusted estimate
+MKT-006,Pune,Wakad,Residential,Micro-market,Growth,True,True,False,D,,ANAROCK city-level adjustment; limited micro-market data
+MKT-008,Bengaluru,Sarjapur Road,Residential,Micro-market,Growth,True,True,True,C,,ANAROCK Q4 2024 direct locality data
+MKT-011,Hyderabad,Gachibowli,Residential,Micro-market,Established,True,True,True,C,,Knight Frank H1 2025 locality-level residential data
+MKT-012,Hyderabad,Banjara Hills,Residential,Micro-market,Premium,True,True,False,D,,Comparable to Gachibowli with premium adjustment; limited direct data
+MKT-015,Chennai,Velachery,Residential,Micro-market,Established,True,True,True,C,,Knight Frank H1 2025 Chennai residential data
+MKT-019,Mumbai,Navi Mumbai — Mahape,Commercial Office,Micro-market,Growth,False,True,False,D,,Peripheral Mumbai IT cluster; limited direct evidence; city-adjusted estimate
+MKT-020,Mumbai,Thane — Wagle Estate,Commercial Office,Micro-market,Established,False,True,False,D,,Thane office corridor; JLL city-level with locality adjustment
+MKT-021,Mumbai,Malad — Mindspace,Commercial Office,Micro-market,Established,False,True,True,C,,Mindspace REIT Malad asset-level data; proxy for corridor
+MKT-022,Delhi NCR,Gurugram — Golf Course Road,Commercial Office,Micro-market,Premium,False,True,True,C,,JLL / CBRE Gurugram micro-market data; closely matched
+MKT-023,Delhi NCR,Noida — Sector 62,Commercial Office,Micro-market,Growth,False,True,False,D,,Noida IT cluster; city-benchmark adjusted estimate
+MKT-024,Delhi NCR,Aerocity,Commercial Office,Micro-market,Premium,False,True,True,C,,Airport proximity premium; JLL / CBRE Delhi airport zone data
+MKT-025,Delhi NCR,Gurugram — Sector 44,Commercial Office,Micro-market,Established,False,True,False,D,,Secondary Gurugram corridor; city benchmark with locality discount
+MKT-026,Bengaluru,Outer Ring Road,Commercial Office,Micro-market,Premium,False,True,True,B,,Embassy REIT anchor asset (TechVillage); highest-confidence Bengaluru corridor
+MKT-027,Bengaluru,Electronic City Phase 1,Commercial Office,Micro-market,Growth,False,True,False,D,,IT cluster at southern periphery; benchmark-adjusted estimate
+MKT-028,Bengaluru,Hebbal,Commercial Office,Micro-market,Established,False,True,False,D,,Established office node; JLL Bengaluru adjusted estimate
+MKT-029,Bengaluru,Manyata Tech Park,Commercial Office,Micro-market,Established,False,True,True,C,,Embassy REIT Manyata asset-level proxy for Nagawara corridor
+MKT-030,Hyderabad,Financial District,Commercial Office,Micro-market,Established,False,True,False,D,,Adjacent to HITEC City; comparable market estimate
+MKT-031,Hyderabad,Pocharam,Commercial Office,Micro-market,Peripheral,False,True,False,E,,Peripheral emerging IT cluster; primarily synthetic estimate
+MKT-032,Pune,Magarpatta City,Commercial Office,Micro-market,Established,False,True,False,D,,Established IT township; JLL Pune adjusted estimate
+MKT-033,Pune,Viman Nagar,Commercial Office,Micro-market,Established,False,True,False,D,,Mid-tier Pune office corridor near airport; benchmark-adjusted
+MKT-034,Pune,Baner,Commercial Office,Micro-market,Growth,False,True,False,D,,Emerging Pune office node; growth-benchmark estimate
+MKT-035,Chennai,Perungudi,Commercial Office,Micro-market,Established,False,True,True,C,,Contiguous with OMR; CBRE South Asia locality data
+MKT-036,Chennai,Ambattur,Commercial Office,Micro-market,Growth,False,True,False,D,,Industrial-to-IT conversion area; growth benchmark estimate
+MKT-037,Kolkata,Salt Lake Sector V,Commercial Office,Micro-market,Established,False,True,True,C,,Brookfield Candor TechSpace asset-level proxy; Kolkata's primary IT hub
+MKT-038,Ahmedabad,GIFT City,Commercial Office,Micro-market,Growth,False,True,False,D,,Special IFSC zone; premium over SG Highway; limited comparable data
+MKT-039,Delhi NCR,Manesar,Commercial Office,Micro-market,Peripheral,False,True,False,E,,Industrial/peripheral office; primarily synthetic assumption
+MKT-040,Mumbai,Linking Road — Bandra,Retail,Micro-market,Premium,False,True,False,D,,Bandra high-street; comparable to Lower Parel; limited direct micro-data
+MKT-041,Delhi NCR,Connaught Place,Retail,Micro-market,Premium,False,True,True,C,,CP is Delhi's premier high-street; CBRE India data
+MKT-042,Hyderabad,Banjara Hills,Retail,Micro-market,Premium,False,True,False,D,,Hyderabad premium retail street; benchmark-adjusted estimate
+MKT-043,Pune,MG Road / Camp,Retail,Micro-market,Established,False,True,False,D,,Traditional Pune retail district; city benchmark adjusted
+MKT-044,Kolkata,Park Street,Retail,Micro-market,Established,False,True,False,D,,Kolkata's premier retail and F&B street; benchmark-adjusted
+MKT-045,Bengaluru,MG Road / Brigade Road,Retail,Micro-market,Premium,False,True,True,C,,Bengaluru's prime high-street; CBRE India retail data
+MKT-046,Mumbai,Powai,Residential,Micro-market,Established,False,True,True,C,,Knight Frank / ANAROCK Mumbai residential data for Powai
+MKT-047,Delhi NCR,Gurugram — Sohna Road,Residential,Micro-market,Growth,False,True,False,D,,Emerging Gurugram residential corridor; ANAROCK adjusted
+MKT-048,Pune,Undri / Pisoli,Residential,Micro-market,Peripheral,False,True,False,E,,Peripheral Pune residential; primarily synthetic
+MKT-049,Kolkata,New Town (Rajarhat),Residential,Micro-market,Growth,False,True,False,D,,Emerging Kolkata residential township; ANAROCK / JLL adjusted
+MKT-050,Bengaluru,Yelahanka,Residential,Micro-market,Growth,False,True,False,D,,North Bengaluru growth residential node; ANAROCK adjusted

@@ -1,0 +1,99 @@
+{
+  "generator_version": "1.0.0",
+  "generated_at": "2026-09-19",
+  "seed": 20260919,
+  "draws_per_market": 40,
+  "markets_count": 50,
+  "total_observations": 2000,
+  "prng_algorithm": "Mulberry32",
+  "distribution": "Triangular(lower, central, upper) — inverse-CDF method",
+  "isolation_note": "Output files are in data-pipeline/generated/ only. Not connected to application.",
+  "outputs": {
+    "observations_csv": "generated/observations.csv",
+    "observations_json": "generated/observations.json",
+    "generation_log": "generated/generation_log.json"
+  },
+  "observations_by_property_type": {
+    "Commercial Office": 1200,
+    "Retail": 400,
+    "Residential": 400
+  },
+  "observations_by_confidence": {
+    "B": 440,
+    "D": 840,
+    "C": 600,
+    "E": 120
+  },
+  "summary_statistics": {
+    "monthly_rent_psf": {
+      "count": 2000,
+      "mean": 92.3738,
+      "std_dev": 64.4466,
+      "min": 13.15,
+      "max": 338.044
+    },
+    "sale_price_psf": {
+      "count": 2000,
+      "mean": 12211.9018,
+      "std_dev": 6794.0127,
+      "min": 3393.5757,
+      "max": 41794.1265
+    },
+    "rental_growth_pct": {
+      "count": 2000,
+      "mean": 6.6085,
+      "std_dev": 1.7151,
+      "min": 2.1905,
+      "max": 12.8186
+    },
+    "capital_growth_pct": {
+      "count": 2000,
+      "mean": 7.9595,
+      "std_dev": 2.0578,
+      "min": 2.7408,
+      "max": 14.8056
+    },
+    "vacancy_rate_pct": {
+      "count": 0,
+      "mean": null,
+      "std_dev": null,
+      "min": null,
+      "max": null
+    },
+    "occupancy_rate_pct": {
+      "count": 0,
+      "mean": null,
+      "std_dev": null,
+      "min": null,
+      "max": null
+    },
+    "demand_score": {
+      "count": 2000,
+      "mean": 67.3697,
+      "std_dev": 6.9373,
+      "min": 40.0296,
+      "max": 87.745
+    },
+    "risk_score": {
+      "count": 0,
+      "mean": null,
+      "std_dev": null,
+      "min": null,
+      "max": null
+    },
+    "transaction_volume_index": {
+      "count": 0,
+      "mean": null,
+      "std_dev": null,
+      "min": null,
+      "max": null
+    },
+    "gross_yield_pct_derived": {
+      "count": 2000,
+      "mean": 8.8972,
+      "std_dev": 3.1227,
+      "min": 2.4559,
+      "max": 20.0239
+    }
+  }
+}

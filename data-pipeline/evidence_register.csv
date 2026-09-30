@@ -1,0 +1,19 @@
+evidence_id,source_id,market_id,metric,reported_value,unit,evidence_classification,geographic_match,property_type_match,asset_level,observation_date,notes
+EVD-001,SRC-001,MKT-001,monthly_rent_psf,185.0,INR/sqft/month,Reported,Locality,Commercial Office,False,2025-03,BKC office rental mid-range per JLL/Embassy estimates
+EVD-002,SRC-005,MKT-001,sale_price_psf,26500.0,INR/sqft,Reported,Locality,Commercial Office,False,2025-03,BKC Grade-A capital values per JLL Q4 2024
+EVD-003,SRC-005,MKT-001,vacancy_pct,9.5,percent,Reported,Locality,Commercial Office,False,2025-03,BKC vacancy range 8-11% per JLL; central 9.5%
+EVD-004,SRC-001,MKT-002,monthly_rent_psf,98.0,INR/sqft/month,Reported,Locality,Commercial Office,False,2025-03,Andheri East MIDC office rental per Embassy/JLL
+EVD-005,SRC-007,MKT-007,monthly_rent_psf,88.0,INR/sqft/month,Reported,Locality,Commercial Office,False,2025-03,Whitefield Grade-A office rental per Knight Frank H1 2025
+EVD-006,SRC-001,MKT-026,monthly_rent_psf,108.0,INR/sqft/month,Reported,Locality,Commercial Office,False,2025-03,Bengaluru ORR (Embassy TechVillage area) per Embassy AR 2025
+EVD-007,SRC-002,MKT-010,monthly_rent_psf,72.0,INR/sqft/month,Reported,Locality,Commercial Office,True,2025-03,"Mindspace REIT Madhapur asset-level rent; proxy for HITEC City locality. Asset-level, not locality median."
+EVD-008,SRC-002,MKT-010,occupancy_pct,92.0,percent,Reported,Asset,Commercial Office,True,2025-03,Mindspace Madhapur occupancy per Mindspace AR 2025. Asset-level proxy only.
+EVD-009,SRC-003,MKT-037,monthly_rent_psf,48.0,INR/sqft/month,Reported,Locality,Commercial Office,True,2025-03,Brookfield Candor TechSpace Kolkata (Salt Lake V) asset-level rental per Brookfield AR 2025
+EVD-010,SRC-005,MKT-016,monthly_rent_psf,128.0,INR/sqft/month,Reported,Locality,Commercial Office,False,2025-03,Gurugram Cyber City/DLF corridor rental per JLL Q4 2024
+EVD-011,SRC-005,MKT-016,vacancy_pct,8.0,percent,Reported,Locality,Commercial Office,False,2025-03,Gurugram prime corridor vacancy per JLL
+EVD-012,SRC-006,MKT-013,monthly_rent_psf,62.0,INR/sqft/month,Reported,Locality,Commercial Office,False,2025-03,Chennai OMR office rental per CBRE 2025
+EVD-013,SRC-004,MKT-003,monthly_rent_psf,275.0,INR/sqft/month,Reported,Locality,Retail,True,2025-03,Nexus Select palladium-class high-street Lower Parel rental per Nexus AR 2025
+EVD-014,SRC-006,MKT-009,monthly_rent_psf,165.0,INR/sqft/month,Reported,Locality,Retail,False,2025-03,Koramangala high-street retail per CBRE India
+EVD-015,SRC-007,MKT-011,monthly_rent_psf,32.0,INR/sqft/month,Reported,Locality,Residential,False,2025-03,Gachibowli residential rental per Knight Frank H1 2025
+EVD-016,SRC-009,MKT-008,monthly_rent_psf,28.0,INR/sqft/month,Reported,Locality,Residential,False,2025-03,Sarjapur Road residential rental per ANAROCK Q4 2024
+EVD-017,SRC-005,MKT-004,monthly_rent_psf,66.0,INR/sqft/month,Reported,Locality,Commercial Office,False,2025-03,Hinjewadi office rental per JLL Q4 2024
+EVD-018,SRC-005,MKT-005,monthly_rent_psf,68.0,INR/sqft/month,Reported,Locality,Commercial Office,False,2025-03,Kharadi office rental per JLL Q4 2024

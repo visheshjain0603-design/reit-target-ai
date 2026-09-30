@@ -1,0 +1,2962 @@
+{
+  "datasetName": "REIT Target Market Segments \u2014 Semi-Synthetic Academic Dataset (50 Markets)",
+  "dataAsOf": "2026-09-19",
+  "currency": "INR",
+  "areaUnit": "sqft",
+  "isSynthetic": true,
+  "sourceType": "synthetic_academic_placeholder",
+  "disclaimer": "All values are invented for academic demonstration only. They do not represent Magicbricks, NoBroker, PropEquity, or any real market data source. No investment decision should be based on this data.",
+  "markets": [
+    {
+      "marketId": "MKT-001",
+      "city": "Mumbai",
+      "locality": "Bandra Kurla Complex",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 22000,
+      "medianMonthlyRentPerSqFt": 150,
+      "annualRentalGrowthRatio": 0.06,
+      "demandScore": 82,
+      "riskScore": 26,
+      "observationCount": 87,
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "confidenceGrade": "B",
+      "localityClass": "Premium",
+      "dataClassification": "Derived",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 6.07,
+          "central": 8.18,
+          "upper": 12.35,
+          "basis": "Plausible range (\u00b110-12%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 4,
+          "central": 6,
+          "upper": 10,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 65.8,
+          "central": 82,
+          "upper": 84.2,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 21.2,
+          "central": 26,
+          "upper": 30.9,
+          "basis": "Plausible range (\u00b110-12%)"
+        }
+      },
+      "classificationNote": "Locality estimate derived from REIT annual-report disclosures using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-002",
+      "city": "Mumbai",
+      "locality": "Andheri East (MIDC)",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 14000,
+      "medianMonthlyRentPerSqFt": 95,
+      "annualRentalGrowthRatio": 0.05,
+      "demandScore": 75,
+      "riskScore": 34,
+      "observationCount": 64,
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "confidenceGrade": "B",
+      "localityClass": "Established",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.7,
+          "central": 8.14,
+          "upper": 15.3,
+          "basis": "Plausible range (\u00b110-12%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 3,
+          "central": 5,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 57,
+          "central": 75,
+          "upper": 76.6,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 28.2,
+          "central": 34,
+          "upper": 40.5,
+          "basis": "Plausible range (\u00b110-12%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-003",
+      "city": "Mumbai",
+      "locality": "Lower Parel",
+      "propertyType": "Retail",
+      "medianCapitalValuePerSqFt": 25000,
+      "medianMonthlyRentPerSqFt": 175,
+      "annualRentalGrowthRatio": 0.04,
+      "demandScore": 70,
+      "riskScore": 30,
+      "observationCount": 42,
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "confidenceGrade": "C",
+      "localityClass": "Premium",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-003",
+        "SRC-004"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL India Retail Outlook 2024 and CBRE India Retail H2 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 6.11,
+          "central": 8.4,
+          "upper": 24.55,
+          "basis": "Plausible range (\u00b110-12%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 2.5,
+          "central": 4,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 61.1,
+          "central": 70,
+          "upper": 81.9,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 25.8,
+          "central": 30,
+          "upper": 38,
+          "basis": "Plausible range (\u00b110-12%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-004",
+      "city": "Pune",
+      "locality": "Hinjewadi Phase 1",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 9500,
+      "medianMonthlyRentPerSqFt": 70,
+      "annualRentalGrowthRatio": 0.08,
+      "demandScore": 78,
+      "riskScore": 34,
+      "observationCount": 55,
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "confidenceGrade": "B",
+      "localityClass": "Established",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.64,
+          "central": 8.84,
+          "upper": 15.47,
+          "basis": "Plausible range (\u00b110-12%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 3,
+          "central": 8,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 57,
+          "central": 78,
+          "upper": 86,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 28.2,
+          "central": 34,
+          "upper": 40.5,
+          "basis": "Plausible range (\u00b110-12%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-005",
+      "city": "Pune",
+      "locality": "Kharadi",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 8800,
+      "medianMonthlyRentPerSqFt": 65,
+      "annualRentalGrowthRatio": 0.09,
+      "demandScore": 72,
+      "riskScore": 34,
+      "observationCount": 48,
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "confidenceGrade": "C",
+      "localityClass": "Established",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.64,
+          "central": 8.86,
+          "upper": 15.47,
+          "basis": "Plausible range (\u00b110-12%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 3,
+          "central": 9,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 57,
+          "central": 72,
+          "upper": 76.6,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 28.2,
+          "central": 34,
+          "upper": 40.5,
+          "basis": "Plausible range (\u00b110-12%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-006",
+      "city": "Pune",
+      "locality": "Wakad",
+      "propertyType": "Residential",
+      "medianCapitalValuePerSqFt": 7200,
+      "medianMonthlyRentPerSqFt": 32,
+      "annualRentalGrowthRatio": 0.07,
+      "demandScore": 74,
+      "riskScore": 54,
+      "observationCount": 39,
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "confidenceGrade": "C",
+      "localityClass": "Emerging",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-005",
+        "SRC-006"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on Knight Frank India Residential 2024 and ANAROCK Rental Yield Report 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 1.88,
+          "central": 5.33,
+          "upper": 9.38,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 4,
+          "central": 7,
+          "upper": 11.5,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 52.6,
+          "central": 74,
+          "upper": 78.1,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 46,
+          "central": 54,
+          "upper": 63.5,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-007",
+      "city": "Bengaluru",
+      "locality": "Whitefield",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 12000,
+      "medianMonthlyRentPerSqFt": 90,
+      "annualRentalGrowthRatio": 0.07,
+      "demandScore": 85,
+      "riskScore": 34,
+      "observationCount": 76,
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "confidenceGrade": "B",
+      "localityClass": "Established",
+      "dataClassification": "Derived",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.71,
+          "central": 9,
+          "upper": 15.27,
+          "basis": "Plausible range (\u00b110-12%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 3,
+          "central": 7,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 57,
+          "central": 85,
+          "upper": 94,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 28.2,
+          "central": 34,
+          "upper": 40.5,
+          "basis": "Plausible range (\u00b110-12%)"
+        }
+      },
+      "classificationNote": "Locality estimate derived from REIT annual-report disclosures using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-008",
+      "city": "Bengaluru",
+      "locality": "Sarjapur Road",
+      "propertyType": "Residential",
+      "medianCapitalValuePerSqFt": 9500,
+      "medianMonthlyRentPerSqFt": 40,
+      "annualRentalGrowthRatio": 0.08,
+      "demandScore": 76,
+      "riskScore": 54,
+      "observationCount": 52,
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "confidenceGrade": "C",
+      "localityClass": "Emerging",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-005",
+        "SRC-006"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on Knight Frank India Residential 2024 and ANAROCK Rental Yield Report 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 2.16,
+          "central": 5.05,
+          "upper": 8.18,
+          "basis": "Estimation interval (\u00b115-20%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 4,
+          "central": 8,
+          "upper": 11.5,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 52.6,
+          "central": 76,
+          "upper": 78.1,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 46,
+          "central": 54,
+          "upper": 63.5,
+          "basis": "Estimation interval (\u00b115-20%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-009",
+      "city": "Bengaluru",
+      "locality": "Koramangala",
+      "propertyType": "Retail",
+      "medianCapitalValuePerSqFt": 13000,
+      "medianMonthlyRentPerSqFt": 88,
+      "annualRentalGrowthRatio": 0.05,
+      "demandScore": 72,
+      "riskScore": 39,
+      "observationCount": 35,
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "confidenceGrade": "C",
+      "localityClass": "Established",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-003",
+        "SRC-004"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL India Retail Outlook 2024 and CBRE India Retail H2 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 6.19,
+          "central": 8.12,
+          "upper": 24.23,
+          "basis": "Plausible range (\u00b110-12%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 2,
+          "central": 5,
+          "upper": 8.5,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 53.9,
+          "central": 72,
+          "upper": 75.4,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 32.8,
+          "central": 39,
+          "upper": 46.8,
+          "basis": "Plausible range (\u00b110-12%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-010",
+      "city": "Hyderabad",
+      "locality": "HITEC City",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 10500,
+      "medianMonthlyRentPerSqFt": 80,
+      "annualRentalGrowthRatio": 0.1,
+      "demandScore": 80,
+      "riskScore": 34,
+      "observationCount": 61,
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "confidenceGrade": "B",
+      "localityClass": "Established",
+      "dataClassification": "Derived",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.65,
+          "central": 9.14,
+          "upper": 15.45,
+          "basis": "Estimation interval (\u00b115-20%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 3,
+          "central": 10,
+          "upper": 11.5,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 57,
+          "central": 80,
+          "upper": 88,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 28.2,
+          "central": 34,
+          "upper": 40.5,
+          "basis": "Estimation interval (\u00b115-20%)"
+        }
+      },
+      "classificationNote": "Locality estimate derived from REIT annual-report disclosures using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-011",
+      "city": "Hyderabad",
+      "locality": "Gachibowli",
+      "propertyType": "Residential",
+      "medianCapitalValuePerSqFt": 7800,
+      "medianMonthlyRentPerSqFt": 34,
+      "annualRentalGrowthRatio": 0.09,
+      "demandScore": 72,
+      "riskScore": 44,
+      "observationCount": 44,
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "confidenceGrade": "C",
+      "localityClass": "Emerging",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-005",
+        "SRC-006"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on Knight Frank India Residential 2024 and ANAROCK Rental Yield Report 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 1.94,
+          "central": 5.23,
+          "upper": 9.09,
+          "basis": "Estimation interval (\u00b115-20%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 4,
+          "central": 9,
+          "upper": 11,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 58.5,
+          "central": 72,
+          "upper": 81.3,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 37.2,
+          "central": 44,
+          "upper": 51.2,
+          "basis": "Estimation interval (\u00b115-20%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-012",
+      "city": "Hyderabad",
+      "locality": "Banjara Hills",
+      "propertyType": "Residential",
+      "medianCapitalValuePerSqFt": 12000,
+      "medianMonthlyRentPerSqFt": 48,
+      "annualRentalGrowthRatio": 0.06,
+      "demandScore": 68,
+      "riskScore": 36,
+      "observationCount": 31,
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "confidenceGrade": "C",
+      "localityClass": "Premium",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-005",
+        "SRC-006"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on Knight Frank India Residential 2024 and ANAROCK Rental Yield Report 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 1.98,
+          "central": 4.8,
+          "upper": 8.93,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 4,
+          "central": 6,
+          "upper": 12,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 64.6,
+          "central": 68,
+          "upper": 88.9,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 30.2,
+          "central": 36,
+          "upper": 42.5,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-013",
+      "city": "Chennai",
+      "locality": "Old Mahabalipuram Road (OMR)",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 7500,
+      "medianMonthlyRentPerSqFt": 55,
+      "annualRentalGrowthRatio": 0.07,
+      "demandScore": 65,
+      "riskScore": 34,
+      "observationCount": 47,
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "confidenceGrade": "C",
+      "localityClass": "Established",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.78,
+          "central": 8.8,
+          "upper": 15.1,
+          "basis": "Plausible range (\u00b110-12%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 3,
+          "central": 7,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 57,
+          "central": 65,
+          "upper": 76.6,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 28.2,
+          "central": 34,
+          "upper": 40.5,
+          "basis": "Plausible range (\u00b110-12%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-014",
+      "city": "Chennai",
+      "locality": "T Nagar",
+      "propertyType": "Retail",
+      "medianCapitalValuePerSqFt": 11000,
+      "medianMonthlyRentPerSqFt": 72,
+      "annualRentalGrowthRatio": 0.04,
+      "demandScore": 68,
+      "riskScore": 30,
+      "observationCount": 38,
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "confidenceGrade": "C",
+      "localityClass": "Established",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-003",
+        "SRC-004"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL India Retail Outlook 2024 and CBRE India Retail H2 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 6.4,
+          "central": 7.85,
+          "upper": 23.44,
+          "basis": "Plausible range (\u00b110-12%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 2.5,
+          "central": 4,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 61.1,
+          "central": 68,
+          "upper": 81.9,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 25.8,
+          "central": 30,
+          "upper": 38,
+          "basis": "Plausible range (\u00b110-12%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-015",
+      "city": "Chennai",
+      "locality": "Velachery",
+      "propertyType": "Residential",
+      "medianCapitalValuePerSqFt": 5500,
+      "medianMonthlyRentPerSqFt": 24,
+      "annualRentalGrowthRatio": 0.07,
+      "demandScore": 62,
+      "riskScore": 44,
+      "observationCount": 33,
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "confidenceGrade": "D",
+      "localityClass": "Established",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-005",
+        "SRC-006"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on Knight Frank India Residential 2024 and ANAROCK Rental Yield Report 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 1.99,
+          "central": 5.24,
+          "upper": 8.89,
+          "basis": "Estimation interval (\u00b115-20%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 4,
+          "central": 7,
+          "upper": 11,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 58.5,
+          "central": 62,
+          "upper": 81.3,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 37.2,
+          "central": 44,
+          "upper": 51.2,
+          "basis": "Estimation interval (\u00b115-20%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-016",
+      "city": "Delhi NCR",
+      "locality": "Gurugram \u2014 Cyber Hub",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 15000,
+      "medianMonthlyRentPerSqFt": 110,
+      "annualRentalGrowthRatio": 0.06,
+      "demandScore": 79,
+      "riskScore": 26,
+      "observationCount": 70,
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "confidenceGrade": "B",
+      "localityClass": "Premium",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.43,
+          "central": 8.8,
+          "upper": 13.81,
+          "basis": "Plausible range (\u00b110-12%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 4,
+          "central": 6,
+          "upper": 10,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 65.8,
+          "central": 79,
+          "upper": 84.2,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 21.2,
+          "central": 26,
+          "upper": 30.9,
+          "basis": "Plausible range (\u00b110-12%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-017",
+      "city": "Delhi NCR",
+      "locality": "Noida \u2014 Sector 62",
+      "propertyType": "Retail",
+      "medianCapitalValuePerSqFt": 8500,
+      "medianMonthlyRentPerSqFt": 58,
+      "annualRentalGrowthRatio": 0.06,
+      "demandScore": 65,
+      "riskScore": 39,
+      "observationCount": 29,
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "confidenceGrade": "C",
+      "localityClass": "Emerging",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-003",
+        "SRC-004"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL India Retail Outlook 2024 and CBRE India Retail H2 2024. Seed 20260919.",
+      "comparabilityWarning": "Locality name 'Noida \u2014 Sector 62' also used by MKT-023 (Commercial Office). Property types differ; scores not directly comparable.",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 6.25,
+          "central": 8.19,
+          "upper": 24,
+          "basis": "Estimation interval (\u00b115-20%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 2,
+          "central": 6,
+          "upper": 8.5,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 53.9,
+          "central": 65,
+          "upper": 75.4,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 32.8,
+          "central": 39,
+          "upper": 46.8,
+          "basis": "Estimation interval (\u00b115-20%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-018",
+      "city": "Ahmedabad",
+      "locality": "SG Highway",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 6000,
+      "medianMonthlyRentPerSqFt": 42,
+      "annualRentalGrowthRatio": 0.09,
+      "demandScore": 60,
+      "riskScore": 34,
+      "observationCount": 25,
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "confidenceGrade": "C",
+      "localityClass": "Established",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.24,
+          "central": 8.4,
+          "upper": 16.67,
+          "basis": "Estimation interval (\u00b115-20%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 3,
+          "central": 9,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 57,
+          "central": 60,
+          "upper": 76.6,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 28.2,
+          "central": 34,
+          "upper": 40.5,
+          "basis": "Estimation interval (\u00b115-20%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-019",
+      "city": "Mumbai",
+      "locality": "Navi Mumbai \u2014 Mahape",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 7820,
+      "medianMonthlyRentPerSqFt": 68,
+      "annualRentalGrowthRatio": 0.08,
+      "demandScore": 64.4,
+      "riskScore": 49,
+      "observationCount": 40,
+      "confidenceGrade": "D",
+      "localityClass": "Growth",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_synthetic",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.96,
+          "central": 10.43,
+          "upper": 18.83,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 4,
+          "central": 8,
+          "upper": 13,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 49.8,
+          "central": 64.4,
+          "upper": 80,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 40.5,
+          "central": 49,
+          "upper": 60.6,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-020",
+      "city": "Mumbai",
+      "locality": "Thane \u2014 Wagle Estate",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 11700,
+      "medianMonthlyRentPerSqFt": 90,
+      "annualRentalGrowthRatio": 0.06,
+      "demandScore": 67.2,
+      "riskScore": 34,
+      "observationCount": 40,
+      "confidenceGrade": "D",
+      "localityClass": "Established",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_synthetic",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.7,
+          "central": 9.23,
+          "upper": 15.3,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 3,
+          "central": 6,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 57,
+          "central": 67.2,
+          "upper": 76.6,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 28.2,
+          "central": 34,
+          "upper": 40.5,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-021",
+      "city": "Mumbai",
+      "locality": "Malad \u2014 Mindspace",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 13650,
+      "medianMonthlyRentPerSqFt": 105,
+      "annualRentalGrowthRatio": 0.06,
+      "demandScore": 67.2,
+      "riskScore": 34,
+      "observationCount": 40,
+      "confidenceGrade": "C",
+      "localityClass": "Established",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_tier3",
+      "dataClassification": "Derived",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.7,
+          "central": 9.23,
+          "upper": 15.3,
+          "basis": "Estimation interval (\u00b115-20%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 3,
+          "central": 6,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 57,
+          "central": 67.2,
+          "upper": 76.6,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 28.2,
+          "central": 34,
+          "upper": 40.5,
+          "basis": "Estimation interval (\u00b115-20%)"
+        }
+      },
+      "classificationNote": "Locality estimate derived from REIT annual-report disclosures using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-022",
+      "city": "Delhi NCR",
+      "locality": "Gurugram \u2014 Golf Course Road",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 17500,
+      "medianMonthlyRentPerSqFt": 125,
+      "annualRentalGrowthRatio": 0.07,
+      "demandScore": 75.2,
+      "riskScore": 26,
+      "observationCount": 40,
+      "confidenceGrade": "C",
+      "localityClass": "Premium",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_tier3",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.43,
+          "central": 8.57,
+          "upper": 13.81,
+          "basis": "Estimation interval (\u00b115-20%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 4,
+          "central": 7,
+          "upper": 10,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 65.8,
+          "central": 75.2,
+          "upper": 84.2,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 21.2,
+          "central": 26,
+          "upper": 30.9,
+          "basis": "Estimation interval (\u00b115-20%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-023",
+      "city": "Delhi NCR",
+      "locality": "Noida \u2014 Sector 62",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 6900,
+      "medianMonthlyRentPerSqFt": 60,
+      "annualRentalGrowthRatio": 0.08,
+      "demandScore": 64.4,
+      "riskScore": 49,
+      "observationCount": 40,
+      "confidenceGrade": "D",
+      "localityClass": "Growth",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_synthetic",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "Locality name 'Noida \u2014 Sector 62' also used by MKT-017 (Retail). Property types differ; scores not directly comparable.",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.93,
+          "central": 10.43,
+          "upper": 18.95,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 4,
+          "central": 8,
+          "upper": 13,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 49.8,
+          "central": 64.4,
+          "upper": 80,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 40.5,
+          "central": 49,
+          "upper": 60.6,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-024",
+      "city": "Delhi NCR",
+      "locality": "Aerocity",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 18900,
+      "medianMonthlyRentPerSqFt": 135,
+      "annualRentalGrowthRatio": 0.07,
+      "demandScore": 75.2,
+      "riskScore": 26,
+      "observationCount": 40,
+      "confidenceGrade": "C",
+      "localityClass": "Premium",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_tier3",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.43,
+          "central": 8.57,
+          "upper": 13.81,
+          "basis": "Estimation interval (\u00b115-20%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 4,
+          "central": 7,
+          "upper": 10,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 65.8,
+          "central": 75.2,
+          "upper": 84.2,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 21.2,
+          "central": 26,
+          "upper": 30.9,
+          "basis": "Estimation interval (\u00b115-20%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-025",
+      "city": "Delhi NCR",
+      "locality": "Gurugram \u2014 Sector 44",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 11440,
+      "medianMonthlyRentPerSqFt": 88,
+      "annualRentalGrowthRatio": 0.06,
+      "demandScore": 67.2,
+      "riskScore": 34,
+      "observationCount": 40,
+      "confidenceGrade": "D",
+      "localityClass": "Established",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_synthetic",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.49,
+          "central": 9.23,
+          "upper": 15.91,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 3,
+          "central": 6,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 57,
+          "central": 67.2,
+          "upper": 76.6,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 28.2,
+          "central": 34,
+          "upper": 40.5,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-026",
+      "city": "Bengaluru",
+      "locality": "Outer Ring Road",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 15120,
+      "medianMonthlyRentPerSqFt": 108,
+      "annualRentalGrowthRatio": 0.07,
+      "demandScore": 75.2,
+      "riskScore": 26,
+      "observationCount": 40,
+      "confidenceGrade": "B",
+      "localityClass": "Premium",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "reported_tier1",
+      "dataClassification": "Derived",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.52,
+          "central": 8.57,
+          "upper": 13.59,
+          "basis": "Plausible range (\u00b110-12%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 4,
+          "central": 7,
+          "upper": 10,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 65.8,
+          "central": 75.2,
+          "upper": 84.2,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 21.2,
+          "central": 26,
+          "upper": 30.9,
+          "basis": "Plausible range (\u00b110-12%)"
+        }
+      },
+      "classificationNote": "Locality estimate derived from REIT annual-report disclosures using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-027",
+      "city": "Bengaluru",
+      "locality": "Electronic City Phase 1",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 8050,
+      "medianMonthlyRentPerSqFt": 70,
+      "annualRentalGrowthRatio": 0.08,
+      "demandScore": 64.4,
+      "riskScore": 49,
+      "observationCount": 40,
+      "confidenceGrade": "D",
+      "localityClass": "Growth",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_synthetic",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 6.29,
+          "central": 10.43,
+          "upper": 17.86,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 4,
+          "central": 8,
+          "upper": 13,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 49.8,
+          "central": 64.4,
+          "upper": 80,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 40.5,
+          "central": 49,
+          "upper": 60.6,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-028",
+      "city": "Bengaluru",
+      "locality": "Hebbal",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 10660,
+      "medianMonthlyRentPerSqFt": 82,
+      "annualRentalGrowthRatio": 0.06,
+      "demandScore": 67.2,
+      "riskScore": 34,
+      "observationCount": 40,
+      "confidenceGrade": "D",
+      "localityClass": "Established",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_synthetic",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.71,
+          "central": 9.23,
+          "upper": 15.27,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 3,
+          "central": 6,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 57,
+          "central": 67.2,
+          "upper": 76.6,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 28.2,
+          "central": 34,
+          "upper": 40.5,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-029",
+      "city": "Bengaluru",
+      "locality": "Manyata Tech Park",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 12650,
+      "medianMonthlyRentPerSqFt": 92,
+      "annualRentalGrowthRatio": 0.06,
+      "demandScore": 67.2,
+      "riskScore": 34,
+      "observationCount": 40,
+      "confidenceGrade": "C",
+      "localityClass": "Established",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_tier3",
+      "dataClassification": "Derived",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.71,
+          "central": 8.73,
+          "upper": 15.27,
+          "basis": "Estimation interval (\u00b115-20%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 3,
+          "central": 6,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 57,
+          "central": 67.2,
+          "upper": 76.6,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 28.2,
+          "central": 34,
+          "upper": 40.5,
+          "basis": "Estimation interval (\u00b115-20%)"
+        }
+      },
+      "classificationNote": "Locality estimate derived from REIT annual-report disclosures using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-030",
+      "city": "Hyderabad",
+      "locality": "Financial District",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 9360,
+      "medianMonthlyRentPerSqFt": 72,
+      "annualRentalGrowthRatio": 0.06,
+      "demandScore": 67.2,
+      "riskScore": 34,
+      "observationCount": 40,
+      "confidenceGrade": "D",
+      "localityClass": "Established",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_synthetic",
+      "dataClassification": "Derived",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.65,
+          "central": 9.23,
+          "upper": 15.45,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 3,
+          "central": 6,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 57,
+          "central": 67.2,
+          "upper": 76.6,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 28.2,
+          "central": 34,
+          "upper": 40.5,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Locality estimate derived from REIT annual-report disclosures using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-031",
+      "city": "Hyderabad",
+      "locality": "Pocharam",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 4830,
+      "medianMonthlyRentPerSqFt": 42,
+      "annualRentalGrowthRatio": 0.06,
+      "demandScore": 51.5,
+      "riskScore": 62,
+      "observationCount": 40,
+      "confidenceGrade": "E",
+      "localityClass": "Peripheral",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "dataClassification": "Synthetic",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.66,
+          "central": 10.43,
+          "upper": 19.85,
+          "basis": "Uncertainty band (\u00b130-40%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 2.5,
+          "central": 6,
+          "upper": 10,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 37.3,
+          "central": 51.5,
+          "upper": 65.6,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 51,
+          "central": 62,
+          "upper": 70.2,
+          "basis": "Uncertainty band (\u00b130-40%)"
+        }
+      },
+      "classificationNote": "Peripheral micro-market; no independent published rental benchmark. Values are pipeline extrapolations from city-level assumptions."
+    },
+    {
+      "marketId": "MKT-032",
+      "city": "Pune",
+      "locality": "Magarpatta City",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 8840,
+      "medianMonthlyRentPerSqFt": 68,
+      "annualRentalGrowthRatio": 0.06,
+      "demandScore": 67.2,
+      "riskScore": 34,
+      "observationCount": 40,
+      "confidenceGrade": "D",
+      "localityClass": "Established",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_synthetic",
+      "dataClassification": "Derived",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.64,
+          "central": 9.23,
+          "upper": 15.47,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 3,
+          "central": 6,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 57,
+          "central": 67.2,
+          "upper": 76.6,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 28.2,
+          "central": 34,
+          "upper": 40.5,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Locality estimate derived from REIT annual-report disclosures using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-033",
+      "city": "Pune",
+      "locality": "Viman Nagar",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 8190,
+      "medianMonthlyRentPerSqFt": 63,
+      "annualRentalGrowthRatio": 0.06,
+      "demandScore": 67.2,
+      "riskScore": 34,
+      "observationCount": 40,
+      "confidenceGrade": "D",
+      "localityClass": "Established",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_synthetic",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.64,
+          "central": 9.23,
+          "upper": 15.47,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 3,
+          "central": 6,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 57,
+          "central": 67.2,
+          "upper": 76.6,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 28.2,
+          "central": 34,
+          "upper": 40.5,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-034",
+      "city": "Pune",
+      "locality": "Baner",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 6325,
+      "medianMonthlyRentPerSqFt": 55,
+      "annualRentalGrowthRatio": 0.08,
+      "demandScore": 64.4,
+      "riskScore": 49,
+      "observationCount": 40,
+      "confidenceGrade": "D",
+      "localityClass": "Growth",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_synthetic",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.93,
+          "central": 10.43,
+          "upper": 18.95,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 4,
+          "central": 8,
+          "upper": 13,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 49.8,
+          "central": 64.4,
+          "upper": 80,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 40.5,
+          "central": 49,
+          "upper": 60.6,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-035",
+      "city": "Chennai",
+      "locality": "Perungudi",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 8060,
+      "medianMonthlyRentPerSqFt": 62,
+      "annualRentalGrowthRatio": 0.06,
+      "demandScore": 67.2,
+      "riskScore": 34,
+      "observationCount": 40,
+      "confidenceGrade": "C",
+      "localityClass": "Established",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_tier3",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.78,
+          "central": 9.23,
+          "upper": 15.1,
+          "basis": "Estimation interval (\u00b115-20%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 3,
+          "central": 6,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 57,
+          "central": 67.2,
+          "upper": 76.6,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 28.2,
+          "central": 34,
+          "upper": 40.5,
+          "basis": "Estimation interval (\u00b115-20%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-036",
+      "city": "Chennai",
+      "locality": "Ambattur",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 5760,
+      "medianMonthlyRentPerSqFt": 48,
+      "annualRentalGrowthRatio": 0.08,
+      "demandScore": 64.4,
+      "riskScore": 49,
+      "observationCount": 40,
+      "confidenceGrade": "D",
+      "localityClass": "Growth",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_synthetic",
+      "dataClassification": "Synthetic",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.66,
+          "central": 10,
+          "upper": 19.85,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 4,
+          "central": 8,
+          "upper": 13,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 49.8,
+          "central": 64.4,
+          "upper": 80,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 40.5,
+          "central": 49,
+          "upper": 60.6,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Peripheral micro-market; no independent published rental benchmark. Values are pipeline extrapolations from city-level assumptions."
+    },
+    {
+      "marketId": "MKT-037",
+      "city": "Kolkata",
+      "locality": "Salt Lake Sector V",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 6240,
+      "medianMonthlyRentPerSqFt": 48,
+      "annualRentalGrowthRatio": 0.06,
+      "demandScore": 67.2,
+      "riskScore": 34,
+      "observationCount": 40,
+      "confidenceGrade": "C",
+      "localityClass": "Established",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_tier3",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.24,
+          "central": 9.23,
+          "upper": 16.65,
+          "basis": "Estimation interval (\u00b115-20%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 3,
+          "central": 6,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 57,
+          "central": 67.2,
+          "upper": 76.6,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 28.2,
+          "central": 34,
+          "upper": 40.5,
+          "basis": "Estimation interval (\u00b115-20%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-038",
+      "city": "Ahmedabad",
+      "locality": "GIFT City",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 5980,
+      "medianMonthlyRentPerSqFt": 52,
+      "annualRentalGrowthRatio": 0.08,
+      "demandScore": 64.4,
+      "riskScore": 49,
+      "observationCount": 40,
+      "confidenceGrade": "D",
+      "localityClass": "Growth",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_synthetic",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 6.02,
+          "central": 10.43,
+          "upper": 18.65,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 4,
+          "central": 8,
+          "upper": 13,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 49.8,
+          "central": 64.4,
+          "upper": 80,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 40.5,
+          "central": 49,
+          "upper": 60.6,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-039",
+      "city": "Delhi NCR",
+      "locality": "Manesar",
+      "propertyType": "Commercial Office",
+      "medianCapitalValuePerSqFt": 4830,
+      "medianMonthlyRentPerSqFt": 42,
+      "annualRentalGrowthRatio": 0.06,
+      "demandScore": 51.5,
+      "riskScore": 62,
+      "observationCount": 40,
+      "confidenceGrade": "E",
+      "localityClass": "Peripheral",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "dataClassification": "Synthetic",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.47,
+          "central": 10.43,
+          "upper": 20.53,
+          "basis": "Uncertainty band (\u00b130-40%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 2.5,
+          "central": 6,
+          "upper": 10,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 37.3,
+          "central": 51.5,
+          "upper": 65.6,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 51,
+          "central": 62,
+          "upper": 70.2,
+          "basis": "Uncertainty band (\u00b130-40%)"
+        }
+      },
+      "classificationNote": "Peripheral micro-market; no independent published rental benchmark. Values are pipeline extrapolations from city-level assumptions."
+    },
+    {
+      "marketId": "MKT-040",
+      "city": "Mumbai",
+      "locality": "Linking Road \u2014 Bandra",
+      "propertyType": "Retail",
+      "medianCapitalValuePerSqFt": 28000,
+      "medianMonthlyRentPerSqFt": 175,
+      "annualRentalGrowthRatio": 0.055,
+      "demandScore": 71.7,
+      "riskScore": 30,
+      "observationCount": 40,
+      "confidenceGrade": "D",
+      "localityClass": "Premium",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_synthetic",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-003",
+        "SRC-004"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL India Retail Outlook 2024 and CBRE India Retail H2 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 6.11,
+          "central": 7.5,
+          "upper": 24.55,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 2.5,
+          "central": 5.5,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 61.1,
+          "central": 71.7,
+          "upper": 81.9,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 25.8,
+          "central": 30,
+          "upper": 38,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-041",
+      "city": "Delhi NCR",
+      "locality": "Connaught Place",
+      "propertyType": "Retail",
+      "medianCapitalValuePerSqFt": 21000,
+      "medianMonthlyRentPerSqFt": 123,
+      "annualRentalGrowthRatio": 0.055,
+      "demandScore": 71.7,
+      "riskScore": 30,
+      "observationCount": 40,
+      "confidenceGrade": "C",
+      "localityClass": "Premium",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_tier3",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-003",
+        "SRC-004"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL India Retail Outlook 2024 and CBRE India Retail H2 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 6.35,
+          "central": 7.03,
+          "upper": 23.64,
+          "basis": "Estimation interval (\u00b115-20%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 2.5,
+          "central": 5.5,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 61.1,
+          "central": 71.7,
+          "upper": 81.9,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 25.8,
+          "central": 30,
+          "upper": 38,
+          "basis": "Estimation interval (\u00b115-20%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-042",
+      "city": "Hyderabad",
+      "locality": "Banjara Hills",
+      "propertyType": "Retail",
+      "medianCapitalValuePerSqFt": 14500,
+      "medianMonthlyRentPerSqFt": 97,
+      "annualRentalGrowthRatio": 0.055,
+      "demandScore": 71.7,
+      "riskScore": 30,
+      "observationCount": 40,
+      "confidenceGrade": "D",
+      "localityClass": "Premium",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_synthetic",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-003",
+        "SRC-004"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL India Retail Outlook 2024 and CBRE India Retail H2 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.95,
+          "central": 8.03,
+          "upper": 25.23,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 2.5,
+          "central": 5.5,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 61.1,
+          "central": 71.7,
+          "upper": 81.9,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 25.8,
+          "central": 30,
+          "upper": 38,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-043",
+      "city": "Pune",
+      "locality": "MG Road / Camp",
+      "propertyType": "Retail",
+      "medianCapitalValuePerSqFt": 12000,
+      "medianMonthlyRentPerSqFt": 78,
+      "annualRentalGrowthRatio": 0.05,
+      "demandScore": 64.5,
+      "riskScore": 39,
+      "observationCount": 40,
+      "confidenceGrade": "D",
+      "localityClass": "Established",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_synthetic",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-003",
+        "SRC-004"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL India Retail Outlook 2024 and CBRE India Retail H2 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 6,
+          "central": 7.8,
+          "upper": 25,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 2,
+          "central": 5,
+          "upper": 8.5,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 53.9,
+          "central": 64.5,
+          "upper": 75.4,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 32.8,
+          "central": 39,
+          "upper": 46.8,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-044",
+      "city": "Kolkata",
+      "locality": "Park Street",
+      "propertyType": "Retail",
+      "medianCapitalValuePerSqFt": 11500,
+      "medianMonthlyRentPerSqFt": 79,
+      "annualRentalGrowthRatio": 0.05,
+      "demandScore": 64.5,
+      "riskScore": 39,
+      "observationCount": 40,
+      "confidenceGrade": "D",
+      "localityClass": "Established",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_synthetic",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-003",
+        "SRC-004"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL India Retail Outlook 2024 and CBRE India Retail H2 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 5.86,
+          "central": 8.24,
+          "upper": 25.59,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 2,
+          "central": 5,
+          "upper": 8.5,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 53.9,
+          "central": 64.5,
+          "upper": 75.4,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 32.8,
+          "central": 39,
+          "upper": 46.8,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-045",
+      "city": "Bengaluru",
+      "locality": "MG Road / Brigade Road",
+      "propertyType": "Retail",
+      "medianCapitalValuePerSqFt": 18500,
+      "medianMonthlyRentPerSqFt": 116,
+      "annualRentalGrowthRatio": 0.055,
+      "demandScore": 71.7,
+      "riskScore": 30,
+      "observationCount": 40,
+      "confidenceGrade": "C",
+      "localityClass": "Premium",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_tier3",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-003",
+        "SRC-004"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL India Retail Outlook 2024 and CBRE India Retail H2 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 6.04,
+          "central": 7.52,
+          "upper": 24.83,
+          "basis": "Estimation interval (\u00b115-20%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 2.5,
+          "central": 5.5,
+          "upper": 9,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 61.1,
+          "central": 71.7,
+          "upper": 81.9,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 25.8,
+          "central": 30,
+          "upper": 38,
+          "basis": "Estimation interval (\u00b115-20%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-046",
+      "city": "Mumbai",
+      "locality": "Powai",
+      "propertyType": "Residential",
+      "medianCapitalValuePerSqFt": 20160,
+      "medianMonthlyRentPerSqFt": 47,
+      "annualRentalGrowthRatio": 0.07,
+      "demandScore": 68.7,
+      "riskScore": 44,
+      "observationCount": 40,
+      "confidenceGrade": "C",
+      "localityClass": "Established",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_tier3",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-005",
+        "SRC-006"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on Knight Frank India Residential 2024 and ANAROCK Rental Yield Report 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 2.27,
+          "central": 2.8,
+          "upper": 7.76,
+          "basis": "Estimation interval (\u00b115-20%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 4,
+          "central": 7,
+          "upper": 11,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 58.5,
+          "central": 68.7,
+          "upper": 81.3,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 37.2,
+          "central": 44,
+          "upper": 51.2,
+          "basis": "Estimation interval (\u00b115-20%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-047",
+      "city": "Delhi NCR",
+      "locality": "Gurugram \u2014 Sohna Road",
+      "propertyType": "Residential",
+      "medianCapitalValuePerSqFt": 8960,
+      "medianMonthlyRentPerSqFt": 27,
+      "annualRentalGrowthRatio": 0.075,
+      "demandScore": 65.2,
+      "riskScore": 54,
+      "observationCount": 40,
+      "confidenceGrade": "D",
+      "localityClass": "Growth",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_synthetic",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-005",
+        "SRC-006"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on Knight Frank India Residential 2024 and ANAROCK Rental Yield Report 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 2.02,
+          "central": 3.62,
+          "upper": 8.75,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 4,
+          "central": 7.5,
+          "upper": 11.5,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 52.6,
+          "central": 65.2,
+          "upper": 78.1,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 46,
+          "central": 54,
+          "upper": 63.5,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-048",
+      "city": "Pune",
+      "locality": "Undri / Pisoli",
+      "propertyType": "Residential",
+      "medianCapitalValuePerSqFt": 4480,
+      "medianMonthlyRentPerSqFt": 18,
+      "annualRentalGrowthRatio": 0.06,
+      "demandScore": 53.9,
+      "riskScore": 65,
+      "observationCount": 40,
+      "confidenceGrade": "E",
+      "localityClass": "Peripheral",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "synthetic_academic_placeholder",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-005",
+        "SRC-006"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on Knight Frank India Residential 2024 and ANAROCK Rental Yield Report 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 1.93,
+          "central": 4.82,
+          "upper": 9.17,
+          "basis": "Uncertainty band (\u00b130-40%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 2.5,
+          "central": 6,
+          "upper": 10,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 40.1,
+          "central": 53.9,
+          "upper": 68,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 54.8,
+          "central": 65,
+          "upper": 77.5,
+          "basis": "Uncertainty band (\u00b130-40%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-049",
+      "city": "Kolkata",
+      "locality": "New Town (Rajarhat)",
+      "propertyType": "Residential",
+      "medianCapitalValuePerSqFt": 5040,
+      "medianMonthlyRentPerSqFt": 19,
+      "annualRentalGrowthRatio": 0.075,
+      "demandScore": 65.2,
+      "riskScore": 54,
+      "observationCount": 40,
+      "confidenceGrade": "D",
+      "localityClass": "Growth",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_synthetic",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-005",
+        "SRC-006"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on Knight Frank India Residential 2024 and ANAROCK Rental Yield Report 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 1.91,
+          "central": 4.52,
+          "upper": 9.23,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 4,
+          "central": 7.5,
+          "upper": 11.5,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 52.6,
+          "central": 65.2,
+          "upper": 78.1,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 46,
+          "central": 54,
+          "upper": 63.5,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    },
+    {
+      "marketId": "MKT-050",
+      "city": "Bengaluru",
+      "locality": "Yelahanka",
+      "propertyType": "Residential",
+      "medianCapitalValuePerSqFt": 7840,
+      "medianMonthlyRentPerSqFt": 26,
+      "annualRentalGrowthRatio": 0.075,
+      "demandScore": 65.2,
+      "riskScore": 54,
+      "observationCount": 40,
+      "confidenceGrade": "D",
+      "localityClass": "Growth",
+      "dataAsOf": "2026-09-19",
+      "isSynthetic": true,
+      "sourceType": "estimated_synthetic",
+      "dataClassification": "Estimated",
+      "isSemiSynthetic": false,
+      "sourceIds": [
+        "SRC-005",
+        "SRC-006"
+      ],
+      "assumptionIds": [
+        "ASM-044",
+        "ASM-045",
+        "ASM-046",
+        "ASM-047",
+        "ASM-048"
+      ],
+      "methodologyNote": "Market estimates derived from triangular distributions parameterised on Knight Frank India Residential 2024 and ANAROCK Rental Yield Report 2024. Seed 20260919.",
+      "comparabilityWarning": "None",
+      "uncertainty": {
+        "grossYieldPct": {
+          "lower": 2.16,
+          "central": 3.98,
+          "upper": 8.18,
+          "basis": "Estimation interval (\u00b120-30%)"
+        },
+        "rentalGrowthPct": {
+          "lower": 4,
+          "central": 7.5,
+          "upper": 11.5,
+          "basis": "Plausible range (\u00b120%)"
+        },
+        "demandScore": {
+          "lower": 52.6,
+          "central": 65.2,
+          "upper": 78.1,
+          "basis": "Plausible range (\u00b110%)"
+        },
+        "riskScore": {
+          "lower": 46,
+          "central": 54,
+          "upper": 63.5,
+          "basis": "Estimation interval (\u00b120-30%)"
+        }
+      },
+      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier."
+    }
+  ],
+  "totalMarkets": 50
+}

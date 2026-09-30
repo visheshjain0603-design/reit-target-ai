@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en" id="html-root">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <title>REIT Target AI — Academic Demo</title>
+  <meta name="description" content="Academic demo using synthetic portfolio data only. Not connected to any live database.">
+
+  <!-- Icons (all files exist from Step 1) -->
+  <link rel="icon" type="image/svg+xml"  href="favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+  <link rel="apple-touch-icon"           href="icons/apple-touch-icon.png">
+  <link rel="manifest"                   href="manifest.json">
+  <meta name="theme-color" content="#0f4c81">
+
+  <!-- Design system (copied from Rental Manager — visual layer only) -->
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/m-app.css">
+  <link rel="stylesheet" href="css/reit-components.css">
+
+  <!-- REIT-specific layout rules only — no rental-page classes redefined -->
+  <style>
+    /* ── Demo banner ─────────────────────────────────────────── */
+    #demo-banner {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 9999;
+      background: #92400e;
+      color: #fef3c7;
+      text-align: center;
+      padding: 5px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    body { padding-top: 32px; }
+
+    /* ── Progressive enhancement ─────────────────────────────── */
+    /* When JS loads, it adds .js-enabled to <html>.              */
+    /* Without JS: all sections render stacked — fully readable.  */
+    /* With JS: only the active section is shown.                 */
+    .js-enabled .page         { display: none; }
+    .js-enabled .page-active  { display: block; }
+
+    /* ── App chrome ──────────────────────────────────────────── */
+    #app-shell {
+      display: flex;
+      min-height: calc(100vh - 32px);
+    }
+    #sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border-color, #e2e8f0);
+      padding: 16px 0;
+    }
+    .sidebar-logo {
+      padding: 0 20px 16px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--primary, #3b82f6);
+      border-bottom: 1px solid var(--border-color, #e2e8f0);
+      margin-bottom: 12px;
+    }
+    .nav-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .nav-link {
+      display: block;
+      padding: 10px 20px;
+      font-size: 14px;
+      color: var(--text-primary, #1e293b);
+      text-decoration: none;
+      border-left: 3px solid transparent;
+    }
+    .nav-link:hover,
+    .nav-link.nav-active {
+      background: var(--primary-light, #eff6ff);
+      color: var(--primary, #3b82f6);
+      border-left-color: var(--primary, #3b82f6);
+    }
+    #main-content {
+      flex: 1;
+      padding: 28px 32px;
+      overflow-y: auto;
+    }
+    .page-subtitle {
+      font-size: 14px;
+      color: var(--gray-500, #64748b);
+      margin-top: -8px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 767px) {
+      #app-shell  { flex-direction: column; }
+      #sidebar    { width: 100%; border-right: none;
+                    border-bottom: 1px solid var(--border-color, #e2e8f0); }
+      #main-content { padding: 20px 16px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ══════════════════════════════════════════════════════════
+       ACADEMIC DEMO BANNER — fixed, always visible, not dismissible
+       ══════════════════════════════════════════════════════════ -->
+  <div id="demo-banner" role="status">
+    Academic Demo — Synthetic Data Only — Not Connected to Any Live Database
+  </div>
+
+  <!-- No-JS notice shown only when JavaScript is unavailable -->
+  <noscript>
+    <div style="background:#fef3c7;color:#92400e;padding:10px 20px;font-size:13px;border-bottom:1px solid #fcd34d;">
+      JavaScript is disabled. All sections are displayed below in read-only mode.
+    </div>
+  </noscript>
+
+  <!-- ══════════════════════════════════════════════════════════
+       APP SHELL
+       ══════════════════════════════════════════════════════════ -->
+  <div id="app-shell">
+
+    <!-- ── Sidebar navigation ──────────────────────────────── -->
+    <nav id="sidebar" aria-label="Main navigation">
+      <div class="sidebar-logo">REIT Target AI</div>
+      <ul class="nav-list" role="list">
+        <li>
+          <a href="#portfolio"
+             class="nav-link"
+             data-page="portfolio"
+             aria-current="page">
+            Portfolio
+          </a>
+        </li>
+        <li>
+          <a href="#screener"
+             class="nav-link"
+             data-page="screener">
+            Market Screener
+          </a>
+        </li>
+        <li>
+          <a href="#diversification"
+             class="nav-link"
+             data-page="diversification">
+            Diversification
+          </a>
+        </li>
+        <li>
+          <a href="#agents"
+             class="nav-link"
+             data-page="agents">
+            Agent Output
+          </a>
+        </li>
+        <li>
+          <a href="#datacentre"
+             class="nav-link"
+             data-page="datacentre">
+            Data Centre
+          </a>
+        </li>
+        <li>
+          <a href="#statsdash"
+             class="nav-link"
+             data-page="statsdash">
+            Statistics
+          </a>
+        </li>
+        <li>
+          <a href="#report"
+             class="nav-link"
+             data-page="report">
+            Decision Report
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- ── Main content ────────────────────────────────────── -->
+    <main id="main-content">
+
+      <!-- Portfolio ─────────────────────────────────────────── -->
+      <section id="page-portfolio"
+               class="page page-active"
+               aria-labelledby="h-portfolio">
+        <h1 id="h-portfolio">Portfolio Analysis</h1>
+        <p class="page-subtitle">
+          Synthetic REIT holdings — city, asset class, value, yield and
+          occupancy. No real properties, tenants or financial records.
+        </p>
+        <div id="portfolio-content">
+          <!-- Populated by js/portfolio.js -->
+        </div>
+      </section>
+
+      <!-- Market Screener ────────────────────────────────────── -->
+      <section id="page-screener"
+               class="page"
+               aria-labelledby="h-screener">
+        <h1 id="h-screener">Market Screener</h1>
+        <p class="page-subtitle">
+          Target market segments ranked by rental yield, rental growth,
+          diversification benefit, demand strength and market risk.
+        </p>
+        <div id="screener-content">
+          <!-- Populated by js/marketScreen.js -->
+        </div>
+      </section>
+
+      <!-- Diversification ────────────────────────────────────── -->
+      <section id="page-diversification"
+               class="page"
+               aria-labelledby="h-hhi">
+        <h1 id="h-hhi">Diversification (HHI)</h1>
+        <p class="page-subtitle">
+          Herfindahl-Hirschman Index measuring geographic and
+          asset-class concentration in the synthetic portfolio.
+        </p>
+        <div id="hhi-content">
+          <!-- Populated by js/diversification.js -->
+        </div>
+      </section>
+
+      <!-- Agent Output ───────────────────────────────────────── -->
+      <section id="page-agents"
+               class="page"
+               aria-labelledby="h-agents">
+        <h1 id="h-agents">Agent Recommendations</h1>
+        <p class="page-subtitle">
+          Investment Orchestrator · Market Screening · Diversification ·
+          Validation agents. Powered by Gemini API on synthetic data.
+        </p>
+        <div id="agents-content">
+          <!-- Populated by js/agents.js -->
+        </div>
+      </section>
+
+      <!-- Data Centre ────────────────────────────────────────── -->
+      <section id="page-datacentre"
+               class="page"
+               aria-labelledby="h-datacentre">
+        <h1 id="h-datacentre">Data Centre</h1>
+        <p class="page-subtitle">
+          Dataset status, data quality pipeline, provenance and import controls.
+          All data is synthetic — no live feed or external database connection.
+        </p>
+        <div id="datacentre-content">
+          <!-- Populated by js/dataCentre.js -->
+        </div>
+      </section>
+
+      <!-- Decision Report ────────────────────────────────────── -->
+      <section id="page-statsdash"
+               class="page"
+               aria-labelledby="h-statsdash">
+        <h1 id="h-statsdash">Statistical Analysis</h1>
+        <p class="page-subtitle">
+          Consolidated analysis of the full observation-level dataset: distributions,
+          correlation structure, regression fit, outlier-detection performance measured
+          against known ground truth, and sample-size adequacy.
+        </p>
+        <div id="statsdash-content">
+          <!-- Populated by js/statsDashboard.js from data/statistics.json -->
+        </div>
+      </section>
+
+      <section id="page-report"
+               class="page"
+               aria-labelledby="h-report">
+        <h1 id="h-report">Investment Decision Report</h1>
+        <p class="page-subtitle">
+          Printable summary of the full analysis chain: portfolio, screening,
+          diversification, scenario projections and agent recommendations.
+        </p>
+        <div id="report-content">
+          <!-- Populated by js/report.js -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Toast notification container (populated by uiHelpers.js) -->
+  <div id="toast-container"
+       aria-live="polite"
+       aria-atomic="false"></div>
+
+  <!-- ── Scripts (no inline JS anywhere in this file) ───────── -->
+  <!-- Load order: analytics engines first, then page controllers -->
+  <script src="js/istTime.js"></script>
+  <script src="js/uiHelpers.js"></script>
+  <!-- Analytics engines (CommonJS + browser global dual export) -->
+  <script src="js/stateManager.js"></script>
+  <script src="js/hhi.js"></script>
+  <script src="js/scoringEngine.js"></script>
+  <!-- Page controllers (depend on engines above) -->
+  <script src="js/portfolio.js"></script>
+  <script src="js/marketScreen.js"></script>
+  <script src="js/diversification.js"></script>
+  <script src="js/agents.js"></script>
+  <!-- New modules: data pipeline, charts, projections, new pages -->
+  <script src="js/stats.js"></script>
+  <script src="js/dataCleaner.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/projection.js"></script>
+  <script src="js/dataCentre.js"></script>
+  <script src="js/statsDashboard.js"></script>
+  <script src="js/report.js"></script>
+
+</body>
+</html>

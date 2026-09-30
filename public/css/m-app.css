@@ -1,0 +1,354 @@
+/* ============================================================================
+   MOBILE APP  (≤767px)   — Neobank revamp, ported from
+   design_handoff_mobile_app/Mobile Prototype.dc.html (the source of truth).
+   ----------------------------------------------------------------------------
+   This is a SELF-CONTAINED mobile app rendered into #m-app by js/mobileApp.js.
+   On phones it fully takes over the screen and the desktop DOM is hidden; on
+   desktop #m-app is display:none. EVERY selector is scoped under #m-app so none
+   of these class names (.card/.btn/.pill/.nav/.head/.body/.seg/…) can collide
+   with the desktop app's global styles. Desktop is therefore untouched.
+   ========================================================================== */
+
+/* Desktop: the mobile app never shows. */
+#m-app { display: none; }
+
+/* Phones: hide the entire desktop chrome, show the mobile app. */
+@media (max-width: 767px) {
+  #login-screen, #app-layout, .app-topbar, #notif-wrap, .bottom-nav, .hamburger,
+  .toast-container, .bulk-bar { display: none !important; }
+  /* Lock the whole page to the viewport: no document scroll, no rubber-band
+     drag. Only the in-app .body scrolls (vertically). */
+  html, body { overflow: hidden; width: 100%; height: 100%; background: #0c0c0e; overscroll-behavior: none; position: relative; }
+  /* Pin the app to the *visible* viewport (visualViewport top/height, set in
+     mobileApp.js). When the iOS keyboard opens it shrinks the visible area and
+     can pan the page up; tracking it here keeps #m-app exactly over the visible
+     region so bottom sheets/inputs sit right above the keyboard — no blank gap. */
+  #m-app { display: block; position: fixed; top: var(--vvt, 0px); left: var(--vvl, 0px); width: 100%; height: var(--vvh, 100dvh); z-index: 1; }
+}
+
+/* ---- Scoped reset (kills any desktop global leakage into our elements) ---- */
+#m-app, #m-app * { box-sizing: border-box; margin: 0; }
+#m-app button { font-family: inherit; }
+#m-app input, #m-app select { font-family: inherit; }
+
+/* ---- Screen shell (fills the viewport instead of the prototype phone frame) */
+#m-app .scr {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  overflow: hidden; overscroll-behavior: none; background: var(--bg); color: var(--ink);
+  display: flex; flex-direction: column; transition: background .3s ease;
+  font-family: Poppins, system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent; touch-action: pan-y;
+}
+
+#m-app .scr[data-t="light"]{--bg:#f2f3f5;--card:#ffffff;--ink:#111827;--mut:#6B7280;--faint:#9CA3AF;--line:#EAECEF;
+  --brand:#3B82F6;--brand-tint:#EEF4FE;--brand-ink:#2f6fd6;--lime:#c9f158;--lime-ink:#1f3007;
+  --over-bg:#FEECEC;--over-ink:#C0392F;--pend-bg:#FEF4E3;--pend-ink:#B7791F;--up-bg:#F1F2F4;--up-ink:#6B7280;
+  --sent-bg:#EAF1FE;--sent-ink:#2f6fd6;--sh1:rgba(16,24,40,.05);--sh2:rgba(16,24,40,.07);--ghost:#F5F6F8;--navbg:rgba(20,22,30,.95)}
+#m-app .scr[data-t="dark"]{--bg:#0b1120;--card:#151e30;--ink:#f1f5f9;--mut:#8ea0bd;--faint:#5f6f8c;--line:#243149;
+  --brand:#3B82F6;--brand-tint:#17233f;--brand-ink:#93c5fd;--lime:#c9f158;--lime-ink:#14210a;
+  --over-bg:#3a1414;--over-ink:#fca5a5;--pend-bg:#332208;--pend-ink:#fcd34d;--up-bg:#1c273d;--up-ink:#8ea0bd;
+  --sent-bg:#152447;--sent-ink:#93c5fd;--sh1:rgba(0,0,0,.3);--sh2:rgba(0,0,0,.45);--ghost:#1a2338;--navbg:rgba(8,12,22,.9)}
+
+#m-app .body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;padding:calc(env(safe-area-inset-top,0px) + 12px) 18px calc(78px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;scrollbar-width:none}
+#m-app .body::-webkit-scrollbar{display:none}
+/* The entrance animation is applied by the renderer via .is-enter ONLY when
+   you actually arrive at a different screen. It used to sit on .screen
+   itself, and because every state change rebuilds this element from the
+   template, a 0.32s fade-and-rise replayed on EVERY tap — read as a
+   flicker. */
+#m-app .screen{display:flex;flex-direction:column;gap:14px}
+#m-app .screen.is-enter{animation:mScrIn .32s cubic-bezier(.23,1,.32,1)}
+
+#m-app .head{display:flex;align-items:center;justify-content:space-between;flex:none;padding-top:2px}
+#m-app .h-title{font:700 25px/1 Poppins;letter-spacing:-.4px;color:var(--ink)}
+#m-app .h-sub{font:400 12.5px Poppins;color:var(--mut);margin-top:3px}
+#m-app .iconbtn{width:40px;height:40px;border-radius:13px;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--ink);box-shadow:0 1px 2px var(--sh1);position:relative;cursor:pointer;flex:none}
+#m-app .av{border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font:700 14px Poppins;letter-spacing:.2px;flex:none}
+
+#m-app .num{font-family:Montserrat;font-feature-settings:"tnum" 1;letter-spacing:-.2px}
+#m-app .card{background:var(--card);border-radius:22px;padding:16px;box-shadow:0 1px 2px var(--sh1),0 6px 20px -6px var(--sh2)}
+
+#m-app .hero{position:relative;border-radius:26px;padding:20px 20px 18px;overflow:hidden;color:#fff;
+  background:radial-gradient(120% 120% at 85% 0%,#2c2c31 0%,#1c1c20 46%,#141417 100%);box-shadow:0 14px 34px -12px rgba(0,0,0,.5)}
+#m-app .hero-lbl{font:600 10.5px Poppins;letter-spacing:.7px;text-transform:uppercase;color:#a3a3ad}
+#m-app .hero-amt{font:700 37px/1 Montserrat;letter-spacing:-1px;margin-top:9px}
+#m-app .hero-amt.masked{letter-spacing:5px;font-size:30px;color:rgba(255,255,255,.85)}
+#m-app .hero-eye{position:absolute;top:15px;right:15px;z-index:3;width:34px;height:34px;border-radius:11px;border:none;background:rgba(255,255,255,.15);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;transition:transform .12s ease,background .15s ease}
+#m-app .hero-eye:active{transform:scale(.9);background:rgba(255,255,255,.24)}
+#m-app .hero-chip{display:inline-flex;align-items:center;gap:5px;background:var(--lime);color:var(--lime-ink);border-radius:999px;padding:4px 10px;font:600 11px Poppins;margin-top:12px}
+#m-app .hero-track{height:7px;border-radius:4px;background:rgba(255,255,255,.14);margin-top:15px;overflow:hidden}
+#m-app .hero-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#c9f158,#a8e02f);transition:width .5s cubic-bezier(.23,1,.32,1)}
+#m-app .hero-foot{display:flex;justify-content:space-between;align-items:center;margin-top:13px;font:500 12px Poppins;color:#c9c9d2}
+#m-app .hero-foot b{color:#fff;font-weight:600}
+
+#m-app .qas{display:flex;justify-content:space-between}
+#m-app .qa{display:flex;flex-direction:column;align-items:center;gap:7px;font:600 11px Poppins;color:var(--mut);cursor:pointer;background:none;border:none}
+#m-app .qa-ic{width:56px;height:56px;border-radius:18px;background:var(--card);border:1px solid var(--line);color:var(--brand-ink);display:flex;align-items:center;justify-content:center;font-size:22px;position:relative;box-shadow:0 1px 2px var(--sh1);transition:transform .12s ease}
+#m-app .qa:active .qa-ic{transform:scale(.93)}
+#m-app .qa-badge{position:absolute;top:-4px;right:-4px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:var(--brand);color:#fff;font:700 10px Montserrat;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg)}
+
+#m-app .sec-label{display:flex;align-items:center;justify-content:space-between}
+#m-app .sec-label b{font:700 14px Poppins;color:var(--ink)}
+#m-app .sec-label a{font:500 12px Poppins;color:var(--mut);text-decoration:none;cursor:pointer}
+
+#m-app .lrow{display:flex;align-items:center;gap:12px;padding:12px 0;cursor:pointer}
+#m-app .lrow+.lrow{border-top:1px solid var(--line)}
+#m-app .lrow-main{flex:1;min-width:0}
+#m-app .lrow-t{font:600 13.5px Poppins;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#m-app .lrow-s{font:400 11.5px Poppins;color:var(--mut);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#m-app .lrow-amt{font:700 14px Montserrat;color:var(--ink);text-align:right;white-space:nowrap}
+#m-app .lrow-amt.red{color:var(--over-ink)}
+
+#m-app .pill{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:4px 10px;font:600 11px Poppins;white-space:nowrap;line-height:1}
+#m-app .pill i{font-size:11px}
+#m-app .pill.paid{background:var(--lime);color:var(--lime-ink)}
+#m-app .pill.over{background:var(--over-bg);color:var(--over-ink)}
+#m-app .pill.pend{background:var(--pend-bg);color:var(--pend-ink)}
+#m-app .pill.sent{background:var(--sent-bg);color:var(--sent-ink)}
+#m-app .pill.up{background:var(--up-bg);color:var(--up-ink)}
+
+#m-app .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:none;border-radius:14px;font:600 14px Poppins;cursor:pointer;transition:transform .12s ease}
+#m-app .btn:active{transform:scale(.97)}
+#m-app .btn-lg{height:52px;width:100%;font-size:15px}
+#m-app .btn-sm{height:38px;padding:0 18px;font-size:13px;border-radius:12px}
+#m-app .btn-brand{background:var(--brand);color:#fff;box-shadow:0 6px 16px -4px rgba(59,130,246,.5)}
+#m-app .btn-ghost{background:var(--ghost);color:var(--ink)}
+#m-app .btn-out{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+
+#m-app .bill{background:var(--card);border-radius:20px;padding:15px 16px;box-shadow:0 1px 2px var(--sh1),0 6px 18px -8px var(--sh2)}
+#m-app .bill-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+#m-app .bill-name{font:600 14.5px Poppins;color:var(--ink)}
+#m-app .bill-sub{font:400 11.5px Poppins;color:var(--mut);margin-top:2px;display:flex;align-items:center;gap:6px}
+#m-app .bill-amt{font:700 17px Montserrat;color:var(--ink)}
+#m-app .bill-foot{display:flex;justify-content:space-between;align-items:center;margin-top:13px}
+
+#m-app .mstrip{display:flex;justify-content:space-between;align-items:center;background:var(--card);border-radius:16px;padding:11px 14px;box-shadow:0 1px 2px var(--sh1)}
+#m-app .seg{display:flex;gap:5px;background:var(--card);border-radius:13px;padding:4px;box-shadow:0 1px 2px var(--sh1)}
+#m-app .seg button{flex:1;height:34px;border:none;background:transparent;border-radius:10px;font:600 12.5px Poppins;color:var(--mut);cursor:pointer;transition:all .18s ease}
+#m-app .seg button.on{background:var(--brand);color:#fff}
+
+/* ---- Liquid-glass bottom nav (iOS-26 style) --------------------------------
+   A PERSISTENT element that lives outside the re-rendered .scr, so its glass
+   filter and thumb-drag interaction survive every re-render. The refraction /
+   frosted optics come from liquid-glass.js (real refraction on Chromium, a
+   frosted-blur fallback on Safari/Firefox); this file supplies the material
+   dressing (glass tint, rim highlights, drop shadow), the morphing liquid
+   bubble, and the show / shrink motion. Wired in mobileApp.js (createLiquidNav).
+
+   DOCKED BAR: a standard full-width bottom navigation bar pinned to the
+   bottom edge (this replaced a floating glass capsule at the user's
+   request). Icon above label, labels always visible, active item tinted
+   with a short indicator on top. The nav lives OUTSIDE .scr, so it cannot
+   inherit that element's theme vars — it carries its own, keyed off the
+   data-t attribute mobileApp.js stamps on it. */
+#m-app .lg-nav{
+  --nv-bg:#ffffff;--nv-line:#EAECEF;--nv-off:#9CA3AF;--nv-on:#2f6fd6;
+  position:fixed;left:0;right:0;bottom:0;z-index:35;
+  display:flex;padding-bottom:env(safe-area-inset-bottom,0px);
+  background:var(--nv-bg);border-top:1px solid var(--nv-line);
+  box-shadow:0 -8px 24px -16px rgba(0,0,0,.45);
+  transform:translateY(100%);opacity:0;pointer-events:none;
+  transition:transform .34s cubic-bezier(.32,.72,0,1),opacity .24s ease;
+  will-change:transform;touch-action:none;-webkit-user-select:none;user-select:none;
+}
+#m-app .lg-nav[data-t="dark"]{--nv-bg:#151e30;--nv-line:#243149;--nv-off:#5f6f8c;--nv-on:#93c5fd}
+#m-app .lg-nav.show{transform:translateY(0);opacity:1;pointer-events:auto}
+/* A docked bar stays put while the page scrolls — it does not shrink away. */
+#m-app .lg-nav.show.shrunk{transform:translateY(0);opacity:1}
+#m-app .lg-nav-track{position:relative;display:flex;align-items:stretch;width:100%;z-index:1;touch-action:none}
+/* The morphing bubble belonged to the capsule. A docked bar marks the active
+   item with colour plus the top indicator on .lg-tab.on instead. */
+#m-app .lg-bubble{display:none}
+#m-app .lg-tab{
+  position:relative;z-index:1;flex:1 1 0;min-width:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  border:0;background:transparent;cursor:pointer;color:var(--nv-off);
+  font:600 10.5px Poppins;padding:8px 4px 7px;border-radius:0;
+  white-space:nowrap;-webkit-tap-highlight-color:transparent;
+  transition:color .18s ease;touch-action:none;
+}
+#m-app .lg-tab i{font-size:20px;line-height:1;pointer-events:none}
+/* Every label is always visible now (the capsule revealed only the active one). */
+#m-app .lg-tab .lg-lbl{max-width:none;overflow:visible;opacity:1;pointer-events:none;transition:none}
+#m-app .lg-tab.on,#m-app .lg-tab.hot{color:var(--nv-on)}
+#m-app .lg-tab.on::before{
+  content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:26px;height:3px;border-radius:0 0 3px 3px;background:var(--nv-on);
+}
+
+#m-app .trio{display:flex;background:var(--card);border-radius:20px;padding:15px 6px;box-shadow:0 1px 2px var(--sh1),0 6px 18px -8px var(--sh2)}
+#m-app .trio>div{flex:1;min-width:0;text-align:center;padding:0 8px}
+#m-app .trio>div+div{border-left:1px solid var(--line)}
+#m-app .trio-l{font:600 9.5px Poppins;letter-spacing:.4px;text-transform:uppercase;color:var(--faint)}
+#m-app .trio-v{font:700 17px Montserrat;color:var(--ink);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#m-app .trio-v.red{color:var(--over-ink)}
+
+#m-app .scrim{position:absolute;inset:0;background:rgba(6,8,16,.55);z-index:45;animation:mFadeIn .25s ease}
+/* A sheet that was ALREADY open must not replay its opening animation just
+   because something inside it was tapped. */
+#m-app .scrim.no-enter,#m-app .sheet.no-enter{animation:none}
+#m-app .sheet{position:absolute;left:0;right:0;bottom:0;z-index:46;background:var(--card);border-radius:28px 28px 0 0;padding:10px 20px calc(30px + env(safe-area-inset-bottom,0px));overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;max-height:calc(var(--vvh, 100dvh) - 8px);box-sizing:border-box;box-shadow:0 -10px 40px rgba(0,0,0,.3);animation:mSheetUp .32s cubic-bezier(.32,.72,0,1);scrollbar-width:none}
+#m-app .sheet::-webkit-scrollbar{display:none}
+/* Sticky header inside a scrolling sheet so the close (X) is always reachable. */
+#m-app .m-vhead{position:sticky;top:0;z-index:3;background:var(--card);padding-bottom:9px;margin:0 -20px;padding-left:20px;padding-right:20px}
+#m-app .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:6px auto 14px}
+#m-app .fld{margin-top:13px;min-width:0}
+#m-app .fld-l{font:600 11.5px Poppins;color:var(--mut);margin-bottom:6px;display:block}
+#m-app .fld-in{height:50px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);display:flex;align-items:center;padding:0 15px;min-width:0;font:600 16px Montserrat;color:var(--ink)}
+#m-app .modechips{display:flex;gap:8px;flex-wrap:wrap}
+#m-app .mchip{height:38px;padding:0 15px;border-radius:11px;border:1.5px solid var(--line);background:var(--bg);display:flex;align-items:center;font:600 12.5px Poppins;color:var(--mut);cursor:pointer;transition:all .15s ease}
+#m-app .mchip.on{border-color:var(--brand);background:var(--brand-tint);color:var(--brand-ink)}
+#m-app .sheet-note{display:flex;align-items:center;gap:7px;font:600 12px Poppins;color:var(--lime-ink);background:var(--lime);border-radius:12px;padding:9px 12px;margin-top:15px}
+#m-app .scr[data-t="dark"] .sheet-note{color:#dfffa3;background:#2f3d12}
+
+/* Messages WRAP. This was white-space:nowrap with a fixed 310px width and no
+   overflow rule, so any long message (a push error, say) spilled outside the
+   rounded box and off the screen — unreadable exactly when it mattered. */
+#m-app .toast{position:absolute;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#111827;color:#fff;font:600 12.5px Poppins;padding:11px 17px;border-radius:13px;box-shadow:0 10px 26px rgba(0,0,0,.35);z-index:50;animation:mToastIn .25s ease;white-space:normal;overflow-wrap:anywhere;line-height:1.45;text-align:left;max-width:min(330px,calc(100vw - 36px));display:flex;align-items:center;gap:8px}
+#m-app .scr[data-t="dark"] .toast{background:#e2e8f0;color:#0b1120}
+#m-app .toast i{color:var(--lime)}
+
+#m-app .more-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+#m-app .more-tile{background:var(--card);border-radius:18px;padding:15px 6px;display:flex;flex-direction:column;align-items:center;gap:9px;box-shadow:0 1px 2px var(--sh1);border:1px solid var(--line);cursor:pointer;transition:transform .12s ease}
+#m-app .more-tile:active{transform:scale(.95)}
+#m-app .more-tile i{font-size:21px;color:var(--brand-ink)}
+#m-app .more-tile span{font:600 10.5px Poppins;color:var(--ink);text-align:center;line-height:1.2}
+
+#m-app .datechip{width:48px;height:50px;border-radius:14px;background:var(--brand-tint);color:var(--brand-ink);display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none}
+#m-app .datechip .d{font:700 17px Montserrat;line-height:1}
+#m-app .datechip .m{font:600 9px Poppins;text-transform:uppercase;margin-top:2px}
+
+#m-app .empty{text-align:center;padding:44px 20px;display:flex;flex-direction:column;align-items:center;gap:8px}
+#m-app .empty i{font-size:42px;color:var(--lime)}
+#m-app .empty-t{font:700 15px Poppins;color:var(--ink)}
+#m-app .empty-s{font:400 12.5px Poppins;color:var(--mut)}
+
+#m-app .srch{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 14px;color:var(--mut);font:400 13px Poppins;box-shadow:0 1px 2px var(--sh1)}
+
+#m-app .eyebtn{width:36px;height:36px;border-radius:11px;border:1.5px solid var(--line);background:transparent;color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;flex:none;transition:transform .12s ease}
+#m-app .eyebtn:active{transform:scale(.93)}
+#m-app .notif-badge{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#EF4444;color:#fff;font:700 10px Montserrat;display:flex;align-items:center;justify-content:center;border:2px solid var(--card)}
+#m-app .notif-ic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;flex:none}
+#m-app .notif-ic.over{background:var(--over-bg);color:var(--over-ink)} #m-app .notif-ic.pend{background:var(--pend-bg);color:var(--pend-ink)} #m-app .notif-ic.up{background:var(--up-bg);color:var(--up-ink)} #m-app .notif-ic.sent{background:var(--sent-bg);color:var(--sent-ink)}
+#m-app .menu-ic{width:36px;height:36px;border-radius:10px;background:var(--ghost);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:15px;flex:none}
+#m-app .phase{position:absolute;inset:0;z-index:32;overflow:hidden;display:flex;flex-direction:column;animation:mFadeIn .3s ease}
+#m-app .phase-splash{background:linear-gradient(160deg,#3B82F6,#1d4ed8);align-items:center;justify-content:center;gap:14px;color:#fff}
+#m-app .splash-logo{width:78px;height:78px;border-radius:22px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center}
+#m-app .splash-name{font:700 22px Poppins;letter-spacing:-.3px}
+#m-app .splash-tag{font:500 12px Poppins;color:rgba(255,255,255,.82);margin-top:-9px}
+#m-app .splash-spin{width:26px;height:26px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:mSpin .8s linear infinite;margin-top:16px}
+#m-app .phase-login{background:linear-gradient(160deg,#3B82F6,#1d4ed8)}
+/* Logo band — fixed in the top 42%, never moves when the form appears */
+#m-app .phase-login .login-top{position:absolute;top:0;left:0;right:0;height:42%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:15px;padding-top:env(safe-area-inset-top,0px);color:#fff}
+#m-app .markwrap{position:relative;width:82px;height:82px;display:flex;align-items:center;justify-content:center}
+#m-app .m-ring{position:absolute;width:82px;height:82px;border-radius:50%;border:2px solid rgba(255,255,255,.55);opacity:0}
+#m-app .m-mark{width:82px;height:82px}
+#m-app .m-brand{display:flex;flex-direction:column;align-items:center;gap:6px}
+#m-app .m-brand .b-wm{font:700 24px Poppins;letter-spacing:-.6px;color:#fff;line-height:1}
+#m-app .m-brand .b-wm b{color:#bcd6fb;font-weight:700}
+#m-app .m-brand .b-tag{font:500 8.5px Poppins;letter-spacing:3px;color:rgba(255,255,255,.72);text-transform:uppercase}
+/* White form sheet — bottom 60%, slides up */
+#m-app .phase-login .login-form{position:absolute;left:0;right:0;bottom:0;height:60%;background:var(--card);border-radius:28px 28px 0 0;padding:26px 24px calc(26px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:15px;box-shadow:0 -12px 40px rgba(15,23,42,.14)}
+#m-app .phase-login .login-h{font:700 21px Poppins;letter-spacing:-.4px;color:var(--ink)}
+#m-app .phase-login .login-sub{font:400 12.5px Poppins;color:var(--mut);margin-top:4px}
+
+/* ---- Login intro animation — runs once, gated by .login-animate ---- */
+#m-app .login-animate .m-mark{transform-origin:50% 50%;transform-box:fill-box;animation:mMarkIn 1s cubic-bezier(.22,1,.36,1) both}
+#m-app .login-animate .m-mark .blade{opacity:0}
+#m-app .login-animate .m-mark .b1{animation:mBladeF .45s ease-out .15s both}
+#m-app .login-animate .m-mark .b3{animation:mBladeF .45s ease-out .39s both}
+#m-app .login-animate .m-mark .b2{animation:mBladeH .45s ease-out .27s both}
+#m-app .login-animate .m-mark .b4{animation:mBladeH .45s ease-out .51s both}
+#m-app .login-animate .m-mark .dot{opacity:0;transform-origin:50% 50%;transform-box:fill-box;animation:mDot .5s cubic-bezier(.2,.9,.25,1.5) .72s both}
+#m-app .login-animate .m-ring{animation:mRing 1.1s ease-out .3s both}
+#m-app .login-animate .m-brand{opacity:0;animation:mRise .6s cubic-bezier(.22,1,.36,1) 1s both}
+#m-app .login-animate .login-form{transform:translateY(100%);animation:mSheet .75s cubic-bezier(.32,.72,0,1) 1.15s both}
+#m-app .login-animate .fi{opacity:0;animation:mRise .55s cubic-bezier(.22,1,.36,1) both}
+#m-app .login-animate .fi.d1{animation-delay:1.5s}
+#m-app .login-animate .fi.d2{animation-delay:1.62s}
+#m-app .login-animate .fi.d3{animation-delay:1.74s}
+#m-app .login-animate .fi.d4{animation-delay:1.86s}
+#m-app .login-animate .fi.d5{animation-delay:1.98s}
+@media (prefers-reduced-motion:reduce){#m-app .login-animate .m-mark,#m-app .login-animate .m-mark *,#m-app .login-animate .m-brand,#m-app .login-animate .login-form,#m-app .login-animate .fi,#m-app .login-animate .m-ring{animation-duration:.01ms!important;animation-delay:0s!important}}
+#m-app .login-inp{height:52px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);display:flex;align-items:center;gap:10px;padding:0 15px;min-width:0;box-sizing:border-box}
+#m-app .login-inp input{border:none;background:transparent;outline:none;color:var(--ink);font:500 16px Poppins;flex:1;min-width:0}
+#m-app .login-inp i{color:var(--faint);font-size:16px}
+#m-app .login-err{font:500 12.5px Poppins;color:var(--over-ink);background:var(--over-bg);border-radius:10px;padding:9px 12px;display:flex;align-items:center;gap:7px}
+#m-app .stat3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+/* Five financial tiles (Home). Same .stat component as .stat3 — only the
+   container changes: Rent billed spans the row, the other four pair up. */
+#m-app .stat5{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+#m-app .stat5>.stat:first-child{grid-column:1/-1}
+#m-app .stat{background:var(--card);border-radius:18px;padding:13px 11px;box-shadow:0 1px 2px var(--sh1),0 6px 18px -8px var(--sh2)}
+#m-app .stat-ic{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;margin-bottom:9px}
+#m-app .stat-ic.lime{background:var(--lime);color:var(--lime-ink)} #m-app .stat-ic.amber{background:var(--pend-bg);color:var(--pend-ink)} #m-app .stat-ic.red{background:var(--over-bg);color:var(--over-ink)}
+#m-app .stat-ic.brand{background:var(--brand-tint);color:var(--brand-ink)} #m-app .stat-ic.slate{background:var(--up-bg);color:var(--up-ink)}
+#m-app .stat-v{font:700 13.5px Montserrat;color:var(--ink);letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#m-app .stat-l{font:500 10.5px Poppins;color:var(--mut);margin-top:2px}
+#m-app .push{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);left:10px;right:10px;z-index:48;background:var(--card);border-radius:18px;padding:11px 12px;display:flex;align-items:center;gap:11px;box-shadow:0 14px 34px -8px rgba(0,0,0,.4),0 0 0 1px rgba(0,0,0,.04);animation:mPushIn .42s cubic-bezier(.23,1,.32,1);cursor:pointer}
+#m-app .push-ic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;flex:none}
+#m-app .push-ic.over{background:var(--over-bg);color:var(--over-ink)}
+#m-app .push-title{font:700 12.5px Poppins;color:var(--ink)}
+#m-app .push-sub{font:400 11px Poppins;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#m-app .push-time{font:500 10px Poppins;color:var(--faint);flex:none;align-self:flex-start}
+#m-app .ae-sel{border:none;background:transparent;outline:none;color:var(--ink);font:500 15px Poppins;flex:1;min-width:0;-webkit-appearance:none;appearance:none;cursor:pointer}
+#m-app .calgrid-h{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
+#m-app .calgrid-h span{text-align:center;font:600 9.5px Poppins;color:var(--faint)}
+#m-app .calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+#m-app .calcell{height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font:600 12px Poppins;color:var(--ink);position:relative;cursor:pointer}
+#m-app .calcell.empty{visibility:hidden;pointer-events:none}
+#m-app .calcell.sel{background:var(--brand);color:#fff}
+#m-app .calcell.today{box-shadow:inset 0 0 0 1.5px var(--brand)}
+#m-app .calcell.sel.today{box-shadow:none}
+#m-app .caldot{width:5px;height:5px;border-radius:50%;position:absolute;bottom:5px}
+#m-app .caldot.paid{background:#4a8a3a}#m-app .caldot.over{background:#EF4444}#m-app .caldot.pend{background:#F59E0B}#m-app .caldot.up{background:#9CA3AF}#m-app .caldot.sent{background:#3B82F6}
+#m-app .calcell.sel .caldot{background:#fff}
+#m-app .sheet.viewer{padding-bottom:24px}
+#m-app .docwrap{margin-top:12px}
+#m-app .docwrap::-webkit-scrollbar{display:none}
+#m-app .docpage{background:#ffffff;border:1px solid #e6e8ec;border-radius:14px;padding:18px 16px;box-shadow:0 6px 20px -8px rgba(0,0,0,.2);color:#111827}
+#m-app .drive-src{display:inline-flex;align-items:center;gap:6px;font:600 10px Poppins;color:#4B5563;background:#f1f3f5;border-radius:999px;padding:4px 10px}
+#m-app .docfile-hd{display:flex;align-items:center;gap:10px;border-bottom:1px solid #eef0f3;padding-bottom:12px}
+#m-app .docfile-ic{width:36px;height:36px;border-radius:9px;background:#fdeceb;color:#EF4444;display:flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+#m-app .docline{height:8px;border-radius:3px;background:#e9ebef;margin:9px 0}
+#m-app .vactions{display:flex;gap:6px;margin-top:11px}
+#m-app .vaction{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:transparent;border:none;cursor:pointer;font:600 10px Poppins;color:var(--mut);padding:2px 0}
+#m-app .vaction i{font-size:16px;width:42px;height:42px;border-radius:13px;background:var(--ghost);color:var(--ink);display:flex;align-items:center;justify-content:center;transition:transform .12s ease}
+#m-app .vaction:active i{transform:scale(.9)}
+#m-app .inv-hd{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #111827;padding-bottom:11px}
+#m-app .inv-co{font:700 14px Poppins;color:#111827}
+#m-app .inv-tag{font:700 9.5px Poppins;letter-spacing:1px;color:#2f6fd6;border:1px solid #2f6fd6;border-radius:6px;padding:3px 7px;white-space:nowrap}
+#m-app .inv-meta{display:flex;justify-content:space-between;font:400 10.5px Poppins;color:#4B5563;margin-top:11px}
+#m-app .inv-billto{font:400 10.5px/1.5 Poppins;color:#4B5563;margin-top:11px}
+#m-app .inv-billto b{color:#111827}
+#m-app .inv-tbl{margin-top:12px;border:1px solid #e6e8ec;border-radius:9px;overflow:hidden}
+#m-app .inv-row{display:flex;justify-content:space-between;gap:10px;padding:9px 11px;font:400 11px Poppins;color:#374151}
+#m-app .inv-row+.inv-row{border-top:1px solid #eef0f3}
+#m-app .inv-row.h{background:#f6f7f9;font-weight:600;color:#6B7280;font-size:9px;text-transform:uppercase;letter-spacing:.5px}
+#m-app .inv-row.tot{background:#eef5ff;font-weight:700;color:#111827;font-size:12.5px}
+#m-app .inv-sign{display:flex;align-items:center;gap:9px;margin-top:12px;background:#ecfdf3;border:1px solid #a7f3cf;border-radius:9px;padding:9px 11px}
+#m-app .inv-sign i{color:#059669;font-size:16px}
+#m-app .inv-sign div{font:600 9.5px/1.4 Poppins;color:#065f46}
+
+/* Skeleton loading (dynamic content loading) */
+#m-app .m-skel{display:flex;flex-direction:column;gap:14px;padding-top:6px;animation:mFadeIn .2s ease}
+#m-app .sk{background:var(--line);border-radius:16px;position:relative;overflow:hidden}
+#m-app .sk::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);transform:translateX(-100%);animation:mShimmer 1.3s ease-in-out infinite}
+#m-app .scr[data-t="dark"] .sk{background:#1c2740}
+#m-app .scr[data-t="dark"] .sk::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent)}
+@keyframes mShimmer{100%{transform:translateX(100%)}}
+@media (prefers-reduced-motion:reduce){#m-app .sk::after{animation:none}}
+@keyframes mScrIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+@keyframes mSheetUp{from{transform:translateY(102%)}to{transform:none}}
+@keyframes mFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes mToastIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes mPushIn{from{opacity:0;transform:translateY(-130%)}to{opacity:1;transform:none}}
+@keyframes mSpin{to{transform:rotate(360deg)}}
+@keyframes mMarkIn{from{transform:rotate(-140deg) scale(.35);opacity:0}to{transform:rotate(0) scale(1);opacity:1}}
+@keyframes mBladeF{from{opacity:0}to{opacity:1}}
+@keyframes mBladeH{from{opacity:0}to{opacity:.55}}
+@keyframes mDot{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
+@keyframes mRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes mSheet{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes mRing{0%{opacity:.85;transform:scale(.55)}70%{opacity:.35}100%{opacity:0;transform:scale(1.9)}}
+@media (prefers-reduced-motion:reduce){#m-app *{animation:none!important;transition:none!important}}

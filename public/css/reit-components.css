@@ -1,0 +1,2067 @@
+/* ============================================================
+   reit-components.css — REIT Target AI Portfolio Components
+   Standalone component layer; inherits CSS custom properties
+   from styles.css / m-app.css when those are loaded.
+   No Firebase, no external API, no production references.
+   ============================================================ */
+
+/* ── Fallback tokens (overridden by styles.css if loaded) ── */
+:root {
+  --reit-primary:      var(--primary,      #1a73e8);
+  --reit-surface:      var(--surface,      #ffffff);
+  --reit-bg:           var(--bg,           #f5f7fa);
+  --reit-border:       var(--border-color, #e0e0e0);
+  --reit-text:         var(--text,         #212121);
+  --reit-text-muted:   var(--text-muted,   #757575);
+  --reit-success:      #2e7d32;
+  --reit-warning:      #e65100;
+  --reit-danger:       #c62828;
+  --reit-amber:        #f59e0b;
+  --reit-amber-light:  #fffbeb;
+  --reit-card-radius:  10px;
+  --reit-shadow:       0 1px 4px rgba(0,0,0,.10);
+  --reit-shadow-hover: 0 4px 12px rgba(0,0,0,.14);
+  --reit-transition:   0.18s ease;
+}
+
+/* ============================================================
+   SYNTHETIC DATA BANNER
+   ============================================================ */
+.reit-synthetic-banner {
+  background: var(--reit-amber-light);
+  border: 1px solid var(--reit-amber);
+  border-radius: 6px;
+  padding: 0.55rem 1rem;
+  font-size: 0.82rem;
+  color: #78350f;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.reit-synthetic-banner .reit-badge-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   PAGE HEADER
+   ============================================================ */
+.reit-page-header {
+  margin-bottom: 1.5rem;
+}
+.reit-page-header h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--reit-text);
+  margin: 0 0 0.2rem;
+}
+.reit-page-header .reit-as-of {
+  font-size: 0.8rem;
+  color: var(--reit-text-muted);
+}
+
+/* ============================================================
+   SUMMARY CARDS GRID — 5 KPI cards
+   ============================================================ */
+.reit-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.reit-card {
+  background: var(--reit-surface);
+  border: 1px solid var(--reit-border);
+  border-radius: var(--reit-card-radius);
+  padding: 1rem 1.1rem 0.9rem;
+  box-shadow: var(--reit-shadow);
+  transition: box-shadow var(--reit-transition);
+  position: relative;
+  overflow: hidden;
+}
+.reit-card:hover {
+  box-shadow: var(--reit-shadow-hover);
+}
+
+/* coloured left accent */
+.reit-card::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--reit-primary);
+  border-radius: var(--reit-card-radius) 0 0 var(--reit-card-radius);
+}
+.reit-card.card-accent-green::before  { background: var(--reit-success); }
+.reit-card.card-accent-amber::before  { background: var(--reit-amber); }
+.reit-card.card-accent-red::before    { background: var(--reit-danger); }
+.reit-card.card-accent-blue::before   { background: var(--reit-primary); }
+
+.reit-card-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--reit-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.45rem;
+}
+.reit-card-value {
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: var(--reit-text);
+  line-height: 1.15;
+  white-space: nowrap;
+}
+.reit-card-sub {
+  font-size: 0.78rem;
+  color: var(--reit-text-muted);
+  margin-top: 0.25rem;
+}
+
+/* ============================================================
+   CONCENTRATION SECTIONS
+   ============================================================ */
+.reit-section {
+  background: var(--reit-surface);
+  border: 1px solid var(--reit-border);
+  border-radius: var(--reit-card-radius);
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--reit-shadow);
+}
+.reit-section-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--reit-text);
+  margin: 0 0 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.reit-section-title .reit-hhi-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--reit-text-muted);
+  background: var(--reit-bg);
+  border: 1px solid var(--reit-border);
+  border-radius: 4px;
+  padding: 0.1rem 0.45rem;
+}
+
+/* Bar rows */
+.reit-bar-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 60px;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.55rem;
+}
+.reit-bar-label {
+  font-size: 0.82rem;
+  color: var(--reit-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.reit-bar-track {
+  background: var(--reit-bg);
+  border-radius: 4px;
+  height: 10px;
+  overflow: hidden;
+}
+.reit-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--reit-primary);
+  transition: width 0.4s ease;
+}
+.reit-bar-pct {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--reit-text);
+  text-align: right;
+}
+
+/* City colours */
+.reit-bar-fill.city-mumbai    { background: #1a73e8; }
+.reit-bar-fill.city-pune      { background: #0d9488; }
+.reit-bar-fill.city-bengaluru { background: #7c3aed; }
+.reit-bar-fill.city-hyderabad { background: #db6b1f; }
+
+/* Asset-type colours */
+.reit-bar-fill.type-commercial-office { background: #1e40af; }
+.reit-bar-fill.type-retail            { background: #b45309; }
+.reit-bar-fill.type-residential       { background: #166534; }
+
+/* ============================================================
+   ASSET TABLE
+   ============================================================ */
+.reit-table-wrapper {
+  background: var(--reit-surface);
+  border: 1px solid var(--reit-border);
+  border-radius: var(--reit-card-radius);
+  box-shadow: var(--reit-shadow);
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+  -webkit-overflow-scrolling: touch;
+}
+.reit-table-header {
+  padding: 0.9rem 1.1rem 0.6rem;
+  border-bottom: 1px solid var(--reit-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.reit-table-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--reit-text);
+}
+.reit-table-count {
+  font-size: 0.78rem;
+  color: var(--reit-text-muted);
+}
+
+.reit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.reit-table thead tr {
+  background: var(--reit-bg);
+}
+.reit-table th {
+  padding: 0.6rem 0.85rem;
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--reit-text-muted);
+  border-bottom: 1px solid var(--reit-border);
+  white-space: nowrap;
+}
+.reit-table th.num,
+.reit-table td.num {
+  text-align: right;
+}
+.reit-table tbody tr {
+  border-bottom: 1px solid var(--reit-border);
+  transition: background var(--reit-transition);
+}
+.reit-table tbody tr:last-child {
+  border-bottom: none;
+}
+.reit-table tbody tr:hover {
+  background: #f0f4ff;
+}
+.reit-table td {
+  padding: 0.6rem 0.85rem;
+  color: var(--reit-text);
+  vertical-align: middle;
+}
+
+/* ── Highlighted rows ── */
+/* Low occupancy < 80% */
+.reit-table tbody tr.row-low-occupancy {
+  background: #fff8f0;
+}
+.reit-table tbody tr.row-low-occupancy:hover {
+  background: #fdebd0;
+}
+/* Near-expiry lease (≤ 12 months) */
+.reit-table tbody tr.row-near-expiry {
+  background: #fff0f0;
+}
+.reit-table tbody tr.row-near-expiry:hover {
+  background: #fdd;
+}
+/* Row can be both (near-expiry takes priority via specificity) */
+.reit-table tbody tr.row-low-occupancy.row-near-expiry {
+  background: #fff0f0;
+}
+
+/* ── Badges / chips ── */
+.reit-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  vertical-align: middle;
+  margin-left: 0.35rem;
+  white-space: nowrap;
+}
+.reit-badge.badge-warning {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+.reit-badge.badge-danger {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+.reit-badge.badge-star {
+  background: #ede9fe;
+  color: #4c1d95;
+  border: 1px solid #c4b5fd;
+}
+
+/* Asset-type pill */
+.reit-type-pill {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.12rem 0.4rem;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.reit-type-pill.pill-commercial {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #93c5fd;
+}
+.reit-type-pill.pill-retail {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fcd34d;
+}
+.reit-type-pill.pill-residential {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+
+/* ── Loading / error states ── */
+.reit-loading {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--reit-text-muted);
+  font-size: 0.9rem;
+}
+.reit-loading-spinner {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--reit-border);
+  border-top-color: var(--reit-primary);
+  border-radius: 50%;
+  animation: reit-spin 0.75s linear infinite;
+  margin-bottom: 0.75rem;
+}
+@keyframes reit-spin {
+  to { transform: rotate(360deg); }
+}
+.reit-error-box {
+  background: #fff0f0;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 1.1rem 1.25rem;
+  color: var(--reit-danger);
+  font-size: 0.88rem;
+  margin: 0.75rem 0;
+}
+.reit-error-box strong {
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+/* ── Flags legend ── */
+.reit-flags-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0.6rem 1rem;
+  border-top: 1px solid var(--reit-border);
+  font-size: 0.76rem;
+  color: var(--reit-text-muted);
+  background: var(--reit-bg);
+  border-radius: 0 0 var(--reit-card-radius) var(--reit-card-radius);
+}
+.reit-flags-legend .legend-swatch {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  margin-right: 3px;
+  vertical-align: middle;
+}
+.legend-swatch.sw-occ  { background: #fef3c7; border: 1px solid #fcd34d; }
+.legend-swatch.sw-exp  { background: #fee2e2; border: 1px solid #fca5a5; }
+
+/* ============================================================
+   RESPONSIVE OVERRIDES
+   ============================================================ */
+@media (max-width: 600px) {
+  .reit-summary-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .reit-bar-row {
+    grid-template-columns: 90px 1fr 50px;
+    gap: 0.4rem;
+  }
+  .reit-card-value {
+    font-size: 1.25rem;
+  }
+}
+@media (max-width: 360px) {
+  .reit-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   MODE TOGGLE BAR
+   ============================================================ */
+.reit-mode-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  padding: 0.65rem 1rem;
+  background: var(--reit-surface);
+  border: 1px solid var(--reit-border);
+  border-radius: var(--reit-card-radius);
+  box-shadow: var(--reit-shadow);
+  flex-wrap: wrap;
+}
+.reit-mode-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--reit-text-muted);
+  white-space: nowrap;
+}
+.reit-mode-btn {
+  padding: 0.35rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1px solid var(--reit-border);
+  border-radius: 6px;
+  background: var(--reit-bg);
+  color: var(--reit-text);
+  cursor: pointer;
+  transition: background var(--reit-transition), color var(--reit-transition),
+              border-color var(--reit-transition);
+  white-space: nowrap;
+}
+.reit-mode-btn:hover {
+  background: var(--reit-primary);
+  color: #fff;
+  border-color: var(--reit-primary);
+}
+.reit-mode-btn.mode-active {
+  background: var(--reit-primary);
+  color: #fff;
+  border-color: var(--reit-primary);
+}
+
+/* ============================================================
+   GENERAL BUTTON VARIANTS
+   ============================================================ */
+.reit-btn {
+  display: inline-block;
+  padding: 0.4rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background var(--reit-transition), color var(--reit-transition),
+              border-color var(--reit-transition), box-shadow var(--reit-transition);
+  white-space: nowrap;
+  text-align: center;
+}
+.reit-btn-primary {
+  background: var(--reit-primary);
+  color: #fff;
+  border-color: var(--reit-primary);
+}
+.reit-btn-primary:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 2px 8px rgba(26,115,232,.25);
+}
+.reit-btn-secondary {
+  background: var(--reit-bg);
+  color: var(--reit-text);
+  border-color: var(--reit-border);
+}
+.reit-btn-secondary:hover {
+  background: #e8edf5;
+  border-color: #b0b8c8;
+}
+.reit-btn-danger {
+  background: #fff0f0;
+  color: var(--reit-danger);
+  border-color: #fca5a5;
+}
+.reit-btn-danger:hover {
+  background: var(--reit-danger);
+  color: #fff;
+  border-color: var(--reit-danger);
+}
+
+/* ============================================================
+   CUSTOM PORTFOLIO CONTROLS (Add / Reset bar)
+   ============================================================ */
+.reit-custom-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.1rem;
+  flex-wrap: wrap;
+}
+
+/* ============================================================
+   EMPTY CUSTOM PORTFOLIO STATE
+   ============================================================ */
+.reit-custom-empty {
+  background: var(--reit-surface);
+  border: 1px dashed var(--reit-border);
+  border-radius: var(--reit-card-radius);
+  padding: 2.5rem 2rem;
+  text-align: center;
+  margin-bottom: 1.25rem;
+}
+.reit-custom-empty h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--reit-text);
+  margin: 0 0 0.5rem;
+}
+.reit-custom-empty p {
+  font-size: 0.88rem;
+  color: var(--reit-text-muted);
+  margin: 0 0 1.25rem;
+}
+.reit-empty-btns {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* ============================================================
+   ASSET ADD / EDIT FORM PANEL
+   ============================================================ */
+.reit-form-panel {
+  background: var(--reit-surface);
+  border: 1px solid var(--reit-primary);
+  border-radius: var(--reit-card-radius);
+  padding: 1.25rem 1.4rem 1.1rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 2px 12px rgba(26,115,232,.10);
+}
+.reit-form-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--reit-text);
+  margin: 0 0 1rem;
+}
+.reit-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem 1rem;
+  margin-bottom: 0.9rem;
+}
+.reit-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.reit-form-label {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--reit-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.reit-form-input {
+  padding: 0.4rem 0.65rem;
+  font-size: 0.85rem;
+  color: var(--reit-text);
+  background: var(--reit-bg);
+  border: 1px solid var(--reit-border);
+  border-radius: 5px;
+  outline: none;
+  transition: border-color var(--reit-transition), box-shadow var(--reit-transition);
+  width: 100%;
+  box-sizing: border-box;
+}
+.reit-form-input:focus {
+  border-color: var(--reit-primary);
+  box-shadow: 0 0 0 2px rgba(26,115,232,.15);
+  background: #fff;
+}
+.reit-form-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.reit-form-error {
+  font-size: 0.73rem;
+  color: var(--reit-danger);
+  font-weight: 600;
+}
+.reit-form-preview {
+  background: var(--reit-bg);
+  border: 1px solid var(--reit-border);
+  border-radius: 5px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--reit-text-muted);
+  margin-bottom: 0.9rem;
+}
+.reit-form-btns {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+/* ============================================================
+   INLINE TABLE ACTION BUTTONS (Edit / Delete)
+   ============================================================ */
+.reit-tbl-btn {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  margin-left: 0.25rem;
+  transition: background var(--reit-transition), color var(--reit-transition);
+  white-space: nowrap;
+}
+.reit-tbl-btn:first-child { margin-left: 0; }
+.reit-tbl-btn-edit {
+  background: #eff6ff;
+  color: var(--reit-primary);
+  border-color: #bfdbfe;
+}
+.reit-tbl-btn-edit:hover {
+  background: var(--reit-primary);
+  color: #fff;
+  border-color: var(--reit-primary);
+}
+.reit-tbl-btn-delete {
+  background: #fff0f0;
+  color: var(--reit-danger);
+  border-color: #fca5a5;
+}
+.reit-tbl-btn-delete:hover {
+  background: var(--reit-danger);
+  color: #fff;
+  border-color: var(--reit-danger);
+}
+
+/* ============================================================
+   RESPONSIVE — form grid and mode bar on narrow screens
+   ============================================================ */
+@media (max-width: 600px) {
+  .reit-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .reit-mode-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ============================================================
+   MARKET SCREENER — control panel, weight sliders, ranking
+   ============================================================ */
+
+/* Control panel wrapper */
+.reit-control-panel {
+  background: var(--reit-surface);
+  border: 1px solid var(--reit-border);
+  border-radius: var(--reit-card-radius);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--reit-shadow);
+}
+.reit-control-panel h3 {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--reit-text);
+}
+
+/* Preset buttons row */
+.reit-preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.reit-preset-btn {
+  font-size: 0.8rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--reit-border);
+  background: var(--reit-bg);
+  color: var(--reit-text);
+  cursor: pointer;
+  transition: background var(--reit-transition), border-color var(--reit-transition), color var(--reit-transition);
+  font-weight: 500;
+}
+.reit-preset-btn:hover,
+.reit-preset-btn.reit-active {
+  background: var(--reit-primary);
+  border-color: var(--reit-primary);
+  color: #fff;
+}
+
+/* Weight slider rows */
+.reit-weight-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 56px;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.6rem;
+}
+.reit-weight-label {
+  font-size: 0.82rem;
+  color: var(--reit-text-muted);
+  font-weight: 500;
+}
+.reit-weight-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: #e0e0e0;
+  outline: none;
+  cursor: pointer;
+}
+.reit-weight-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--reit-primary);
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.25);
+}
+.reit-weight-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--reit-primary);
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.25);
+}
+.reit-weight-value {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--reit-primary);
+  text-align: right;
+  min-width: 40px;
+}
+
+/* CSV import area */
+.reit-import-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--reit-border);
+}
+.reit-import-label {
+  font-size: 0.8rem;
+  color: var(--reit-text-muted);
+}
+.reit-import-btn {
+  font-size: 0.8rem;
+  padding: 0.3rem 0.9rem;
+  border-radius: 6px;
+  border: 1px solid var(--reit-border);
+  background: var(--reit-bg);
+  cursor: pointer;
+  color: var(--reit-text);
+  transition: background var(--reit-transition);
+}
+.reit-import-btn:hover {
+  background: #e8f0fe;
+}
+
+/* Ranked markets table */
+.reit-ranked-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.reit-ranked-table th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--reit-text-muted);
+  border-bottom: 2px solid var(--reit-border);
+  background: var(--reit-bg);
+}
+.reit-ranked-table td {
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--reit-border);
+  color: var(--reit-text);
+  vertical-align: middle;
+}
+.reit-ranked-table tr:last-child td {
+  border-bottom: none;
+}
+.reit-ranked-table tr:hover td {
+  background: #f0f4ff;
+}
+.reit-rank-num {
+  font-weight: 700;
+  color: var(--reit-primary);
+  min-width: 24px;
+  display: inline-block;
+  text-align: center;
+}
+.reit-select-btn {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 5px;
+  border: 1px solid var(--reit-primary);
+  background: #eff6ff;
+  color: var(--reit-primary);
+  cursor: pointer;
+  transition: background var(--reit-transition), color var(--reit-transition);
+  white-space: nowrap;
+}
+.reit-select-btn:hover {
+  background: var(--reit-primary);
+  color: #fff;
+}
+
+/* Score breakdown table (collapsible) */
+.reit-breakdown-wrap {
+  margin-top: 0.25rem;
+  overflow: hidden;
+}
+.reit-breakdown-toggle {
+  font-size: 0.75rem;
+  color: var(--reit-primary);
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.reit-breakdown-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  margin-top: 0.4rem;
+}
+.reit-breakdown-table th,
+.reit-breakdown-table td {
+  padding: 0.3rem 0.5rem;
+  text-align: right;
+  border-bottom: 1px solid var(--reit-border);
+  color: var(--reit-text);
+}
+.reit-breakdown-table th:first-child,
+.reit-breakdown-table td:first-child {
+  text-align: left;
+}
+.reit-breakdown-table th {
+  font-weight: 600;
+  color: var(--reit-text-muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.reit-breakdown-table tr:last-child td {
+  border-bottom: none;
+  font-weight: 600;
+}
+
+/* ============================================================
+   DIVERSIFICATION — HHI sections, metrics grid, sim table
+   ============================================================ */
+
+/* HHI before/after cards */
+.reit-hhi-section {
+  margin-bottom: 1.5rem;
+}
+.reit-hhi-section h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+  color: var(--reit-text);
+}
+.reit-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.reit-metric-card {
+  background: var(--reit-surface);
+  border: 1px solid var(--reit-border);
+  border-radius: var(--reit-card-radius);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--reit-shadow);
+}
+.reit-metric-card .reit-metric-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--reit-text-muted);
+  margin-bottom: 0.3rem;
+}
+.reit-metric-card .reit-metric-value {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--reit-text);
+  letter-spacing: -0.02em;
+}
+.reit-metric-card .reit-metric-sub {
+  font-size: 0.75rem;
+  color: var(--reit-text-muted);
+  margin-top: 0.2rem;
+}
+.reit-metric-card.reit-improved {
+  border-left: 4px solid var(--reit-success);
+}
+.reit-metric-card.reit-worsened {
+  border-left: 4px solid var(--reit-danger);
+}
+.reit-metric-card.reit-neutral {
+  border-left: 4px solid var(--reit-border);
+}
+
+/* Before / After comparison area */
+.reit-ba-card {
+  background: var(--reit-surface);
+  border: 1px solid var(--reit-border);
+  border-radius: var(--reit-card-radius);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--reit-shadow);
+}
+.reit-ba-card h4 {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--reit-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.reit-ba-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--reit-text);
+}
+.reit-ba-improved { color: var(--reit-success); }
+.reit-ba-worsened { color: var(--reit-danger); }
+.reit-ba-arrow {
+  font-size: 1rem;
+  color: var(--reit-text-muted);
+  margin: 0 0.3rem;
+}
+
+/* Sensitivity analysis grid */
+.reit-sensitivity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.reit-sensitivity-card {
+  background: var(--reit-surface);
+  border: 1px solid var(--reit-border);
+  border-radius: var(--reit-card-radius);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--reit-shadow);
+}
+.reit-sensitivity-card h4 {
+  margin: 0 0 0.6rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--reit-text);
+}
+.reit-sensitivity-card ol {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+.reit-sensitivity-card li {
+  font-size: 0.82rem;
+  color: var(--reit-text);
+  margin-bottom: 0.2rem;
+}
+
+/* Simulation inputs table */
+.reit-sim-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  margin-bottom: 1rem;
+}
+.reit-sim-table td {
+  padding: 0.45rem 0.75rem;
+  border-bottom: 1px solid var(--reit-border);
+  color: var(--reit-text);
+}
+.reit-sim-table td:first-child {
+  font-weight: 500;
+  color: var(--reit-text-muted);
+  width: 50%;
+}
+.reit-sim-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ============================================================
+   AGENT RECOMMENDATIONS — status bar, cards, trail
+   ============================================================ */
+
+/* Run button */
+.reit-run-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--reit-primary);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(26,115,232,.35);
+  transition: background var(--reit-transition), box-shadow var(--reit-transition);
+}
+.reit-run-btn:hover {
+  background: #1558b0;
+  box-shadow: 0 4px 10px rgba(26,115,232,.45);
+}
+.reit-run-btn:disabled {
+  background: #9aa5b4;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* Agent status bar (shows which agent is running) */
+.reit-agent-status-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+.reit-agent-pill {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--reit-border);
+  background: var(--reit-bg);
+  color: var(--reit-text-muted);
+  font-weight: 500;
+  transition: background var(--reit-transition), color var(--reit-transition), border-color var(--reit-transition);
+}
+.reit-agent-pill.reit-running {
+  background: #eff6ff;
+  border-color: var(--reit-primary);
+  color: var(--reit-primary);
+}
+.reit-agent-pill.reit-done {
+  background: #f0fdf4;
+  border-color: #86efac;
+  color: var(--reit-success);
+}
+.reit-agent-pill.reit-error {
+  background: #fff5f5;
+  border-color: #fca5a5;
+  color: var(--reit-danger);
+}
+
+/* Activity trail */
+.reit-trail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--reit-border);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+.reit-trail-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
+  border-bottom: 1px solid var(--reit-border);
+  color: var(--reit-text);
+}
+.reit-trail-list li:last-child {
+  border-bottom: none;
+}
+.reit-trail-list .reit-trail-time {
+  font-size: 0.7rem;
+  color: var(--reit-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.reit-trail-list .reit-trail-ok  { color: var(--reit-success); }
+.reit-trail-list .reit-trail-err { color: var(--reit-danger); }
+.reit-trail-list .reit-trail-info { color: var(--reit-primary); }
+
+/* Individual agent output cards */
+.reit-agent-card {
+  background: var(--reit-surface);
+  border: 1px solid var(--reit-border);
+  border-radius: var(--reit-card-radius);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--reit-shadow);
+  margin-bottom: 1rem;
+}
+.reit-agent-card h3 {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--reit-text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.reit-agent-card h3 .reit-agent-badge {
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: var(--reit-primary);
+  border: 1px solid #bfdbfe;
+}
+.reit-agent-card .reit-agent-summary {
+  font-size: 0.87rem;
+  color: var(--reit-text);
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+}
+.reit-agent-card ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+.reit-agent-card ul li {
+  font-size: 0.82rem;
+  color: var(--reit-text);
+  margin-bottom: 0.3rem;
+  line-height: 1.5;
+}
+.reit-agent-disclaimer {
+  font-size: 0.75rem;
+  color: var(--reit-text-muted);
+  font-style: italic;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--reit-border);
+}
+
+/* Validation agent pass/fail badge */
+.reit-validation-pass {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: var(--reit-success);
+}
+.reit-validation-fail {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: #fff5f5;
+  border: 1px solid #fca5a5;
+  color: var(--reit-danger);
+}
+
+/* ============================================================
+   RESPONSIVE — screener and diversification on narrow screens
+   ============================================================ */
+@media (max-width: 640px) {
+  .reit-weight-row {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+  .reit-weight-label {
+    font-weight: 600;
+  }
+  .reit-sensitivity-grid {
+    grid-template-columns: 1fr;
+  }
+  .reit-metrics-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .reit-agent-status-bar {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+}
+@media (max-width: 400px) {
+  .reit-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   STAGE 2–6 COMPONENTS — Data Centre, Charts, Report
+   Added September 2026
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Status grid ──────────────────────────────────────────── */
+.reit-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.reit-status-card {
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--surface, #fff);
+}
+.reit-status-card__name {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-primary, #1e293b);
+  margin-bottom: 4px;
+}
+.reit-status-card__file {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--gray-500, #64748b);
+  margin-bottom: 8px;
+}
+.reit-status-card__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.reit-status-card__type {
+  font-size: 12px;
+  color: var(--text-secondary, #475569);
+}
+.reit-status-card__meta {
+  font-size: 12px;
+  color: var(--gray-500, #64748b);
+}
+
+/* ── Badges ───────────────────────────────────────────────── */
+.reit-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.reit-badge--synthetic { background: #eff6ff; color: #1d4ed8; }
+.reit-badge--csv       { background: #f0fdf4; color: #166534; }
+.reit-badge--none      { background: #f1f5f9; color: #64748b; }
+
+/* ── Sections ─────────────────────────────────────────────── */
+.reit-section {
+  margin-bottom: 32px;
+}
+.reit-section h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text-primary, #1e293b);
+}
+
+/* ── Control row ──────────────────────────────────────────── */
+.reit-control-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+/* ── Buttons (if not already in reit-components.css) ──────── */
+.reit-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  text-decoration: none;
+}
+.reit-btn:focus-visible {
+  outline: 2px solid var(--primary, #3b82f6);
+  outline-offset: 2px;
+}
+.reit-btn--primary {
+  background: var(--primary, #3b82f6);
+  color: #fff;
+  border-color: var(--primary, #3b82f6);
+}
+.reit-btn--primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
+.reit-btn--secondary {
+  background: #f8fafc;
+  color: var(--primary, #3b82f6);
+  border-color: var(--primary, #3b82f6);
+}
+.reit-btn--secondary:hover { background: #eff6ff; }
+.reit-btn--outline {
+  background: transparent;
+  color: var(--text-primary, #1e293b);
+  border-color: var(--border-color, #e2e8f0);
+}
+.reit-btn--outline:hover { background: #f8fafc; border-color: #94a3b8; }
+.reit-btn--disabled,
+.reit-btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ── Connector note ───────────────────────────────────────── */
+.reit-connector-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px dashed var(--border-color, #e2e8f0);
+  border-radius: 6px;
+  margin-top: 8px;
+}
+.reit-connector-note__desc {
+  font-size: 12px;
+  color: var(--gray-500, #64748b);
+  line-height: 1.5;
+}
+
+/* ── Table helpers ────────────────────────────────────────── */
+.reit-table-scroll {
+  overflow-x: auto;
+}
+.reit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.reit-table th,
+.reit-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  white-space: nowrap;
+}
+.reit-table th {
+  font-weight: 700;
+  background: #f8fafc;
+  color: var(--text-secondary, #475569);
+  position: sticky;
+  top: 0;
+}
+.reit-table tbody tr:hover { background: #f8fafc; }
+.reit-row--rejected { background: #fef2f2; }
+.reit-row--warning  { background: #fffbeb; }
+.reit-row--rejected td, .reit-row--warning td { border-bottom-color: transparent; }
+
+/* ── Status cells ─────────────────────────────────────────── */
+.reit-status--ok   { color: #16a34a; font-weight: 600; }
+.reit-status--fail { color: #dc2626; font-weight: 600; }
+
+/* ── Quality chips ────────────────────────────────────────── */
+.reit-quality-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.reit-quality-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  min-width: 70px;
+}
+.reit-quality-chip__num {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text-primary, #1e293b);
+}
+.reit-quality-chip__lbl {
+  font-size: 11px;
+  color: var(--gray-500, #64748b);
+  margin-top: 2px;
+}
+.reit-quality-ok       { background: #f0fdf4; border-color: #bbf7d0; }
+.reit-quality-ok       .reit-quality-chip__num { color: #16a34a; }
+.reit-quality-rejected { background: #fef2f2; border-color: #fecaca; }
+.reit-quality-rejected .reit-quality-chip__num { color: #dc2626; }
+.reit-quality-warning  { background: #fffbeb; border-color: #fde68a; }
+.reit-quality-warning  .reit-quality-chip__num { color: #d97706; }
+.reit-quality-dup      { background: #f5f3ff; border-color: #ddd6fe; }
+.reit-quality-dup      .reit-quality-chip__num { color: #7c3aed; }
+.reit-quality-outlier  { background: #fff7ed; border-color: #fed7aa; }
+.reit-quality-outlier  .reit-quality-chip__num { color: #ea580c; }
+
+/* ── Chart wrappers ───────────────────────────────────────── */
+.reit-chart-wrap {
+  margin: 16px 0;
+  max-width: 560px;
+}
+.reit-chart-wrap svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── Text helpers ─────────────────────────────────────────── */
+.reit-text-muted {
+  color: var(--gray-500, #64748b);
+  font-size: 13px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DECISION REPORT — print-optimised
+   ══════════════════════════════════════════════════════════════ */
+.reit-report__cover {
+  border-bottom: 2px solid var(--primary, #3b82f6);
+  padding-bottom: 20px;
+  margin-bottom: 28px;
+}
+.reit-report__title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary, #1e293b);
+  margin-bottom: 6px;
+}
+.reit-report__subtitle {
+  font-size: 14px;
+  color: var(--gray-500, #64748b);
+  margin-bottom: 4px;
+}
+.reit-report__date {
+  font-size: 13px;
+  color: var(--gray-500, #64748b);
+}
+.reit-report__banner-disclaimer {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #92400e;
+}
+.reit-report__print-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.reit-report__pdf-note {
+  font-size: 12px;
+  color: var(--gray-500, #64748b);
+}
+.reit-report__section {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+}
+.reit-report__section-heading {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--primary, #3b82f6);
+  margin-bottom: 14px;
+}
+.reit-report__sub-heading {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 16px 0 8px;
+  color: var(--text-primary, #1e293b);
+}
+.reit-report__kv-row {
+  display: flex;
+  padding: 6px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+.reit-report__kv-label {
+  width: 220px;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary, #475569);
+}
+.reit-report__kv-value {
+  font-size: 13px;
+  color: var(--text-primary, #1e293b);
+}
+.reit-report__hhi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 24px;
+}
+.reit-report__disclaimer {
+  font-size: 11px;
+  color: var(--gray-500, #64748b);
+  font-style: italic;
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-left: 3px solid #e2e8f0;
+  border-radius: 0 4px 4px 0;
+}
+.reit-report__list {
+  padding-left: 20px;
+  font-size: 13px;
+  line-height: 1.8;
+}
+.reit-report__footer {
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color, #e2e8f0);
+  font-size: 11px;
+  color: var(--gray-500, #64748b);
+  text-align: center;
+}
+
+/* ── Print styles ─────────────────────────────────────────── */
+@media print {
+  .no-print { display: none !important; }
+  #demo-banner { display: none !important; }
+  #sidebar { display: none !important; }
+  body { padding-top: 0 !important; }
+  #app-shell { display: block !important; }
+  #main-content { padding: 0 !important; }
+  .page { display: block !important; }
+  .js-enabled .page { display: block !important; }
+  .reit-report__section { page-break-inside: avoid; }
+  .reit-table th, .reit-table td { font-size: 11px; padding: 5px 7px; }
+}
+
+/* ── Stage 4: Segment statistics styles ────────────────────────── */
+.reit-stats-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.reit-stat-chip {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface, #f8fafc);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  min-width: 9rem;
+}
+
+.reit-stat-chip__label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, #64748b);
+}
+
+.reit-stat-chip__value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text, #1e293b);
+  margin-top: 0.2rem;
+}
+
+.reit-table--compact th,
+.reit-table--compact td {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.reit-small {
+  font-size: 0.8rem;
+  color: var(--text-muted, #64748b);
+  margin-bottom: 0.75rem;
+}
+
+/* ── Stage 8: System Check ─────────────────────────────────── */
+.reit-system-check-results {
+  margin-top: 1rem;
+}
+
+.reit-system-check-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.reit-chk-item {
+  display: grid;
+  grid-template-columns: 1.5rem 4.5rem 1fr auto;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  border-left: 3px solid transparent;
+}
+
+.reit-chk-pass {
+  background: #f0fdf4;
+  border-left-color: #16a34a;
+}
+
+.reit-chk-fail {
+  background: #fef2f2;
+  border-left-color: #dc2626;
+}
+
+.reit-chk-badge {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.reit-chk-pass .reit-chk-badge { color: #16a34a; }
+.reit-chk-fail .reit-chk-badge { color: #dc2626; }
+
+.reit-chk-id {
+  font-family: monospace;
+  font-size: 0.78rem;
+  color: var(--text-muted, #64748b);
+  font-weight: 600;
+}
+
+.reit-chk-label {
+  font-weight: 500;
+}
+
+.reit-chk-detail {
+  font-size: 0.8rem;
+  color: var(--text-muted, #64748b);
+  text-align: right;
+}
+
+.reit-system-check-summary {
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.reit-chk-summary-pass {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.reit-chk-summary-fail {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* ── Stage 4: HHI business interpretation ──────────────────── */
+.reit-hhi-interp {
+  font-size: 0.875rem;
+  font-style: italic;
+  color: var(--text-muted, #64748b);
+  margin: 0.4rem 0 0.75rem;
+  padding: 0.4rem 0.75rem;
+  border-left: 3px solid #cbd5e1;
+  border-radius: 0 0.25rem 0.25rem 0;
+}
+
+/* Dark-mode overrides */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .reit-chk-pass { background: #052e16; }
+  :root:not([data-theme="light"]) .reit-chk-fail { background: #450a0a; }
+  :root:not([data-theme="light"]) .reit-chk-summary-pass { background: #14532d; color: #86efac; }
+  :root:not([data-theme="light"]) .reit-chk-summary-fail { background: #7f1d1d; color: #fca5a5; }
+  :root:not([data-theme="light"]) .reit-hhi-interp { border-left-color: #475569; }
+}
+
+/* ── Stage 11: Agent offline explanation ───────────────────── */
+.reit-agent-unavailable {
+  padding: 0.75rem 1rem;
+  background: #fefce8;
+  border-left: 3px solid #ca8a04;
+  border-radius: 0 0.375rem 0.375rem 0;
+  margin: 0.5rem 0;
+}
+
+.reit-agent-unavail-msg {
+  font-weight: 600;
+  color: #92400e;
+  margin: 0 0 0.5rem;
+}
+
+.reit-agent-offline-expl {
+  margin-top: 0.5rem;
+}
+
+.reit-agent-offline-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin: 0 0 0.4rem;
+  color: #78350f;
+}
+
+.reit-agent-offline-list {
+  font-size: 0.85rem;
+  color: var(--text, #1e293b);
+  margin: 0 0 0.5rem 1.25rem;
+  padding: 0;
+}
+
+.reit-agent-offline-list li {
+  margin-bottom: 0.3rem;
+}
+
+.reit-agent-offline-cmd {
+  font-family: monospace;
+  font-size: 0.82rem;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.25rem;
+  margin: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .reit-agent-unavailable {
+    background: #1c1a08;
+    border-left-color: #a16207;
+  }
+  :root:not([data-theme="light"]) .reit-agent-unavail-msg { color: #fcd34d; }
+  :root:not([data-theme="light"]) .reit-agent-offline-title { color: #fde68a; }
+}
+
+
+/* ================================================================
+   HHI BAND PILLS (Stage 9 — missing styles, now defined)
+   ================================================================ */
+.reit-hhi-band {
+  display: inline-block;
+  margin-top: 0.4rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  transition: background var(--transition), color var(--transition);
+  cursor: default;
+}
+.reit-band-div  { background: var(--success-light, #D1FAE5); color: var(--success-dark, #059669); }
+.reit-band-mod  { background: var(--warning-light, #FEF3C7); color: var(--warning-dark, #B45309); }
+.reit-band-con  { background: var(--danger-light,  #FEE2E2); color: var(--danger-dark,  #DC2626); }
+
+/* ================================================================
+   METRIC / BA CARD ENTRY ANIMATION + TRANSITIONS (Stage 9)
+   ================================================================ */
+@keyframes reit-card-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.reit-metric-card,
+.reit-ba-card {
+  transition: box-shadow var(--transition), border-color var(--transition);
+  animation: reit-card-enter 180ms ease both;
+}
+.reit-metric-card:hover,
+.reit-ba-card:hover {
+  box-shadow: 0 4px 14px rgba(0,0,0,.10);
+}
+
+/* Stagger first 8 cards so they cascade in */
+.reit-metric-card:nth-child(1),
+.reit-ba-card:nth-child(1) { animation-delay: 0ms; }
+.reit-metric-card:nth-child(2),
+.reit-ba-card:nth-child(2) { animation-delay: 40ms; }
+.reit-metric-card:nth-child(3),
+.reit-ba-card:nth-child(3) { animation-delay: 80ms; }
+.reit-metric-card:nth-child(4),
+.reit-ba-card:nth-child(4) { animation-delay: 120ms; }
+.reit-metric-card:nth-child(5),
+.reit-ba-card:nth-child(5) { animation-delay: 160ms; }
+.reit-metric-card:nth-child(6),
+.reit-ba-card:nth-child(6) { animation-delay: 200ms; }
+
+.reit-ba-label {
+  font-size: 0.73rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--reit-text-muted);
+  margin-bottom: 0.25rem;
+}
+.reit-ba-delta {
+  font-size: 0.78rem;
+  color: var(--reit-text-muted);
+  margin-top: 0.35rem;
+}
+.reit-ba-card.reit-ba-improved { border-left: 4px solid var(--reit-success); }
+.reit-ba-card.reit-ba-worsened { border-left: 4px solid var(--reit-danger); }
+
+/* Dark-mode overrides for band pills */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .reit-band-div { background: #064e3b; color: #6ee7b7; }
+  :root:not([data-theme="light"]) .reit-band-mod { background: #451a03; color: #fcd34d; }
+  :root:not([data-theme="light"]) .reit-band-con { background: #450a0a; color: #fca5a5; }
+}
+:root[data-theme="dark"] .reit-band-div { background: #064e3b; color: #6ee7b7; }
+:root[data-theme="dark"] .reit-band-mod { background: #451a03; color: #fcd34d; }
+:root[data-theme="dark"] .reit-band-con { background: #450a0a; color: #fca5a5; }
+
+/* ── Confidence badges (v2.0) ───────────────────────────────────────────── */
+.reit-conf-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.2em 0.45em;
+  border-radius: 3px;
+  cursor: help;
+  letter-spacing: 0.04em;
+}
+.reit-conf-a { background: #dcfce7; color: #14532d; }
+.reit-conf-b { background: #dbeafe; color: #1e3a8a; }
+.reit-conf-c { background: #fef9c3; color: #713f12; }
+.reit-conf-d { background: #ffedd5; color: #7c2d12; }
+.reit-conf-e { background: #fee2e2; color: #7f1d1d; }
+
+/* ── Uncertainty panel (v2.0) ───────────────────────────────────────────── */
+.reit-uncertainty-panel {
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--reit-bg-subtle, #f8fafc);
+  border: 1px solid var(--reit-border, #e2e8f0);
+  border-radius: 6px;
+}
+.reit-uncertainty-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--reit-text-muted);
+  margin-bottom: 0.4rem;
+}
+.reit-uncertainty-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+.reit-uncertainty-table th,
+.reit-uncertainty-table td {
+  padding: 0.25rem 0.5rem;
+  text-align: right;
+  border-bottom: 1px solid var(--reit-border, #e2e8f0);
+}
+.reit-uncertainty-table th:first-child,
+.reit-uncertainty-table td:first-child { text-align: left; font-weight: 600; }
+.reit-uncertainty-table th { color: var(--reit-text-muted); font-weight: 700; }
+.reit-methodology-note {
+  font-size: 0.75rem;
+  color: var(--reit-text-muted);
+  margin-top: 0.4rem;
+  line-height: 1.4;
+}
+.reit-comparability-warning {
+  font-size: 0.75rem;
+  color: #b45309;
+  background: #fffbeb;
+  border-left: 3px solid #f59e0b;
+  padding: 0.25rem 0.5rem;
+  margin-top: 0.35rem;
+  border-radius: 0 4px 4px 0;
+}
+
+/* Dark mode for uncertainty panel */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .reit-uncertainty-panel { background: #1e293b; border-color: #334155; }
+  :root:not([data-theme="light"]) .reit-conf-a { background: #14532d; color: #86efac; }
+  :root:not([data-theme="light"]) .reit-conf-b { background: #1e3a8a; color: #93c5fd; }
+  :root:not([data-theme="light"]) .reit-conf-c { background: #713f12; color: #fde68a; }
+  :root:not([data-theme="light"]) .reit-conf-d { background: #7c2d12; color: #fed7aa; }
+  :root:not([data-theme="light"]) .reit-conf-e { background: #7f1d1d; color: #fca5a5; }
+}
+:root[data-theme="dark"] .reit-uncertainty-panel { background: #1e293b; border-color: #334155; }
+:root[data-theme="dark"] .reit-conf-a { background: #14532d; color: #86efac; }
+:root[data-theme="dark"] .reit-conf-b { background: #1e3a8a; color: #93c5fd; }
+:root[data-theme="dark"] .reit-conf-c { background: #713f12; color: #fde68a; }
+:root[data-theme="dark"] .reit-conf-d { background: #7c2d12; color: #fed7aa; }
+:root[data-theme="dark"] .reit-conf-e { background: #7f1d1d; color: #fca5a5; }
+
+/* ── Agent Output Friendly UI ─────────────────────────────── */
+.reit-agent-output {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0;
+}
+.reit-output-field {
+  border-left: 3px solid #4f8ef7;
+  padding: 6px 0 6px 12px;
+}
+.reit-output-field-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #8a9bbf;
+  margin-bottom: 4px;
+}
+.reit-output-text {
+  margin: 0;
+  font-size: 13px;
+  color: #e2e8f0;
+  line-height: 1.5;
+}
+.reit-output-none {
+  color: #64748b;
+  font-style: italic;
+}
+.reit-output-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: #e2e8f0;
+  line-height: 1.6;
+}
+.reit-check-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.reit-check-pass {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+.reit-check-fail {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.reit-output-nested {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.reit-output-nested-row {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+}
+.reit-output-nested-label {
+  color: #8a9bbf;
+  min-width: 120px;
+  font-weight: 600;
+}
+.reit-output-nested-val {
+  color: #e2e8f0;
+}
+
+.reit-agent-purpose {
+  margin: 2px 0 14px 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #64748b;
+  font-style: italic;
+}
+
+/* Headline figures at the top of the Orchestrator card */
+.reit-output-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.reit-output-stat {
+  flex: 1 1 140px;
+  background: rgba(79, 142, 247, 0.08);
+  border: 1px solid rgba(79, 142, 247, 0.22);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.reit-output-stat-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7f9e;
+  margin-bottom: 4px;
+}
+.reit-output-stat-value {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1e3a8a;
+}
+
+/* ── Statistics dashboard ─────────────────────────────────── */
+.reit-dash-section { margin-bottom: 26px; }
+.reit-dash-subhead { margin: 20px 0 4px; font-size: 14px; font-weight: 700; }
+.reit-table-wrap { overflow-x: auto; margin-top: 10px; }
+.reit-dash-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.reit-dash-table th {
+  text-align: left; padding: 7px 10px; white-space: nowrap;
+  border-bottom: 2px solid #d7dee8; font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.04em; color: #64748b;
+}
+.reit-dash-table td { padding: 6px 10px; border-bottom: 1px solid #edf1f6; white-space: nowrap; }
+.reit-dash-table tbody tr:hover { background: #f7fafc; }
+.reit-row-flag { background: rgba(217, 131, 36, 0.07); }
+.reit-row-best { background: rgba(46, 158, 107, 0.10); font-weight: 600; }
+.reit-corr { display: inline-block; min-width: 46px; padding: 2px 6px; border-radius: 4px; text-align: center; }
+.reit-flag-warn { color: #b45309; font-weight: 600; }
+.reit-flag-good { color: #15803d; font-weight: 700; }
+.reit-flag-bad  { color: #b91c1c; font-weight: 700; }
+.reit-note-inline { font-size: 11.5px; color: #64748b; font-style: italic; }
+.reit-callout {
+  margin-top: 12px; padding: 11px 14px; font-size: 12.5px; line-height: 1.55;
+  background: rgba(59, 125, 216, 0.06); border-left: 3px solid #3b7dd8; border-radius: 4px;
+}
+.reit-dash-canvas { width: 100%; max-width: 900px; height: auto; margin-top: 10px; }
+.reit-scatter-legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px; font-size: 12px; color: #4a5768; }
+.reit-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.reit-legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.reit-legend-ring { background: transparent; border: 2px solid #c0392b; width: 11px; height: 11px; }
+
+.reit-cached-banner {
+  margin: 0 0 12px 0; padding: 7px 11px; font-size: 12px; line-height: 1.5;
+  color: #92400e; background: rgba(217, 131, 36, 0.10);
+  border-left: 3px solid #d98324; border-radius: 4px;
+}

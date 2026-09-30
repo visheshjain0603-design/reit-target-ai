@@ -1,0 +1,17 @@
+{
+  "name": "reit-target-ai-server",
+  "version": "1.0.0",
+  "description": "Local Gemini API proxy for REIT Target AI — SPJIMR BA Project Theme 4",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --watch server.js",
+    "start:once": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {},
+  "keywords": ["academic", "synthetic", "reit"],
+  "license": "MIT",
+  "private": true
+}

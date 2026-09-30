@@ -1,0 +1,19 @@
+marketId,city,locality,propertyType,medianCapitalValuePerSqFt,medianMonthlyRentPerSqFt,grossYieldPct,annualRentalGrowthRatio,demandScore,riskScore,observationCount,dataAsOf,isSynthetic,sourceType
+MKT-001,Mumbai,Bandra Kurla Complex,Commercial Office,22000,150,8.1818,0.06,82,28,87,2026-09-19,True,synthetic_academic_placeholder
+MKT-002,Mumbai,Andheri East (MIDC),Commercial Office,14000,95,8.1429,0.05,75,32,64,2026-09-19,True,synthetic_academic_placeholder
+MKT-003,Mumbai,Lower Parel,Retail,25000,175,8.4,0.04,70,45,42,2026-09-19,True,synthetic_academic_placeholder
+MKT-004,Pune,Hinjewadi Phase 1,Commercial Office,9500,70,8.8421,0.08,78,35,55,2026-09-19,True,synthetic_academic_placeholder
+MKT-005,Pune,Kharadi,Commercial Office,8800,65,8.8636,0.09,72,38,48,2026-09-19,True,synthetic_academic_placeholder
+MKT-006,Pune,Wakad,Residential,7200,32,5.3333,0.07,74,36,39,2026-09-19,True,synthetic_academic_placeholder
+MKT-007,Bengaluru,Whitefield,Commercial Office,12000,90,9.0,0.07,85,30,76,2026-09-19,True,synthetic_academic_placeholder
+MKT-008,Bengaluru,Sarjapur Road,Residential,9500,40,5.0526,0.08,76,35,52,2026-09-19,True,synthetic_academic_placeholder
+MKT-009,Bengaluru,Koramangala,Retail,13000,88,8.1231,0.05,72,42,35,2026-09-19,True,synthetic_academic_placeholder
+MKT-010,Hyderabad,HITEC City,Commercial Office,10500,80,9.1429,0.1,80,33,61,2026-09-19,True,synthetic_academic_placeholder
+MKT-011,Hyderabad,Gachibowli,Residential,7800,34,5.2308,0.09,72,38,44,2026-09-19,True,synthetic_academic_placeholder
+MKT-012,Hyderabad,Banjara Hills,Residential,12000,48,4.8,0.06,68,35,31,2026-09-19,True,synthetic_academic_placeholder
+MKT-013,Chennai,Old Mahabalipuram Road (OMR),Commercial Office,7500,55,8.8,0.07,65,40,47,2026-09-19,True,synthetic_academic_placeholder
+MKT-014,Chennai,T Nagar,Retail,11000,72,7.8545,0.04,68,48,38,2026-09-19,True,synthetic_academic_placeholder
+MKT-015,Chennai,Velachery,Residential,5500,24,5.2364,0.07,62,40,33,2026-09-19,True,synthetic_academic_placeholder
+MKT-016,Delhi NCR,Gurugram — Cyber Hub,Commercial Office,15000,110,8.8,0.06,79,35,70,2026-09-19,True,synthetic_academic_placeholder
+MKT-017,Delhi NCR,Noida — Sector 62,Retail,8500,58,8.1882,0.06,65,44,29,2026-09-19,True,synthetic_academic_placeholder
+MKT-018,Ahmedabad,SG Highway,Commercial Office,6000,42,8.4,0.09,60,42,25,2026-09-19,True,synthetic_academic_placeholder
