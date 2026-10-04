@@ -54,7 +54,7 @@ node tests/reit-tests.js
 The suite prints one `PASS` or `FAIL` line per assertion, prints a results line,
 lists every failure at the end, and exits with status 1 if anything failed.
 
-Latest full run, 4 October 2026: `node tests/reit-tests.js` → "Results: 661 passed, 0 failed" (also recorded in HANDOFF.md). Assertion T-170 fails if this line and the live count ever disagree.
+Latest full run, 5 October 2026: `node tests/reit-tests.js` → "Results: 666 passed, 0 failed" (also recorded in HANDOFF.md). Assertion T-170 fails if this line and the live count ever disagree.
 
 ### 2.2 Browser acceptance
 
@@ -133,6 +133,7 @@ assertions (for example T-160a to T-160s).
 | T-169 | No current document uses retired terminology or presents simulation support as evidence (quoted terms and `[superseded]` lines exempt) |
 | T-170 | This report and `HANDOFF.md` state the application suite's own count for the run |
 | T-171 | No `.env` file is tracked and no tracked file contains an API key |
+| T-172 | Visual system: `index.html` loads one local stylesheet (`css/app.css`); every class the page scripts assign is defined in it or listed as a structural hook; every animation stops under `prefers-reduced-motion`; no CSS text-case transform (the browser checks read `innerText`); `motion.js` never writes text, markup or application state |
 
 ---
 

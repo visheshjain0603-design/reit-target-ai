@@ -32,11 +32,13 @@
   var DATA_URL = "data/statistics.json";
   var stats = null, loadError = null, loading = false;
 
+  /* The property-type triad used by every chart (see css/app.css). */
   var TYPE_COLOURS = {
-    "Commercial Office": "#3b7dd8",
-    "Retail":            "#2e9e6b",
-    "Residential":       "#d98324"
+    "Commercial Office": "#2F4DA8",
+    "Retail":            "#1F8A70",
+    "Residential":       "#D18A22"
   };
+  var FONT = "Archivo, system-ui, -apple-system, sans-serif";
 
   /** The one place this phrase is defined, so it cannot drift between panels. */
   var OBS_NOUN       = "simulated market observations";
@@ -134,8 +136,8 @@
     if (typeof v === "number" && isFinite(v)) {
       var a = Math.min(Math.abs(v), 1);
       span.style.background = v >= 0
-        ? "rgba(46,158,107," + (0.08 + a * 0.45).toFixed(2) + ")"
-        : "rgba(217,83,79," + (0.08 + a * 0.45).toFixed(2) + ")";
+        ? "rgba(43,106,74," + (0.06 + a * 0.38).toFixed(2) + ")"
+        : "rgba(158,59,42," + (0.06 + a * 0.38).toFixed(2) + ")";
       if (a > 0.6) { span.style.fontWeight = "700"; }
     }
     return span;
@@ -716,7 +718,14 @@
     var ctx = canvas.getContext && canvas.getContext("2d");
     if (!ctx || !pts.length) { return; }
 
-    var W = canvas.width, H = canvas.height;
+    /* Draw at the screen's pixel density, in CSS pixels. */
+    var W = parseInt(canvas.getAttribute("data-w"), 10) || canvas.width;
+    var H = parseInt(canvas.getAttribute("data-h"), 10) || canvas.height;
+    var dpr = Math.min(Math.max(window.devicePixelRatio || 1, 1), 3);
+    canvas.setAttribute("data-w", W); canvas.setAttribute("data-h", H);
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    canvas.style.width = W + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     var padL = 66, padR = 22, padT = 20, padB = 54;
     var pw = W - padL - padR, ph = H - padT - padB;
 
@@ -731,8 +740,8 @@
 
     ctx.clearRect(0, 0, W, H);
 
-    ctx.strokeStyle = "#e3e8ef"; ctx.lineWidth = 1;
-    ctx.fillStyle = "#7a879b"; ctx.font = "11px -apple-system, system-ui, sans-serif";
+    ctx.strokeStyle = "#DFE4E1"; ctx.lineWidth = 1;
+    ctx.fillStyle = "#616A75"; ctx.font = "11px " + FONT;
     var i;
     for (i = 0; i <= 5; i++) {
       var gy = padT + (ph / 5) * i;
@@ -756,7 +765,7 @@
       ctx.fill();
       if (p.o) {
         ctx.globalAlpha = 1;
-        ctx.strokeStyle = "#c0392b"; ctx.lineWidth = 1.6;
+        ctx.strokeStyle = "#9E3B2A"; ctx.lineWidth = 1.6;
         ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), 7, 0, Math.PI * 2); ctx.stroke();
       }
     });
@@ -775,7 +784,7 @@
     if (pooled && typeof pooled.slope === "number") {
       ctx.save();
       ctx.setLineDash([6, 5]);
-      ctx.strokeStyle = "rgba(100,116,139,0.55)";
+      ctx.strokeStyle = "rgba(97,106,117,0.6)";
       ctx.lineWidth = 1.6;
       ctx.beginPath();
       ctx.moveTo(X(xMin), Y(pooled.intercept + pooled.slope * xMin));
@@ -784,10 +793,10 @@
       ctx.restore();
 
       var lx = X(xMax) - 6, ly = Y(pooled.intercept + pooled.slope * xMax) - 8;
-      ctx.fillStyle = "rgba(100,116,139,0.95)";
-      ctx.font = "italic 10.5px -apple-system, system-ui, sans-serif";
+      ctx.fillStyle = "#46505C";
+      ctx.font = "11px " + FONT;
       ctx.textAlign = "right"; ctx.textBaseline = "bottom";
-      ctx.fillText("pooled fit — artefact of combining classes", lx, ly);
+      ctx.fillText("Pooled fit: an artefact of combining classes", lx, ly);
     }
 
     // One fitted line and confidence band per asset class.
@@ -839,21 +848,21 @@
     if (lines.length) {
       var bw = 232, bh = 15 * lines.length + 14;
       var bx = padL + 10, by = padT + 10;
-      ctx.fillStyle = "rgba(255,255,255,0.93)";
-      ctx.strokeStyle = "#cbd5e1"; ctx.lineWidth = 1;
-      ctx.fillRect(bx, by, bw, bh); ctx.strokeRect(bx, by, bw, bh);
-      ctx.font = "10.5px ui-monospace, SFMono-Regular, Menlo, monospace";
+      ctx.fillStyle = "rgba(255,255,255,0.94)";
+      ctx.strokeStyle = "#DFE4E1"; ctx.lineWidth = 1;
+      ctx.fillRect(bx, by, bw, bh); ctx.strokeRect(bx + 0.5, by + 0.5, bw, bh);
+      ctx.font = "11px " + FONT;
       ctx.textAlign = "left"; ctx.textBaseline = "top";
       lines.forEach(function (ln, k) {
         ctx.fillStyle = ln.colour;
         ctx.fillRect(bx + 8, by + 10 + k * 15, 7, 7);
-        ctx.fillStyle = "#33415c";
+        ctx.fillStyle = "#17202C";
         ctx.fillText(ln.text, bx + 20, by + 8 + k * 15);
       });
     }
 
-    ctx.fillStyle = "#4a5768";
-    ctx.font = "12px -apple-system, system-ui, sans-serif";
+    ctx.fillStyle = "#46505C";
+    ctx.font = "500 12px " + FONT;
     ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
     ctx.fillText(sc.xLabel || "x", padL + pw / 2, H - 12);
     ctx.save();

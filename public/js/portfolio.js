@@ -517,11 +517,11 @@
     asof.className = "reit-as-of";
     if (isCustom) {
       asof.textContent = "Data as of " + fmt_Date(data.dataAsOf) +
-        " (today) · Currency: INR · Area: sq_ft";
+        " (today). Currency INR, area in sq ft.";
     } else {
       asof.textContent = "Data as of " + fmt_Date(data.dataAsOf) +
-        " · Currency: " + (data.currency || "INR") +
-        " · Area: " + (data.areaUnit || "sq_ft");
+        ". Currency " + (data.currency || "INR") +
+        ", area in " + String(data.areaUnit || "sq_ft").replace("sq_ft", "sq ft") + ".";
     }
     div.appendChild(asof);
 
@@ -901,7 +901,7 @@
       {
         label:  "Total Assets",
         value:  fmt_Num(m.assetCount, 0),
-        sub:    "Across " + cityLabel + " · " + typeLabel,
+        sub:    "Across " + cityLabel + ", " + typeLabel,
         accent: ""
       }
     ];
@@ -1072,7 +1072,7 @@
       else if (isLowOcc)     { tr.classList.add("row-low-occupancy"); }
 
       tr.appendChild(buildNameCell(a, isLowOcc, isNearExpiry, isBestYield));
-      addTd(tr, (a.city || "") + " · " + (a.locality || ""), "");
+      addTd(tr, (a.city || "") + ", " + (a.locality || ""), "");
 
       var typeTd = document.createElement("td");
       typeTd.appendChild(buildTypePill(a.assetType || ""));

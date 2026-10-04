@@ -180,4 +180,20 @@ Headline figures in the documentation are no longer typed. Documents mark genera
 
 ---
 
+## 5 October 2026 — visual redesign
+
+### Decision: one stylesheet built from tokens
+The shared design system described in Phase 1 had stopped serving the project: the pages loaded three stylesheets, defined some components twice with different values, and assigned about 80 classes that none of them defined, so those components rendered with browser defaults. The three files were archived (`archive/css-pre-redesign-20261005/`) and replaced by `public/css/app.css`, which defines every class the page scripts use from one set of colour, type, spacing and motion tokens. T-172b now fails if a script assigns a class the stylesheet does not define.
+
+### Decision: one accent colour with one meaning
+Marigold marks what is selected — the selected target, the current page, the active preset — and nothing else. Indigo marks what can be acted on. Status (passes, caution, fails) has its own three tones, always with a symbol and words, so no meaning depends on colour alone.
+
+### Decision: motion only where something changed
+Every page re-renders its whole root when the shared run changes, so naive entrance animations would replay on every click. `public/js/motion.js` instead compares each render with the previous one and animates only the difference: re-ranked rows, a new target, changed figures, newly opened content, charts whose data changed. It adds classes and transforms only — never text or state — and does nothing under `prefers-reduced-motion` (T-172c, T-172e).
+
+### Fixed in passing
+The before/after HHI chart on the Diversification page had never been drawn: it was rendered by element id before its container was attached to the page. `charts.js` also coloured an HHI of exactly 0.25 as concentrated while every other page calls it moderate; it now uses the same bands.
+
+---
+
 *NMIMS B.Sc. Finance | Business Analytics Project Theme 4 | September 2026 | Academic demonstration only*

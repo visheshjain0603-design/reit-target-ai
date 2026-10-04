@@ -17,10 +17,10 @@ All data is synthetic. Nothing in this project describes a real property, market
 
 | Check | Result |
 |---|---|
-| `node tests/reit-tests.js` | **661 passed, 0 failed** |
+| `node tests/reit-tests.js` | **666 passed, 0 failed** |
 | `node data-pipeline/tests/dataPipeline.test.js` | **22 passed, 0 failed** |
 | `node data-pipeline/scripts/auditAnalytics.js` | exit 0 — every figure re-derives |
-| Browser acceptance (`tests/browserAcceptance.js`), desktop | **64 / 64 passed** (1024 px) |
+| Browser acceptance (`tests/browserAcceptance.js`), desktop | **64 / 64 passed** (1440 px) |
 | Browser acceptance, 390 px mobile | **72 / 72 passed** (390 px; 0 px overflow on every route) |
 | System Check (Data Centre) | **10 / 10 passed** in the browser and in the Node suite (T-161) |
 | Console errors, all eight routes, static mode | none (no 404, no refused connection) |
@@ -41,6 +41,25 @@ All data is synthetic. Nothing in this project describes a real property, market
 | Generator / seed / data as of | 2.0.0 / 20260919 / 2026-09-19 |
 | Institution and author | NMIMS B.Sc. Finance, Business Analytics — Vishesh Jain |
 <!-- canonical:END key-figures -->
+
+---
+
+## Addendum — visual redesign, 5 October 2026
+
+After the correction pass the interface was redesigned. No market or portfolio value, score,
+ranking, recommendation rule, analytical wording or agent behaviour changed; every page still
+renders the one shared analysis run.
+
+| Area | Change |
+|---|---|
+| Stylesheets | One stylesheet, `public/css/app.css`, built from a single set of tokens (colour, type, spacing, motion). `styles.css`, `m-app.css` and `reit-components.css` are archived in `archive/css-pre-redesign-20261005/` with a README; about 80 classes the pages assigned were defined in none of them. |
+| Identity | Mineral-grey neutrals, deep ink text, indigo for everything that can be acted on, and marigold for one meaning only: selected (the selected target, the current page, the active preset). One typeface, Archivo (SIL Open Font Licence, loaded from Google Fonts; the system sans-serif is used if it cannot load), across its width axis: expanded for titles and the candidate plate, narrower for the fifteen-column ranking. Sentence-case labels, right-aligned tabular figures. |
+| Hierarchy | The selected target and its three separate dimensions (attractiveness, simulation support, external calibration) sit on one dark candidate plate on the Overview and the Screener. Sections are white panels; status notes share one shape in five tones. The sidebar names the current analysis on every page (`public/js/shell.js`). |
+| Motion | `public/js/motion.js` animates only what changed: ranked rows glide to their new rank when a preset or weight changes, the plate settles when the target changes, a changed figure glows briefly, bars and charts draw in with new data, opened content eases in, and the current-page marker slides. Nothing moves under `prefers-reduced-motion`. It never writes text, values or application state (T-172e). |
+| Charts | Palette aligned with the tokens; canvases drawn at the screen's pixel density; the Screener scatter rings the selected target. `charts.js` now uses the same HHI bands as the rest of the application (0.25 is moderate). The Diversification before/after HHI chart was never drawn — it was rendered before its container joined the page — and now is. |
+| Text | Middle-dot meta strings became plain commas; the route map lost its dash-separated descriptions. |
+| Screenshots | `docs/screenshots/` replaced with 15 captures of the redesigned pages (desktop 1440 px and phone 390 px); the previous set is in `archive/screenshots-pre-redesign-20261005/`. |
+| Tests | T-172a–e: one local stylesheet; every class the scripts assign is defined in it; reduced motion honoured; no text-case transforms (the acceptance checks read `innerText`); `motion.js` is purely presentational. Browser acceptance re-run after the redesign: desktop 64 / 64, 390 px 72 / 72, no console errors. |
 
 ---
 
@@ -179,7 +198,7 @@ in §15.
 `governance.js`, `scenarioKey.js` (mode, override, candidate, context version),
 `marketScreen.js`, `diversification.js`, `report.js`, `portfolio.js`, `statsDashboard.js`,
 `stats.js` (CI unit), `validator.js` (limitations), `filters.js`, `uiHelpers.js` (hidden/inert
-pages, focus), `public/index.html`, `public/css/reit-components.css`, `server/server.js`
+pages, focus), `public/index.html`, `public/css/reit-components.css` (since archived — see the addendum), `server/server.js`
 (prompts, schema, cache model name), `data-pipeline/scripts/buildMeta.js`, `tests/reit-tests.js`,
 `public/data/meta.json`, `public/data/agent-cache.json`, `docs/CANONICAL_FACTS.md`,
 `docs/screenshots/*`.
@@ -223,16 +242,17 @@ presets, CHK-10 pre-generated commentary format. **10/10 pass** in the browser a
 ## 10. Tests
 
 ```bash
-node tests/reit-tests.js                        # 661 passed, 0 failed
+node tests/reit-tests.js                        # 666 passed, 0 failed
 node data-pipeline/tests/dataPipeline.test.js   # 22 passed, 0 failed
 node data-pipeline/scripts/auditAnalytics.js    # exit 0
 ```
 
-Application suite record for T-170: `node tests/reit-tests.js` → 661 passed, 0 failed.
+Application suite record for T-170: `node tests/reit-tests.js` → 666 passed, 0 failed.
 
 New blocks: T-160 (agent context, cache, output checker), T-161 (System Check), T-162 (four-preset
 synchronisation), T-163 (auto/manual), T-164 (reset), T-165 (report tables), T-166 (calibration,
-CI unit, Data Centre), T-167–T-170 (documentation synchronisation), T-171 (no secrets). Earlier
+CI unit, Data Centre), T-167–T-170 (documentation synchronisation), T-171 (no secrets), T-172
+(visual system, added with the redesign). Earlier
 source-string tests that described replaced designs were rewritten, each with a comment saying
 what was replaced and why (T32, T33, T39–T41, T45, T78, T82, T83c, T-151l/n, T-154a/e, T-155f–i).
 

@@ -31,18 +31,48 @@
 }(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  /* ── Colour palette (accessible) ─────────────────────────── */
+  /* ── Colour palette ──────────────────────────────────────────
+   * Matches the tokens in css/app.css. Property types use a blue / bluish
+   * green / orange triad that stays distinguishable for the common forms of
+   * colour-vision deficiency; marigold is reserved for the selected target. */
   var COLOURS = {
-    office:      '#2563eb',
-    retail:      '#16a34a',
-    residential: '#d97706',
-    neutral:     '#64748b',
-    improved:    '#15803d',
-    worsened:    '#dc2626',
-    conservative:'#f59e0b',
-    base:        '#3b82f6',
-    optimistic:  '#16a34a'
+    office:      '#2F4DA8',
+    retail:      '#1F8A70',
+    residential: '#D18A22',
+    neutral:     '#616A75',
+    improved:    '#2B6A4A',
+    worsened:    '#9E3B2A',
+    caution:     '#B07A1E',
+    conservative:'#B07A1E',
+    base:        '#2D3B94',
+    optimistic:  '#2B6A4A',
+    selected:    '#E8A23A',
+    ink:         '#17202C',
+    ink2:        '#46505C',
+    ink3:        '#616A75',
+    rule:        '#DFE4E1',
+    ruleStrong:  '#C6CDCA',
+    track:       '#EEF1EF'
   };
+  var FONT = 'Archivo, system-ui, -apple-system, "Segoe UI", sans-serif';
+  var SVG_FONT = 'font-family="Archivo, system-ui, sans-serif"';
+
+  /* Canvas at the screen's pixel density, drawn in CSS pixels. The logical
+   * size is the width/height the caller set, remembered on first use. */
+  function setupCanvas(canvasEl, defW, defH) {
+    var W = parseInt(canvasEl.getAttribute('data-w'), 10) || canvasEl.width || defW;
+    var H = parseInt(canvasEl.getAttribute('data-h'), 10) || canvasEl.height || defH;
+    var dpr = Math.min(Math.max(window.devicePixelRatio || 1, 1), 3);
+    canvasEl.setAttribute('data-w', W);
+    canvasEl.setAttribute('data-h', H);
+    canvasEl.width = Math.round(W * dpr);
+    canvasEl.height = Math.round(H * dpr);
+    canvasEl.style.width = W + 'px';
+    var ctx = canvasEl.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    return { ctx: ctx, W: W, H: H };
+  }
 
   /* ── SVG helpers ──────────────────────────────────────────── */
   function svgTag(tag, attrs, inner) {
@@ -80,17 +110,17 @@
 
     var W = 480, H = 300;
     var stages = [
-      { label: 'Total imported', value: report.total,                  colour: '#64748b' },
-      { label: 'After impossible values removed', value: report.total - report.rejected, colour: '#2563eb' },
-      { label: 'After duplicates flagged',  value: (report.total - report.rejected) - report.duplicates, colour: '#7c3aed' },
-      { label: 'After outliers flagged',    value: report.ok,          colour: '#16a34a' }
+      { label: 'Total imported', value: report.total,                  colour: '#9AA3C9' },
+      { label: 'After impossible values removed', value: report.total - report.rejected, colour: '#6F7BB8' },
+      { label: 'After duplicates flagged',  value: (report.total - report.rejected) - report.duplicates, colour: '#4A58A4' },
+      { label: 'After outliers flagged',    value: report.ok,          colour: COLOURS.base }
     ];
 
     var maxVal = stages[0].value || 1;
     var padL = 220, padR = 60, padT = 20, barH = 38, gap = 20;
     var totalH = padT + stages.length * (barH + gap) + 20;
 
-    var svgParts = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + totalH + '" role="img" aria-label="Data quality funnel">'];
+    var svgParts = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + totalH + '" role="img" aria-label="Data quality funnel" ' + SVG_FONT + '>'];
     svgParts.push('<title>Data quality funnel</title>');
 
     stages.forEach(function (s, i) {
@@ -100,16 +130,16 @@
       // Label
       svgParts.push(svgTag('text', {
         x: padL - 8, y: y + barH / 2 + 5,
-        'text-anchor': 'end', 'font-size': '12', fill: '#374151'
+        'text-anchor': 'end', 'font-size': '12', fill: COLOURS.ink2
       }, esc(s.label)));
 
       // Bar
-      svgParts.push(svgEl('rect', { x: padL, y: y, width: barW, height: barH, rx: 4, fill: s.colour }));
+      svgParts.push(svgEl('rect', { x: padL, y: y, width: barW, height: barH, rx: 6, fill: s.colour }));
 
       // Value label
       svgParts.push(svgTag('text', {
-        x: padL + barW + 6, y: y + barH / 2 + 5,
-        'font-size': '13', 'font-weight': '700', fill: s.colour
+        x: padL + barW + 8, y: y + barH / 2 + 5,
+        'font-size': '13', 'font-weight': '650', fill: COLOURS.ink
       }, esc(String(s.value))));
     });
 
@@ -124,14 +154,12 @@
    * renderScatterChart(canvasEl, markets, ranked)
    * Bubble size ∝ demandScore; colour = propertyType
    */
-  function renderScatterChart(canvasEl, markets, ranked) {
+  function renderScatterChart(canvasEl, markets, ranked, selectedId) {
     if (!canvasEl || !canvasEl.getContext) return;
-    var ctx = canvasEl.getContext('2d');
-    var W = canvasEl.width  || 480;
-    var H = canvasEl.height || 320;
-    ctx.clearRect(0, 0, W, H);
+    var cv = setupCanvas(canvasEl, 480, 320);
+    var ctx = cv.ctx, W = cv.W, H = cv.H;
 
-    var padL = 55, padR = 20, padT = 20, padB = 45;
+    var padL = 58, padR = 20, padT = 20, padB = 46;
     var plotW = W - padL - padR;
     var plotH = H - padT - padB;
 
@@ -154,7 +182,8 @@
         demand: m.demandScore || 0,
         risk:   m.riskScore   || 0,
         obs:    m.observationCount || 0,
-        score:  null  /* filled below from scoreMap */
+        score:  null,  /* filled below from scoreMap */
+        id:     m.marketId
       };
     });
     points.forEach(function (p, i) {
@@ -177,24 +206,24 @@
     }
 
     // Grid
-    ctx.strokeStyle = '#e2e8f0';
+    ctx.strokeStyle = COLOURS.rule;
     ctx.lineWidth   = 1;
     for (var gi = 0; gi <= 4; gi++) {
-      var gx = padL + (gi / 4) * plotW;
-      var gy2 = padT + (gi / 4) * plotH;
+      var gx = Math.round(padL + (gi / 4) * plotW) + 0.5;
+      var gy2 = Math.round(padT + (gi / 4) * plotH) + 0.5;
       ctx.beginPath(); ctx.moveTo(gx, padT); ctx.lineTo(gx, padT + plotH); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(padL, gy2); ctx.lineTo(padL + plotW, gy2); ctx.stroke();
     }
 
     // Axes
-    ctx.strokeStyle = '#94a3b8';
-    ctx.lineWidth   = 1.5;
-    ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + plotH); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(padL, padT + plotH); ctx.lineTo(padL + plotW, padT + plotH); ctx.stroke();
+    ctx.strokeStyle = COLOURS.ruleStrong;
+    ctx.lineWidth   = 1;
+    ctx.beginPath(); ctx.moveTo(padL + 0.5, padT); ctx.lineTo(padL + 0.5, padT + plotH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL, padT + plotH + 0.5); ctx.lineTo(padL + plotW, padT + plotH + 0.5); ctx.stroke();
 
     // Axis labels  (X = Rental Growth, Y = Gross Yield)
-    ctx.fillStyle  = '#64748b';
-    ctx.font       = '11px system-ui, sans-serif';
+    ctx.fillStyle  = COLOURS.ink2;
+    ctx.font       = '500 12px ' + FONT;
     ctx.textAlign  = 'center';
     ctx.fillText('Rental Growth (%)', padL + plotW / 2, H - 8);
     ctx.save();
@@ -204,8 +233,8 @@
     ctx.restore();
 
     // Tick values
-    ctx.font      = '10px system-ui, sans-serif';
-    ctx.fillStyle = '#94a3b8';
+    ctx.font      = '11px ' + FONT;
+    ctx.fillStyle = COLOURS.ink3;
     for (var ti = 0; ti <= 4; ti++) {
       var tx = xMin + (ti / 4) * xRange;
       var ty = yMin + (ti / 4) * yRange;
@@ -224,25 +253,42 @@
       var colour = typeColours[p.type] || COLOURS.neutral;
       ctx.beginPath();
       ctx.arc(c.cx, c.cy, p.size, 0, Math.PI * 2);
-      ctx.fillStyle = colour + 'cc';
+      ctx.fillStyle = colour + '99';
       ctx.fill();
-      ctx.strokeStyle = colour;
-      ctx.lineWidth   = 1.5;
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.lineWidth   = 1;
       ctx.stroke();
     });
 
+    // The selected target: a marigold ring and its name.
+    var sel = null;
+    points.forEach(function (p) { if (selectedId && p.id === selectedId) { sel = p; } });
+    if (sel) {
+      var sc = toCanvas(sel.x, sel.y);
+      ctx.beginPath();
+      ctx.arc(sc.cx, sc.cy, sel.size + 4, 0, Math.PI * 2);
+      ctx.strokeStyle = COLOURS.selected;
+      ctx.lineWidth   = 3;
+      ctx.stroke();
+      ctx.font      = '600 12px ' + FONT;
+      ctx.fillStyle = COLOURS.ink;
+      var labelRight = sc.cx + sel.size + 10 + ctx.measureText(sel.label).width < padL + plotW;
+      ctx.textAlign = labelRight ? 'left' : 'right';
+      ctx.fillText(sel.label, labelRight ? sc.cx + sel.size + 10 : sc.cx - sel.size - 10, sc.cy + 4);
+    }
+
     // Legend
-    var legX = padL + 8, legY = padT + 8;
+    var legX = padL + 10, legY = padT + 12;
     var types = ['Commercial Office', 'Retail', 'Residential'];
     types.forEach(function (t, i) {
       ctx.beginPath();
-      ctx.arc(legX + 6, legY + i * 18, 6, 0, Math.PI * 2);
+      ctx.arc(legX + 5, legY + i * 18, 5, 0, Math.PI * 2);
       ctx.fillStyle = typeColours[t] || COLOURS.neutral;
       ctx.fill();
-      ctx.fillStyle = '#374151';
-      ctx.font      = '11px system-ui, sans-serif';
+      ctx.fillStyle = COLOURS.ink2;
+      ctx.font      = '12px ' + FONT;
       ctx.textAlign = 'left';
-      ctx.fillText(t, legX + 16, legY + i * 18 + 4);
+      ctx.fillText(t, legX + 15, legY + i * 18 + 4);
     });
 
     // Hover tooltip — shows market details on mouse proximity
@@ -256,10 +302,10 @@
         tipEl.id = tipId;
         tipEl.style.cssText = [
           'position:absolute', 'pointer-events:none', 'display:none',
-          'background:#1e293b', 'color:#f8fafc', 'border-radius:6px',
-          'padding:8px 12px', 'font:12px/1.6 system-ui,sans-serif',
-          'box-shadow:0 4px 12px rgba(0,0,0,.35)', 'z-index:999',
-          'white-space:nowrap', 'max-width:240px'
+          'background:#17202C', 'color:#EEF1F4', 'border-radius:8px',
+          'padding:10px 12px', 'font:12px/1.6 ' + FONT.replace(/"/g, "'"),
+          'box-shadow:0 14px 30px -12px rgba(23,32,44,.55)', 'z-index:999',
+          'white-space:nowrap', 'max-width:260px', 'font-variant-numeric:tabular-nums'
         ].join(';');
         // Tooltip must sit in a positioned ancestor
         var posParent = canvasEl.parentNode;
@@ -270,8 +316,8 @@
       }
       canvasEl.addEventListener('mousemove', function (evt) {
         var rect   = canvasEl.getBoundingClientRect();
-        var scaleX = canvasEl.width  / (rect.width  || canvasEl.width);
-        var scaleY = canvasEl.height / (rect.height || canvasEl.height);
+        var scaleX = W / (rect.width  || W);
+        var scaleY = H / (rect.height || H);
         var mx     = (evt.clientX - rect.left) * scaleX;
         var my     = (evt.clientY - rect.top)  * scaleY;
         var hit    = null;
@@ -327,18 +373,18 @@
 
     var factorKeys   = ['yieldScore', 'growthScore', 'diversScore', 'demandScore', 'riskScore'];
     var factorLabels = ['Yield', 'Growth', 'Diversif.', 'Demand', 'Low Risk'];
-    var factorColours= ['#2563eb', '#16a34a', '#7c3aed', '#d97706', '#0891b2'];
+    var factorColours= [COLOURS.base, COLOURS.retail, COLOURS.residential, '#8B4C7E', '#5B6B7A'];
 
     var maxScore = 100;
 
-    var parts = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Factor contribution bars">'];
+    var parts = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Factor contribution bars" ' + SVG_FONT + '>'];
     parts.push('<title>Factor score breakdown — top ' + topN + ' markets</title>');
 
     // Legend
     factorKeys.forEach(function (k, i) {
       var lx = padL + i * 66;
       parts.push(svgEl('rect', { x: lx, y: 0, width: 12, height: 12, rx: 2, fill: factorColours[i] }));
-      parts.push(svgTag('text', { x: lx + 15, y: 11, 'font-size': '10', fill: '#374151' }, esc(factorLabels[i])));
+      parts.push(svgTag('text', { x: lx + 15, y: 11, 'font-size': '10', fill: COLOURS.ink2 }, esc(factorLabels[i])));
     });
 
     top.forEach(function (mkt, i) {
@@ -346,7 +392,7 @@
       // Market label
       parts.push(svgTag('text', {
         x: padL - 6, y: y + barH / 2 + 5,
-        'text-anchor': 'end', 'font-size': '11', fill: '#1e293b'
+        'text-anchor': 'end', 'font-size': '11', fill: COLOURS.ink
       }, esc((mkt.locality || mkt.city || mkt.marketId || '').slice(0, 22))));
 
       // Stacked bars
@@ -361,7 +407,7 @@
       // Total score
       parts.push(svgTag('text', {
         x: x + 6, y: y + barH / 2 + 5,
-        'font-size': '12', 'font-weight': '700', fill: '#1e293b'
+        'font-size': '12', 'font-weight': '650', fill: COLOURS.ink
       }, esc(typeof mkt.score === 'number' ? mkt.score.toFixed(1) : '')));
     });
 
@@ -379,12 +425,14 @@
     var el = document.getElementById(containerId);
     if (!el) return;
 
-    var W = 400, H = 220, padL = 100, padR = 40, padT = 30, barH = 28, gap = 14;
+    var W = 520, H = 220, padL = 128, padR = 150, padT = 30, barH = 26, gap = 14;
 
+    /* Same bands as diversification.js: below 0.15 diversified, 0.15 to
+     * 0.25 inclusive moderate, above 0.25 concentrated. */
     function hatch(val) {
-      if (val < 0.15)  return { label: 'Diversified',  colour: '#16a34a' };
-      if (val < 0.25)  return { label: 'Moderate',     colour: '#f59e0b' };
-      return               { label: 'Concentrated',  colour: '#dc2626' };
+      if (val < 0.15)  return { label: 'Diversified',  colour: COLOURS.improved };
+      if (val <= 0.25) return { label: 'Moderate',     colour: COLOURS.caution };
+      return               { label: 'Concentrated',  colour: COLOURS.worsened };
     }
 
     var rows = [
@@ -396,14 +444,14 @@
     var maxVal = 1;
     var totalH = padT + rows.length * (barH + gap) + 40;
 
-    var parts = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + totalH + '" role="img" aria-label="HHI before and after comparison">'];
+    var parts = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + totalH + '" role="img" aria-label="HHI before and after comparison" ' + SVG_FONT + '>'];
     parts.push('<title>HHI before and after investment</title>');
 
     // Threshold lines
     [0.15, 0.25].forEach(function (thresh) {
       var lx = padL + thresh * (W - padL - padR);
-      parts.push(svgEl('line', { x1: lx, y1: padT - 10, x2: lx, y2: totalH - 30, stroke: '#94a3b8', 'stroke-dasharray': '4 3', 'stroke-width': '1' }));
-      parts.push(svgTag('text', { x: lx + 2, y: padT - 12, 'font-size': '9', fill: '#94a3b8' }, esc(String(thresh))));
+      parts.push(svgEl('line', { x1: lx, y1: padT - 10, x2: lx, y2: totalH - 30, stroke: COLOURS.ruleStrong, 'stroke-dasharray': '4 3', 'stroke-width': '1' }));
+      parts.push(svgTag('text', { x: lx + 3, y: padT - 12, 'font-size': '10', fill: COLOURS.ink3 }, esc(String(thresh))));
     });
 
     rows.forEach(function (row, i) {
@@ -412,22 +460,23 @@
       var barW = Math.round((row.value / maxVal) * (W - padL - padR));
 
       parts.push(svgTag('text', {
-        x: padL - 6, y: y + barH / 2 + 5,
-        'text-anchor': 'end', 'font-size': '11', fill: '#374151'
+        x: padL - 8, y: y + barH / 2 + 4,
+        'text-anchor': 'end', 'font-size': '11', fill: COLOURS.ink2
       }, esc(row.label)));
 
-      parts.push(svgEl('rect', { x: padL, y: y, width: barW, height: barH, rx: 3, fill: h.colour }));
+      parts.push(svgEl('rect', { x: padL, y: y, width: W - padL - padR, height: barH, rx: 4, fill: COLOURS.track }));
+      parts.push(svgEl('rect', { x: padL, y: y, width: Math.max(2, barW), height: barH, rx: 4, fill: h.colour, 'fill-opacity': i % 2 ? '1' : '0.55' }));
 
       parts.push(svgTag('text', {
-        x: padL + barW + 5, y: y + barH / 2 + 5,
-        'font-size': '11', fill: h.colour, 'font-weight': '600'
-      }, esc(row.value.toFixed(3) + ' · ' + h.label)));
+        x: padL + barW + 8, y: y + barH / 2 + 4,
+        'font-size': '11', fill: COLOURS.ink, 'font-weight': '600'
+      }, esc(row.value.toFixed(3) + ' (' + h.label.toLowerCase() + ')')));
     });
 
     // Axis
-    parts.push(svgEl('line', { x1: padL, y1: totalH - 30, x2: W - padR, y2: totalH - 30, stroke: '#e2e8f0', 'stroke-width': '1' }));
-    parts.push(svgTag('text', { x: padL, y: totalH - 16, 'font-size': '10', fill: '#94a3b8' }, '0.00'));
-    parts.push(svgTag('text', { x: W - padR - 10, y: totalH - 16, 'font-size': '10', fill: '#94a3b8' }, '1.00'));
+    parts.push(svgEl('line', { x1: padL, y1: totalH - 30, x2: W - padR, y2: totalH - 30, stroke: COLOURS.rule, 'stroke-width': '1' }));
+    parts.push(svgTag('text', { x: padL, y: totalH - 14, 'font-size': '10', fill: COLOURS.ink3 }, '0.00'));
+    parts.push(svgTag('text', { x: W - padR, y: totalH - 14, 'font-size': '10', fill: COLOURS.ink3, 'text-anchor': 'end' }, '1.00'));
 
     parts.push('</svg>');
     el.innerHTML = parts.join('\n'); // eslint-disable-line — SVG chart
@@ -442,19 +491,17 @@
    */
   function renderScenarioLine(canvasEl, scenarios) {
     if (!canvasEl || !canvasEl.getContext) return;
-    var ctx  = canvasEl.getContext('2d');
-    var W    = canvasEl.width  || 480;
-    var H    = canvasEl.height || 280;
-    ctx.clearRect(0, 0, W, H);
+    var cv   = setupCanvas(canvasEl, 480, 280);
+    var ctx  = cv.ctx, W = cv.W, H = cv.H;
 
-    var padL = 65, padR = 20, padT = 20, padB = 40;
+    var padL = 68, padR = 20, padT = 20, padB = 40;
     var plotW = W - padL - padR;
     var plotH = H - padT - padB;
 
     var lines = [
-      { key: 'conservative', label: 'Conservative', colour: COLOURS.conservative },
-      { key: 'base',         label: 'Base',         colour: COLOURS.base         },
-      { key: 'optimistic',   label: 'Optimistic',   colour: COLOURS.optimistic   }
+      { key: 'conservative', label: 'Conservative', colour: COLOURS.conservative, dash: [6, 4] },
+      { key: 'base',         label: 'Base',         colour: COLOURS.base,         dash: []     },
+      { key: 'optimistic',   label: 'Optimistic',   colour: COLOURS.optimistic,   dash: [2, 3] }
     ];
 
     // Flatten all values to get range
@@ -477,10 +524,10 @@
     function cy(v)  { return padT + plotH - ((v - yMin) / yRange) * plotH; }
 
     // Grid
-    ctx.strokeStyle = '#f1f5f9';
+    ctx.strokeStyle = COLOURS.rule;
     ctx.lineWidth   = 1;
     for (var gi = 0; gi <= 4; gi++) {
-      var gy = padT + (gi / 4) * plotH;
+      var gy = Math.round(padT + (gi / 4) * plotH) + 0.5;
       ctx.beginPath(); ctx.moveTo(padL, gy); ctx.lineTo(padL + plotW, gy); ctx.stroke();
     }
 
@@ -490,31 +537,37 @@
       if (!pts.length) return;
       ctx.beginPath();
       ctx.strokeStyle = l.colour;
-      ctx.lineWidth   = 2.5;
+      ctx.lineWidth   = l.key === 'base' ? 2.5 : 2;
+      ctx.lineJoin    = 'round';
+      ctx.setLineDash(l.dash);
       pts.forEach(function (pt, i) {
         var x = cx(pt.year), y = cy(pt.portfolioValue);
         if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       });
       ctx.stroke();
+      ctx.setLineDash([]);
 
       // Dots
       pts.forEach(function (pt) {
         ctx.beginPath();
-        ctx.arc(cx(pt.year), cy(pt.portfolioValue), 4, 0, Math.PI * 2);
-        ctx.fillStyle = l.colour;
+        ctx.arc(cx(pt.year), cy(pt.portfolioValue), 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#FFFFFF';
         ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = l.colour;
+        ctx.stroke();
       });
     });
 
     // Axes
-    ctx.strokeStyle = '#94a3b8';
+    ctx.strokeStyle = COLOURS.ruleStrong;
     ctx.lineWidth   = 1;
-    ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + plotH); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(padL, padT + plotH); ctx.lineTo(padL + plotW, padT + plotH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL + 0.5, padT); ctx.lineTo(padL + 0.5, padT + plotH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL, padT + plotH + 0.5); ctx.lineTo(padL + plotW, padT + plotH + 0.5); ctx.stroke();
 
     // X-axis labels (years)
-    ctx.fillStyle  = '#64748b';
-    ctx.font       = '11px system-ui, sans-serif';
+    ctx.fillStyle  = COLOURS.ink3;
+    ctx.font       = '11px ' + FONT;
     ctx.textAlign  = 'center';
     years.forEach(function (yr) {
       ctx.fillText('Yr ' + yr, cx(yr), H - 8);
@@ -529,15 +582,17 @@
     }
 
     // Legend
-    var legX = padL + 8, legY = padT + 8;
+    var legX = padL + 12, legY = padT + 10;
     lines.forEach(function (l, i) {
       ctx.strokeStyle = l.colour;
       ctx.lineWidth   = 2.5;
-      ctx.beginPath(); ctx.moveTo(legX, legY + i * 18); ctx.lineTo(legX + 20, legY + i * 18); ctx.stroke();
-      ctx.fillStyle  = '#374151';
-      ctx.font       = '11px system-ui, sans-serif';
+      ctx.setLineDash(l.dash);
+      ctx.beginPath(); ctx.moveTo(legX, legY + i * 18); ctx.lineTo(legX + 22, legY + i * 18); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle  = COLOURS.ink2;
+      ctx.font       = '12px ' + FONT;
       ctx.textAlign  = 'left';
-      ctx.fillText(l.label, legX + 24, legY + i * 18 + 4);
+      ctx.fillText(l.label, legX + 28, legY + i * 18 + 4);
     });
   }
 
@@ -563,11 +618,11 @@
     var PLOT_W = W - PAD_L - PAD_R;
 
     var svgParts = [];
-    svgParts.push('<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '" role="img" aria-label="' + title + '">');
+    svgParts.push('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="' + title + '" ' + SVG_FONT + '>');
     // Title
-    svgParts.push('<text x="' + (W / 2) + '" y="18" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">' + title + '</text>');
+    svgParts.push('<text x="' + PAD_L + '" y="18" font-size="12" font-weight="600" fill="' + COLOURS.ink2 + '">' + title + '</text>');
 
-    var palette = ['#2563eb','#16a34a','#d97706','#7c3aed','#db2777','#0891b2','#65a30d','#c2410c'];
+    var palette = [COLOURS.base];   // one colour: order and labels already rank the shares
 
     entries.forEach(function (e, i) {
       var y = PAD_T + i * (BAR_H + GAP);
@@ -577,13 +632,13 @@
       var label = e.label.length > 14 ? e.label.slice(0, 13) + '…' : e.label;
 
       // Label
-      svgParts.push('<text x="' + (PAD_L - 6) + '" y="' + (y + BAR_H * 0.7) + '" text-anchor="end" font-size="10" fill="#6b7280">' + label + '</text>');
+      svgParts.push('<text x="' + (PAD_L - 8) + '" y="' + (y + BAR_H * 0.68) + '" text-anchor="end" font-size="11" fill="' + COLOURS.ink2 + '">' + label + '</text>');
       // Bar background
-      svgParts.push('<rect x="' + PAD_L + '" y="' + y + '" width="' + PLOT_W + '" height="' + BAR_H + '" fill="#f3f4f6" rx="3"/>');
+      svgParts.push('<rect x="' + PAD_L + '" y="' + y + '" width="' + PLOT_W + '" height="' + BAR_H + '" fill="' + COLOURS.track + '" rx="4"/>');
       // Bar fill
-      svgParts.push('<rect x="' + PAD_L + '" y="' + y + '" width="' + barW + '" height="' + BAR_H + '" fill="' + colour + '" rx="3"/>');
+      svgParts.push('<rect x="' + PAD_L + '" y="' + y + '" width="' + barW + '" height="' + BAR_H + '" fill="' + colour + '" rx="4"/>');
       // Pct label
-      svgParts.push('<text x="' + (PAD_L + barW + 4) + '" y="' + (y + BAR_H * 0.7) + '" font-size="10" fill="#374151">' + pct + '</text>');
+      svgParts.push('<text x="' + (PAD_L + barW + 6) + '" y="' + (y + BAR_H * 0.68) + '" font-size="11" font-weight="600" fill="' + COLOURS.ink + '">' + pct + '</text>');
     });
 
     svgParts.push('</svg>');

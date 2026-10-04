@@ -48,8 +48,8 @@
     return c;
   }
 
-  function section(title, introText, id) {
-    var s = el("section", "reit-section reit-ov-section");
+  function section(title, introText, id, variant) {
+    var s = el("section", "reit-section reit-ov-section" + (variant ? " reit-ov-section--" + variant : ""));
     var h = el("h2", null, title);
     if (id) { h.id = id; h.setAttribute("tabindex", "-1"); }
     s.appendChild(h);
@@ -141,15 +141,15 @@
       AppMeta.PROJECT.appName + " ranks synthetic REIT target market segments against a " +
       "synthetic portfolio, using a deterministic scoring engine. " + c.agentCount +
       " Gemini agents explain the results; they do not compute, rank or validate them. " +
-      AppMeta.attribution() + ".");
+      AppMeta.attribution() + ".", null, "facts");
 
     var grid = el("div", "reit-ov-grid");
     grid.appendChild(card("Market segments", AppMeta.num(c.marketCount),
-      c.cityCount + " cities · " + c.propertyTypeCount + " property types"));
+      c.cityCount + " cities, " + c.propertyTypeCount + " property types"));
     grid.appendChild(card("Simulated market observations", AppMeta.num(c.observationCount),
       c.observationsPerMarketMin + "–" + c.observationsPerMarketMax + " per segment"));
     grid.appendChild(card("Portfolio", AppMeta.cr(c.portfolioValueRs, 0),
-      c.assetCount + " holdings · " + (c.portfolioWeightedYield * 100).toFixed(2) +
+      c.assetCount + " holdings, " + (c.portfolioWeightedYield * 100).toFixed(2) +
       "% weighted gross yield"));
     grid.appendChild(card("Known synthetic anomalies",
       c.plantedAnomalies === null ? "—" : AppMeta.num(c.plantedAnomalies),
@@ -175,7 +175,7 @@
       "The shared analysis every page renders: " + run.presetLabel + ", " +
       AppMeta.cr(run.investmentRs, 2) + ", " + run.portfolio.source + " portfolio, " +
       (run.selectionMode === "manual" ? "manual selection" : "automatic selection") + ".",
-      "ov-current-analysis");
+      "ov-current-analysis", "run");
 
     if (view.resetDone) {
       var done = el("p", "reit-ov-reset-status",
@@ -194,22 +194,22 @@
       var gov = target.governance;
       var tc = card(AnalysisRun.targetLabel(run),
         AnalysisRun.name(target),
-        target.propertyType + " · raw rank " + target.rank + " of " + run.ranked.length +
-        (target.eligibleRank ? " · eligible rank " + target.eligibleRank : ""));
+        target.propertyType + ", raw rank " + target.rank + " of " + run.ranked.length +
+        (target.eligibleRank ? ", eligible rank " + target.eligibleRank : ""), "reit-ov-card--target");
       tc.setAttribute("data-target-id", target.marketId);
       tc.setAttribute("data-selection-mode", run.selectionMode);
       grid.appendChild(tc);
       grid.appendChild(card("Composite attractiveness score",
         target.totalScore.toFixed(2) + " / 100",
-        "Five weighted factors — " + run.presetLabel));
+        "Five weighted factors, " + run.presetLabel));
       grid.appendChild(card("Simulation support",
-        (gov.eligible ? "✓ Passes screen" : "✗ Fails screen") + " · " + gov.tier,
-        target.observationCount + " simulated observations · Assumption Support Grade " + (gov.grade || "—"),
+        (gov.eligible ? "✓ Passes screen" : "✗ Fails screen") + ", " + gov.tier.toLowerCase() + " support",
+        target.observationCount + " simulated observations, Assumption Support Grade " + (gov.grade || "—"),
         gov.eligible ? "reit-ov-card-ok" : "reit-ov-card-warn"));
       grid.appendChild(card("External calibration", target.externalCalibrationStatus,
         "No cited source located or traced", "reit-ov-card-warn"));
     } else {
-      grid.appendChild(card("Shortlist candidate", "None", run.governanceNote));
+      grid.appendChild(card("Shortlist candidate", "None", run.governanceNote, "reit-ov-card--target"));
     }
 
     grid.appendChild(card("Investment", AppMeta.cr(run.investmentRs, 2),
@@ -375,7 +375,8 @@
 
   function buildRouteMap() {
     var s = section("Where to look",
-      "The pages below follow the order the analysis runs in. All of them render the same analysis.");
+      "The pages below follow the order the analysis runs in. All of them render the same analysis.",
+      null, "routes");
     var list = el("ol", "reit-ov-routes");
 
     [
@@ -401,7 +402,7 @@
       var a = el("a", "reit-ov-route-link", r[1]);
       a.href = "#" + r[0];
       li.appendChild(a);
-      li.appendChild(el("span", "reit-ov-route-desc", " — " + r[2]));
+      li.appendChild(el("span", "reit-ov-route-desc", r[2]));
       list.appendChild(li);
     });
 
@@ -412,7 +413,7 @@
   // ─── 4. Limits ─────────────────────────────────────────────────────────────
 
   function buildLimits() {
-    var s = section("What this cannot be used for", AppMeta.PROJECT.syntheticNotice);
+    var s = section("What this cannot be used for", AppMeta.PROJECT.syntheticNotice, null, "limits");
     var list = el("ul", "reit-ov-limits");
     (typeof Validator !== "undefined" && Validator.LIMITATIONS
       ? Validator.LIMITATIONS : ["All data is synthetic."]).forEach(function (l) {

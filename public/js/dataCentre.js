@@ -394,7 +394,7 @@
       view.cleaningReport = result.report;
       view.csvFileName = name || 'imported.csv';
       render();
-      toast('CSV cleaned: ' + result.report.total + ' rows · ' + result.report.ok + ' OK · ' +
+      toast('CSV cleaned: ' + result.report.total + ' rows, ' + result.report.ok + ' OK, ' +
             result.report.rejected + ' rejected', result.report.rejected > 0 ? 'warn' : 'success');
       return result.report;
     } catch (err) {

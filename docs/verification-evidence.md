@@ -171,6 +171,8 @@ Pages verified accessible via browser (hash-router):
 
 No CDN dependencies required; all scripts served locally from `public/js/`. Application runs fully offline after initial page load.
 
+*Note added 5 October 2026: since the visual redesign the page also requests the Archivo typeface from Google Fonts. Scripts and data are still all local; offline, the browser uses the system sans-serif and every function works as before.*
+
 ---
 
 ## E-09  Institution Metadata

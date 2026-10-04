@@ -162,10 +162,10 @@
     var h = document.createElement("h2");
     h.className = "reit-rec-title";
     h.textContent = AnalysisRun.targetLabel(run);
-    wrap.appendChild(h);
 
     var target = AnalysisRun.selected(run);
     if (!target) {
+      wrap.appendChild(h);
       var none = document.createElement("p");
       none.className = "reit-rec-none";
       none.textContent = run.governanceNote;
@@ -181,33 +181,39 @@
     var u = target.uncertainty && target.uncertainty.grossYieldPct;
     wrap.setAttribute("data-target-id", target.marketId);
     wrap.setAttribute("data-selection-mode", run.selectionMode);
+    /* The plate: the selected target and its three separate dimensions. */
+    var plate = document.createElement("div");
+    plate.className = "reit-plate";
+    plate.appendChild(h);
+
     var grid = document.createElement("div");
     grid.className = "reit-rec-grid";
 
     grid.appendChild(recCell("Segment",
       AnalysisRun.name(target),
-      target.propertyType + " · raw rank " + target.rank + " of " + run.ranked.length +
-      (target.eligibleRank ? " · eligible rank " + target.eligibleRank : " · fails the screen")));
+      target.propertyType + ", raw rank " + target.rank + " of " + run.ranked.length +
+      (target.eligibleRank ? ", eligible rank " + target.eligibleRank : ", fails the screen")));
 
     grid.appendChild(recCell("Composite attractiveness score",
       target.totalScore.toFixed(2) + " / 100",
-      "Five weighted factors — " + run.presetLabel));
+      "Five weighted factors, " + run.presetLabel));
 
     grid.appendChild(recCell("Simulation support",
-      (gov.eligible ? "✓ Passes screen" : "✗ Fails screen") + " · " + gov.tier,
-      target.observationCount + " simulated observations · Assumption Support Grade " +
-      (gov.grade || "—") + (u ? " · P10–P90 gross yield " + u.lower.toFixed(2) + "–" +
-      u.upper.toFixed(2) + "%" : "")));
+      (gov.eligible ? "✓ Passes screen" : "✗ Fails screen") + ", " + gov.tier.toLowerCase() + " support",
+      target.observationCount + " simulated observations, Assumption Support Grade " +
+      (gov.grade || "—") + (u ? ". P10–P90 gross yield " + u.lower.toFixed(2) + "–" +
+      u.upper.toFixed(2) + "%" : ""), gov.eligible ? "pass" : "caution"));
 
     grid.appendChild(recCell("External calibration",
       target.externalCalibrationStatus,
-      "No cited source document has been located or traced"));
+      "No cited source document has been located or traced", "caution"));
 
     grid.appendChild(recCell("Investment",
       AppMeta.cr(run.investmentRs, 2),
       run.presetLabel + (run.preset === "custom" ? "" : " weights")));
 
-    wrap.appendChild(grid);
+    plate.appendChild(grid);
+    wrap.appendChild(plate);
 
     if (run.selectionMode === "manual") {
       wrap.appendChild(buildManualNotice(run, target));
@@ -270,9 +276,10 @@
     return box;
   }
 
-  function recCell(label, value, sub) {
+  function recCell(label, value, sub, tone) {
     var cell = document.createElement("div");
     cell.className = "reit-rec-cell";
+    if (tone) { cell.setAttribute("data-tone", tone); }
     var l = document.createElement("div");
     l.className = "reit-rec-cell-label";
     l.textContent = label;
@@ -366,7 +373,7 @@
 
     var label = document.createElement("span");
     label.className = "reit-preset-label";
-    label.textContent = "Preset:";
+    label.textContent = "Weight preset";
     row.appendChild(label);
 
     AnalysisRun.PRESET_KEYS.forEach(function (key) {
@@ -729,9 +736,13 @@
 
     var thead = document.createElement("thead");
     var hrow  = document.createElement("tr");
+    /* Figures are right-aligned so their decimal places line up. */
+    var NUMERIC = { "Raw rank": 1, "Score": 1, "Gross Yield": 1, "Growth": 1, "Demand": 1,
+                    "City HHI Δ": 1, "Type HHI Δ": 1, "Sim. obs.": 1 };
     headers.forEach(function (h) {
       var th = document.createElement("th");
       th.setAttribute("scope", "col");
+      if (NUMERIC[h]) { th.className = "reit-num"; }
       th.textContent = h;
       hrow.appendChild(th);
     });
@@ -747,6 +758,7 @@
       tr.className = "reit-market-row" +
         (m.marketId === state.selectedId ? " reit-selected-row" : "") +
         (gov.eligible ? "" : " reit-row-below-floor");
+      tr.setAttribute("data-flip-id", m.marketId);   // lets motion.js glide the row to its new rank
 
       var cityDelta = null, typeDelta = null;
       if (m.simulation) {
@@ -755,18 +767,18 @@
       }
 
       var cells = [
-        { text: m.rank },
+        { text: m.rank, num: true },
         { text: m.locality },
         { text: m.city },
         { text: m.propertyType },
-        { text: m.totalScore.toFixed(2) },
+        { text: m.totalScore.toFixed(2), num: true },
         { evidence: gov },
-        { text: (m.grossYield * 100).toFixed(2) + "%" },
-        { text: (m.annualRentalGrowthRatio * 100).toFixed(1) + "%" },
-        { text: m.demandScore },
-        { text: cityDelta !== null ? formatHHIDelta(cityDelta) : "—", cls: cityDelta !== null ? hhiDeltaClass(cityDelta) : "" },
-        { text: typeDelta !== null ? formatHHIDelta(typeDelta) : "—", cls: typeDelta !== null ? hhiDeltaClass(typeDelta) : "" },
-        { text: m.observationCount || "—" },
+        { text: (m.grossYield * 100).toFixed(2) + "%", num: true },
+        { text: (m.annualRentalGrowthRatio * 100).toFixed(1) + "%", num: true },
+        { text: m.demandScore, num: true },
+        { text: cityDelta !== null ? formatHHIDelta(cityDelta) : "—", cls: cityDelta !== null ? hhiDeltaClass(cityDelta) : "", num: true },
+        { text: typeDelta !== null ? formatHHIDelta(typeDelta) : "—", cls: typeDelta !== null ? hhiDeltaClass(typeDelta) : "", num: true },
+        { text: m.observationCount || "—", num: true },
         { conf: m.confidenceGrade || null }
       ];
 
@@ -800,6 +812,7 @@
           td.textContent = c.text;
         }
         if (c.cls) { td.className = c.cls; }
+        if (c.num) { td.classList.add("reit-num"); }
         tr.appendChild(td);
       });
 
@@ -845,6 +858,7 @@
       if (state.expanded === m.marketId) {
         var expandTr = document.createElement("tr");
         expandTr.className = "reit-breakdown-wrap";
+        expandTr.setAttribute("data-motion-key", m.marketId);
         var expandTd = document.createElement("td");
         expandTd.colSpan = headers.length;
         expandTd.appendChild(buildBreakdown(m));
@@ -854,7 +868,10 @@
     });
 
     tbl.appendChild(tbody);
-    wrap.appendChild(tbl);
+    var scroller = document.createElement("div");
+    scroller.className = "reit-screener-table";
+    scroller.appendChild(tbl);
+    wrap.appendChild(scroller);
 
     /*
      * Why the two HHI delta columns repeat across rows.
@@ -1303,7 +1320,7 @@
     wrap.appendChild(canvas);
 
     setTimeout(function () {
-      Charts.renderScatterChart(canvas, state.markets, state.ranked);
+      Charts.renderScatterChart(canvas, state.markets, state.ranked, state.selectedId);
     }, 0);
 
     return wrap;

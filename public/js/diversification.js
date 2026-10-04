@@ -387,7 +387,9 @@
       hhiCompEl.id = hhiCompId;
       hhiCompareWrap.appendChild(hhiCompEl);
       div.appendChild(hhiCompareWrap);
-      Charts.renderHHICompare(hhiCompId, sim.before, sim.after);
+      /* Deferred: the chart is drawn into the container by id, and this
+       * section is attached to the page only after it is returned. */
+      setTimeout(function () { Charts.renderHHICompare(hhiCompId, sim.before, sim.after); }, 0);
     }
 
     return div;
@@ -617,11 +619,11 @@
       var w = sc.weights;
       var wLine = document.createElement("p");
       wLine.className = "reit-sensitivity-weights";
-      wLine.textContent = "Yield " + Math.round(w.yieldWeight * 100) + "% · "
-        + "Growth " + Math.round(w.growthWeight * 100) + "% · "
-        + "Diversification " + Math.round(w.diversWeight * 100) + "% · "
-        + "Demand " + Math.round(w.demandWeight * 100) + "% · "
-        + "Risk " + Math.round(w.riskWeight * 100) + "%";
+      wLine.textContent = "Yield " + Math.round(w.yieldWeight * 100) + "%, "
+        + "growth " + Math.round(w.growthWeight * 100) + "%, "
+        + "diversification " + Math.round(w.diversWeight * 100) + "%, "
+        + "demand " + Math.round(w.demandWeight * 100) + "%, "
+        + "risk " + Math.round(w.riskWeight * 100) + "%";
       card.appendChild(wLine);
 
       var raw = document.createElement("div");

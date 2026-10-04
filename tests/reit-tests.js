@@ -3982,6 +3982,83 @@ console.log("\n── T-167–T-171 Documentation synchronisation and repository
   }
 }());
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   T-172  Visual system — one stylesheet, every class defined, motion that is
+          purely presentational
+
+   Before the October 2026 redesign the pages loaded three stylesheets and
+   assigned about 80 classes that none of them defined, so components rendered
+   unstyled without anyone noticing. These checks keep the single stylesheet
+   complete and keep motion.js from ever touching what the tests and the
+   reader rely on (text, values, order).
+   ═══════════════════════════════════════════════════════════════════════════ */
+console.log("\n── T-172 Visual system ────────────────────────────────────────────────────");
+(function () {
+  var fs = require("fs");
+  var repo = path.join(__dirname, "..");
+  var html = fs.readFileSync(path.join(repo, "public", "index.html"), "utf8");
+  var css  = fs.readFileSync(path.join(repo, "public", "css", "app.css"), "utf8");
+  var jsDir = path.join(repo, "public", "js");
+
+  var localSheets = (html.match(/<link[^>]+rel="stylesheet"[^>]*>/g) || [])
+    .map(function (l) { var m = l.match(/href="([^"]+)"/); return m ? m[1] : ""; })
+    .filter(function (h) { return !/^https?:/.test(h); });
+  assert("T-172a", "index.html loads exactly one local stylesheet, css/app.css, and it exists",
+    localSheets.length === 1 && localSheets[0] === "css/app.css" &&
+    fs.existsSync(path.join(repo, "public", "css", "app.css")), localSheets.join(", "));
+
+  /* Classes assigned by the page scripts. Tokens built by concatenation
+   * ("reit-trail-" + status) end in a hyphen and are skipped; the classes
+   * they produce are named literally in the stylesheet. */
+  var CLASS = /^(reit-[a-z0-9_-]*[a-z0-9_]|toast(-[a-z]+)?|error-msg|loading-msg|nav-[a-z-]+|page-active|no-print|pill-[a-z]+|badge-[a-z]+|row-[a-z-]+|type-[a-z-]+|mode-[a-z]+|legend-[a-z]+|sw-[a-z]+|run-summary[a-z_-]*|m-[a-z]+)$/;
+  /* Structural hooks and non-class strings: deliberately unstyled. */
+  var HOOKS = {
+    "reit-target-ai": "repository slug in appMeta.js, not a class",
+    "reit-scatter-tip": "element id for the chart tooltip, styled inline by charts.js",
+    "page-statsdash": "element id", "toast-container": "element id",
+    "reit-validation-panel": "wrapper; its children are styled",
+    "reit-agent-offline-expl": "wrapper; its children are styled",
+    "reit-asset-form": "form element hook used for focus management",
+    "reit-breakdown-header": "header row; styled through its th cells",
+    "reit-support-pass": "a passing badge keeps the tier's default style",
+    "reit-trail-pending-icon": "a pending step keeps the default icon style",
+    "reit-neutral": "an unchanged metric keeps the default card style"
+  };
+  var missing = [];
+  fs.readdirSync(jsDir).filter(function (f) { return /\.js$/.test(f); }).forEach(function (f) {
+    var src = fs.readFileSync(path.join(jsDir, f), "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'])\/\/[^\n]*/g, "$1");
+    var re = /["']([^"'\n]*)["']/g, m;
+    while ((m = re.exec(src))) {
+      m[1].split(/\s+/).forEach(function (tok) {
+        if (!CLASS.test(tok) || HOOKS[tok] || /^card-accent-/.test(tok)) { return; }
+        var esc = tok.replace(/[-_]/g, function (c) { return "\\" + c; });
+        if (!new RegExp("\\." + esc + "(?![a-zA-Z0-9_-])").test(css) && missing.indexOf(tok) === -1) {
+          missing.push(tok + " (" + f + ")");
+        }
+      });
+    }
+  });
+  assert("T-172b", "every class the page scripts assign is defined in app.css (or listed as a hook)",
+    missing.length === 0, missing.slice(0, 8).join(", "));
+
+  assert("T-172c", "app.css stops every animation under prefers-reduced-motion",
+    /@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{[\s\S]*?animation-duration:\s*1ms\s*!important/.test(css));
+
+  /* innerText reflects text-transform, and the acceptance checks read
+   * innerText; labels are sentence case by design. */
+  assert("T-172d", "app.css never transforms text case",
+    !/text-transform\s*:\s*(uppercase|capitalize|lowercase)/.test(css));
+
+  var motion = fs.readFileSync(path.join(jsDir, "motion.js"), "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'])\/\/[^\n]*/g, "$1");
+  assert("T-172e", "motion.js never writes text, markup or application state",
+    !/\.(textContent|innerText|innerHTML|outerHTML|nodeValue)\s*=/.test(motion) &&
+    !/\b(AnalysisRun|ReitState|localStorage)\b/.test(motion) &&
+    !/\.(setAttribute|removeAttribute)\s*\(/.test(motion),
+    "motion.js may only add classes, custom properties and transforms");
+}());
+
 /* ── T-170  The documented test count is this run's count ──────────────────
  * docs/test-report.md and HANDOFF.md state the application suite's result.
  * This assertion counts itself, so the documented figure must equal the
