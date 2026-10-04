@@ -33,7 +33,7 @@ All data used in this project is **entirely synthetic** — hand-crafted for aca
 | Metric | Value |
 |--------|-------|
 | Total assets | 10 |
-| Total portfolio value | ₹450 Cr (4,500,000,000 Rs) |
+| Total portfolio value | see [CANONICAL_FACTS.md](CANONICAL_FACTS.md) — derived from portfolio.json, not restated here |
 | Total annual rent | ₹31.4 Cr (314,000,000 Rs) |
 | Portfolio gross yield | ~6.98% |
 | Cities covered | Mumbai, Bengaluru, Pune, Hyderabad, Chennai, Delhi NCR, Ahmedabad |
@@ -88,7 +88,7 @@ All data used in this project is **entirely synthetic** — hand-crafted for aca
 
 | Dimension | Values |
 |-----------|--------|
-| Markets | 18 segments |
+| Markets | see [CANONICAL_FACTS.md](CANONICAL_FACTS.md) — derived from markets.json |
 | Cities | Mumbai (3), Pune (3), Bengaluru (3), Hyderabad (3), Chennai (3), Delhi NCR (2), Ahmedabad (1) |
 | Types | Commercial Office (9), Retail (4), Residential (5) |
 | Gross yield range | 4.80% (Mumbai residential) to 9.14% (Hyderabad office) |

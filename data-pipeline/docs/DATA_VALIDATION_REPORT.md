@@ -1,5 +1,14 @@
 # Data Validation Report — REIT Target AI Semi-Synthetic Pipeline
 
+> **On the `[superseded]` marker.** Lines in this document tagged
+> `[superseded]` record something that was true of an earlier revision of the
+> project and is not true now. They are kept deliberately: a log or a test
+> record edited to agree with the present is no longer evidence of what
+> happened. The current figures are in
+> [`docs/CANONICAL_FACTS.md`](../../docs/CANONICAL_FACTS.md), and the test suite fails on any
+> *unmarked* line that contradicts them.
+
+
 **Project**: NMIMS B.Sc. Finance · Business Analytics Theme 4  
 **Date**: 2026-09-19  
 **Version**: 1.0
@@ -54,8 +63,8 @@ Run command: `node tests/dataPipeline.test.js` (from `data-pipeline/`)
 
 | ID | Description | Result |
 |---|---|---|
-| T-13 | observations.csv has exactly 2000 rows | PASS |
-| T-14 | observations.json has exactly 2000 entries | PASS |
+| T-13 | observations.csv has exactly 2000 rows | PASS | [superseded]
+| T-14 | observations.json has exactly 2000 entries | PASS | [superseded]
 | T-15 | generation_log.json records seed = 20260919 | PASS |
 | T-16 | PRNG reproducibility: MKT-001 D001 monthly_rent_psf = 180.8053 (re-computed matches saved) | PASS |
 
@@ -63,7 +72,7 @@ Run command: `node tests/dataPipeline.test.js` (from `data-pipeline/`)
 
 | ID | Description | Result |
 |---|---|---|
-| T-17 | gross_yield_pct_derived matches formula for all 2000 observations (max error: 0.000000) | PASS |
+| T-17 | gross_yield_pct_derived matches formula for all 2000 observations (max error: 0.000000) | PASS | [superseded]
 | T-18 | No negative values for rent / price / yield / demand / risk fields | PASS |
 | T-19 | occupancy_rate_pct and vacancy_rate_pct all in [0, 100] | PASS |
 

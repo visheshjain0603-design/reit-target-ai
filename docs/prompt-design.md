@@ -1,5 +1,14 @@
 # Prompt Design — REIT Target AI Gemini Agents
 
+> **On the `[superseded]` marker.** Lines in this document tagged
+> `[superseded]` record something that was true of an earlier revision of the
+> project and is not true now. They are kept deliberately: a log or a test
+> record edited to agree with the present is no longer evidence of what
+> happened. The current figures are in
+> [`CANONICAL_FACTS.md`](CANONICAL_FACTS.md), and the test suite fails on any
+> *unmarked* line that contradicts them.
+
+
 **NMIMS B.Sc. Finance | BA Project Theme 4 | Academic Demo**
 
 ---
@@ -271,7 +280,7 @@ generationConfig: {
 | v4 | Validation agent returned `valid: true/false` instead of `pass/fail` | Changed `weightCheck` schema to strict string "pass\|fail" in system prompt |
 | v5 | Occasional markdown-wrapped JSON (` ```json ` fences) | Added `responseMimeType: "application/json"` and retained strip fallback |
 | v6 | Execution order was portfolio → validation → screening → simulation → orchestrator; Orchestrator could run before diversification was calculated | Corrected order to portfolio → screening → simulation → validation → orchestrator; Orchestrator gated on `validatedOk === true`; Validation prompt expanded to four checks (weightCheck, scoreRangeCheck, targetExists, hhiConsistency); Orchestrator output schema updated to `selectedTarget / cityHHIEffect / assetTypeHHIEffect / whyTopRanked / syntheticDisclaimer` |
-| v7 | Stage 4 added segment statistics engine (Stats.js); portfolio-analysis agent had no access to statistical context | Added two new agents — Data Quality (first) and Statistical Analysis (second) — each receiving pre-calculated Stats engine output; chain extended to 6 agents: dataQuality → statisticalAnalysis → marketScreening → diversification → validation → orchestrator |
+| v7 | Stage 4 added segment statistics engine (Stats.js); portfolio-analysis agent had no access to statistical context | Added two new agents — Data Quality (first) and Statistical Analysis (second) — each receiving pre-calculated Stats engine output; chain extended to 6 agents: dataQuality → statisticalAnalysis → marketScreening → diversification → validation → orchestrator [superseded] |
 
 ---
 

@@ -207,11 +207,20 @@ function showToast(message, type) {
 // ================================================================
 // SINGLE-PAGE NAVIGATION
 // Hash-based. Reads data-page on <a> elements in the sidebar.
-// Falls back to portfolio if the hash does not match any page id.
+// Falls back to the FIRST nav link if the hash does not match any page id.
 // ================================================================
 
 (function () {
   var NAV_LINKS = document.querySelectorAll(".nav-link[data-page]");
+
+  /*
+   * The default page is read from the markup — the first sidebar link — rather
+   * than named here. The previous version hardcoded "portfolio" in three
+   * places, so adding the Overview page as the landing page would have meant
+   * finding all three, and missing one would have produced an app that landed
+   * on Overview from a click but on Portfolio from a bare URL.
+   */
+  var DEFAULT_PAGE = (NAV_LINKS.length && NAV_LINKS[0].getAttribute("data-page")) || "portfolio";
 
   function showPage(pageId) {
     var safeId = String(pageId).replace(/[^a-z0-9-_]/gi, "");
@@ -222,10 +231,10 @@ function showToast(message, type) {
 
     var target = document.getElementById("page-" + safeId);
 
-    // ── Fallback: invalid or missing hash → portfolio ────────────
+    // ── Fallback: invalid or missing hash → the first sidebar page ──
     if (!target) {
-      safeId = "portfolio";
-      target = document.getElementById("page-portfolio");
+      safeId = DEFAULT_PAGE;
+      target = document.getElementById("page-" + DEFAULT_PAGE);
     }
 
     if (target) {
@@ -244,7 +253,7 @@ function showToast(message, type) {
   }
 
   function handleHashChange() {
-    var hash = window.location.hash.replace("#", "") || "portfolio";
+    var hash = window.location.hash.replace("#", "") || DEFAULT_PAGE;
     showPage(hash);
   }
 
@@ -259,6 +268,6 @@ function showToast(message, type) {
 
   window.addEventListener("hashchange", handleHashChange);
 
-  // On load, read the hash or default to portfolio.
+  // On load, read the hash or fall back to the first sidebar page.
   handleHashChange();
 }());

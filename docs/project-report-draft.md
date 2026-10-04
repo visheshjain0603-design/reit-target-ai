@@ -173,7 +173,7 @@ If the Gemini API is unavailable, all deterministic results remain visible. The 
 ### 4.1 Portfolio analysis
 
 The synthetic 10-asset portfolio has:
-- Total value: ₹450 Cr (4,500,000,000 Rs)
+- Total value: derived from `portfolio.json` — see [CANONICAL_FACTS.md](CANONICAL_FACTS.md)
 - Gross portfolio yield: ~6.98%
 - City HHI: ~0.15–0.20 (moderate concentration toward Mumbai and Bengaluru)
 - Asset type HHI: ~0.35 (concentrated in Commercial Office)

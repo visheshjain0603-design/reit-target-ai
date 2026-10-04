@@ -1,0 +1,7 @@
+city,locality,propertyType,areaSqFt,askingPriceINR,monthlyRentINR,recordId,sourceName,sourceUrl,collectionDate,datasetType,isSynthetic,listingType
+Mumbai,Zero Area,Commercial Office,0,150000000,1000000,FIX-X01,Synthetic fixture,https://example.invalid/fixture,2026-09-01,synthetic,true,sale
+Pune,Giant Floorplate,Commercial Office,500000,80000000,600000,FIX-X02,Synthetic fixture,https://example.invalid/fixture,2026-09-01,synthetic,true,sale
+Bengaluru,Free Building,Retail,2500,0,550000,FIX-X03,Synthetic fixture,https://example.invalid/fixture,2026-09-01,synthetic,true,sale
+Chennai,Negative Rent,Residential,1800,27000000,-45000,FIX-X04,Synthetic fixture,https://example.invalid/fixture,2026-09-01,synthetic,true,sale
+Hyderabad,Blank Price,Residential,1500,,70000,FIX-X05,Synthetic fixture,https://example.invalid/fixture,2026-09-01,synthetic,true,sale
+Kolkata,Text Area,Retail,large,60000000,450000,FIX-X06,Synthetic fixture,https://example.invalid/fixture,2026-09-01,synthetic,true,sale

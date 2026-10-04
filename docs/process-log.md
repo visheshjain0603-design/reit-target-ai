@@ -1,5 +1,14 @@
 # Process Log — REIT Target AI
 
+> **On the `[superseded]` marker.** Lines in this document tagged
+> `[superseded]` record something that was true of an earlier revision of the
+> project and is not true now. They are kept deliberately: a log or a test
+> record edited to agree with the present is no longer evidence of what
+> happened. The current figures are in
+> [`CANONICAL_FACTS.md`](CANONICAL_FACTS.md), and the test suite fails on any
+> *unmarked* line that contradicts them.
+
+
 **NMIMS B.Sc. Finance | BA Project Theme 4 | Academic Demo**
 
 This document records the key development decisions, rationale, and lessons learned during construction of the project.
@@ -24,7 +33,13 @@ During testing, the Portfolio page was blank in Safari. The root cause was two s
 
 ## Phase 2 — Synthetic data design
 
-### Decision: 18 market segments across 7 cities
+### Decision: 18 market segments across 7 cities [superseded]
+
+> **Superseded.** This records the decision as it was taken. The dataset was
+> later rebuilt from observation-level records; the current counts are in
+> [CANONICAL_FACTS.md](CANONICAL_FACTS.md) and the reasons for the rebuild are in
+> `data-pipeline/docs/DATA_REBUILD_RATIONALE.md`. The entry is kept because a
+> decision log that is edited to match the present is no longer a log.
 Eighteen segments were chosen to be large enough to make the ranking and normalisation meaningful (at least 3 per city, providing within-city variation) but small enough for the factor score breakdown table to be readable on a laptop screen.
 
 ### Decision: Capital values in ₹ per sq ft, not total transaction price

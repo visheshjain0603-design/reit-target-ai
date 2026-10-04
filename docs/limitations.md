@@ -7,7 +7,9 @@
 ## 1. Data limitations
 
 ### 1.1 Entirely synthetic data
-All 10 portfolio holdings and 18 market segments were hand-crafted for academic illustration. They carry no relationship to actual REIT portfolios, market transactions, or publicly reported data. Values were chosen to produce a plausible spread of cities, asset types, yields, and risk levels, not to represent any real market.
+Every portfolio holding and market segment is synthetic (counts: [CANONICAL_FACTS.md](CANONICAL_FACTS.md)). They carry no relationship to actual REIT portfolios, market transactions, or publicly reported data.
+
+The market segments are no longer hand-crafted. They are medians of observation-level records produced by a seeded generator whose yield model is built from a cap-rate structure, with dependence between metrics imposed through a Gaussian copula that preserves each metric's documented range. That makes the dataset internally consistent and reproducible, and it does not make it real: no record corresponds to a transaction, and the calibration targets published benchmark ranges rather than observed prices. See `data-pipeline/docs/DATA_REBUILD_RATIONALE.md`.
 
 ### 1.2 Static snapshot
 `portfolio.json` and `markets.json` are static files loaded at page start. There is no live data feed, no websocket, and no database. All figures reflect a single point in time (19 September 2026).
@@ -59,7 +61,7 @@ REITs are illiquid compared to equities. No illiquidity premium, exit cap-rate e
 ## 3. AI (Gemini) limitations
 
 ### 3.1 Gemini does not calculate — it interprets
-The system prompt for all six agents explicitly instructs Gemini not to recalculate or invent values. However, Gemini is a large language model and can occasionally:
+The system prompt for every agent explicitly instructs Gemini not to recalculate or invent values, and the agents that are left do nothing but interpret figures computed elsewhere. However, Gemini is a large language model and can occasionally:
 - Paraphrase numerical context inaccurately
 - Generate plausible-sounding but incorrect reasoning
 - Produce inconsistent outputs across runs (temperature = 0.2 mitigates but does not eliminate this)
@@ -154,3 +156,105 @@ The scoring engine normalises all five factors across all 50 markets simultaneou
 
 The `uncertainty` object added to each market in v2.0 (lower/central/upper bounds for each scoring factor) was derived from pipeline confidence intervals for yield and risk, and from assumed ±15–25% ranges for demand and growth. They are illustrative of the methodology, not independently validated.
 
+
+---
+
+## Limitations identified in the final review (October 2026)
+
+The five below were found by auditing this project against itself rather than by
+reading its code, and each is recorded here because it affects how a result
+should be read. None has been hidden, and none has been silently "fixed" where
+fixing it would change a financial output.
+
+### The external evidence base is unverified, and now demonstrably so
+
+Twelve external sources are cited. After a verification pass, **eight publishers
+were confirmed as real organisations, zero cited documents were located, and
+zero figures were traced to a document.** Four of the twelve cited a URL that
+does not resolve. Two cited titles appear to be paraphrases of real report
+series rather than real report titles, and so cannot be looked up at all.
+
+Two factual errors were found in the register's own notes. The note for SRC-001
+claimed Embassy REIT covers a Bandra Kurla Complex asset; Embassy's own
+disclosures list Express Towers, First International Finance Center and Embassy
+247 in Mumbai, and no BKC asset. This matters specifically: BKC is MKT-001, the
+dataset's first and most prominent segment, and its evidence basis cited a REIT
+that owns nothing there. The note for SRC-004 understated Nexus Select Trust's
+portfolio as 17 consumption centres where the publisher states 19.
+
+**No market value was changed in response.** Adjusting a figure until a source
+appears to support it would convert an unsupported number into one that looks
+supported, which is worse than leaving it unsupported and saying so.
+
+The consequence is a distinction worth stating precisely. The dataset's
+*structure* is defensible without any external document — cap rates rise
+monotonically from Premium to Peripheral, yield correlates positively with risk
+within each asset class, thin markets disperse more than deep ones, and the test
+suite checks all of it. The dataset's *calibration* — that the levels resemble
+Indian market levels, not merely the relationships — is what the citations were
+meant to establish, and it remains unestablished. Full detail is in
+[`SOURCE_VERIFICATION_REPORT.md`](SOURCE_VERIFICATION_REPORT.md).
+
+### The diversification factor is a proxy for the effect it stands for
+
+One of the five scoring factors rewards diversification benefit. It is computed
+from the portfolio's existing share in a city and property type, through
+`max(0, 1 − share × 2)`, weighted 60% city and 40% type. The coefficient of 2
+has no derivation: it is the reason a city holding half the portfolio scores
+zero benefit, and that threshold was chosen rather than computed.
+
+Measured against the realised change in HHI that the same investment actually
+causes, the factor correlates at **0.93** across all segments, and it takes only
+**15 distinct values** for 50 segments, because it depends on the city and
+property type alone and not on the segment. It is therefore directionally sound
+and numerically coarse.
+
+It has not been replaced with the realised HHI change, even though that figure
+is computed immediately beside it, because doing so would alter every composite
+score and every ranking in the project. The realised before-and-after HHI
+figures are displayed for every segment in the screener, so a reader can compare
+the proxy with the effect. See
+[`../data-pipeline/docs/ANALYTICS_AUDIT.md`](../data-pipeline/docs/ANALYTICS_AUDIT.md),
+finding A2.
+
+### The occupancy assumption did not reach any displayed figure
+
+Each projection scenario declares an occupancy rate — 80%, 90%, 95% — and the
+report lists it beside rental and capital growth, which reads as though all
+three drive the projection. Two did. Occupancy did not: portfolio value, annual
+rent and gross yield were all computed from unadjusted rent, so the conservative
+scenario assumed a fifth of the space empty and reported a yield as though the
+portfolio were fully let.
+
+The arithmetic was never wrong — a *gross* yield correctly ignores vacancy — but
+displaying an assumption that changes nothing invites the reader to believe it
+was applied. An occupancy-adjusted **Effective Yield** is now reported alongside
+the gross figure, and the two are labelled distinctly. The gross figure itself is
+unchanged, so no previously published number has moved. Finding A3.
+
+### Scenario growth is not derived from the selected segment
+
+The projections apply flat portfolio-wide growth rates (3%, 6%, 10% rental)
+regardless of the selected segment's own modelled rental growth, which the
+dataset carries per segment and which ranges from roughly 4.7% to 8.7%. A
+segment chosen partly *for* its growth is therefore projected at the same rate as
+one chosen despite its growth. This is a simplification, not an error, but it
+means the projections compare scenarios rather than segments.
+
+### The highest-scoring segment is frequently not well evidenced
+
+Under three of the four weight presets, the highest-scoring segment rests on 26
+simulated observations at confidence grade D — the dataset's minimum sample size
+and a below-median evidence grade. Only **25 of 50 segments** meet the floor this
+project now applies (at least 30 observations and grade C or better): 15 fail on
+grade alone, 2 on sample size alone, and 8 on both.
+
+This is a property of the data, not a defect introduced by the scoring: a small,
+thinly-evidenced market can be genuinely attractive, and the composite score
+measures attractiveness, which is all it claims to measure. The response was to
+make evidence a second, independent axis rather than to adjust any score. The
+recommendation defaults to the highest-scoring segment that meets the floor; the
+highest-scoring segment overall is still displayed, with its real score and the
+reason it was not recommended; and the floor can be lifted by an explicit
+override that is recorded in the report. No score and no rank is altered by any
+of this.

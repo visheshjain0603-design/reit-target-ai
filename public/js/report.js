@@ -18,6 +18,19 @@
   /* ── Helpers ──────────────────────────────────────────────── */
   function el(id)  { return document.getElementById(id); }
 
+  /* AppMeta is the project's single source of labels and counts. Fall back to
+   * the bare minimum rather than throwing, so a missing script tag degrades
+   * the report's cover rather than blanking the whole page. */
+  function meta() {
+    if (typeof AppMeta !== 'undefined') { return AppMeta; }
+    return {
+      PROJECT: { appName: 'REIT Target AI', author: '—', methodologyVersion: '—' },
+      attribution: function () { return 'Academic demonstration'; },
+      cr: fmtCr,
+      num: function (n) { return String(n); }
+    };
+  }
+
   function make(tag, cls) {
     var e = document.createElement(tag);
     if (cls) e.className = cls;
@@ -73,8 +86,12 @@
     // Cover
     var cover = make('div', 'reit-report__cover');
     cover.appendChild(txt('h1', 'REIT Target AI — Investment Decision Report', 'reit-report__title'));
-    cover.appendChild(txt('p', 'NMIMS B.Sc. Finance | Business Analytics | Theme 4 — Academic Demonstration', 'reit-report__subtitle'));
-    cover.appendChild(txt('p', 'Author: Vishesh Jain', 'reit-report__subtitle'));
+    /* Identity comes from AppMeta so the cover, the footer, the page titles and
+     * the documentation cannot name different institutions — which is exactly
+     * what happened when an earlier revision carried SPJIMR in some files and
+     * NMIMS in others. */
+    cover.appendChild(txt('p', meta().attribution() + ' — Academic Demonstration', 'reit-report__subtitle'));
+    cover.appendChild(txt('p', 'Author: ' + meta().PROJECT.author, 'reit-report__subtitle'));
     cover.appendChild(txt('p', 'Report date: ' + today(), 'reit-report__date'));
     cover.appendChild(txt('p', 'This report is generated from a SYNTHETIC dataset and is for academic demonstration only. It does not constitute investment advice.', 'reit-report__banner-disclaimer'));
     container.appendChild(cover);
@@ -134,6 +151,40 @@
         }
       }
       kvRow('Selected Target',            selTargetLabel, s1);
+
+      /* Evidence governance. The report previously named a recommended market
+       * with no statement of how well that market is evidenced, which is the
+       * single most important qualification on the whole document: under three
+       * of the four weight presets the highest-scoring segment rests on 26
+       * simulated observations at confidence grade D. */
+      var selTarget = null;
+      if (state.selectedTargetId && state.ranked) {
+        for (var gi = 0; gi < state.ranked.length; gi++) {
+          if (state.ranked[gi].marketId === state.selectedTargetId) {
+            selTarget = state.ranked[gi]; break;
+          }
+        }
+      }
+      if (selTarget && typeof Governance !== 'undefined') {
+        var gov = Governance.evaluate(selTarget);
+        var R   = Governance.rules();
+        kvRow('Target Evidence',
+              gov.tier + ' — confidence grade ' + (gov.grade || 'unrecorded') + ', ' +
+              gov.observations + ' simulated market observations', s1);
+        kvRow('Meets Evidence Floor',
+              (gov.eligible ? 'Yes' : 'No') +
+              ' (floor: at least ' + R.MIN_OBSERVATIONS + ' observations and grade ' +
+              R.MIN_GRADE + ' or better)' +
+              (gov.eligible ? '' : ' — ' + gov.reasons.join('; ')), s1);
+        if (state.governanceOverride) {
+          kvRow('Evidence Floor Override',
+                'In effect — the recommendation is the highest-scoring segment ' +
+                'regardless of how well it is evidenced', s1);
+        }
+        if (state.governanceNote) {
+          kvRow('Selection Basis', state.governanceNote, s1);
+        }
+      }
     } else {
       s1.appendChild(txt('p', 'No analysis state found. Run the analysis on the Market Screener and Diversification pages first.', 'reit-text-muted'));
     }
@@ -166,7 +217,12 @@
           m.locality || m.city || m.marketId || '—',
           m.city || '—',
           m.propertyType || '—',
-          typeof m.score === 'number' ? m.score.toFixed(1) : '—',
+          /* BUG FIX. This read m.score, which ranked markets do not carry —
+           * scoringEngine.js names the field totalScore. Every row in the
+           * report's screening table therefore printed an em dash in the Score
+           * column while the screener, reading the correct field, showed real
+           * numbers for the same three markets. */
+          typeof m.totalScore === 'number' ? m.totalScore.toFixed(1) : '—',
           fmtPct(m.grossYield),
           fmtPct(m.annualRentalGrowthRatio)
         ].forEach(function (v) {
@@ -226,16 +282,21 @@
       var summary     = Projection.summarise(projections, 3);
 
       var assumpNote = make('p', 'reit-text-muted');
-      assumpNote.textContent = 'Projected over 3-year horizon from post-investment portfolio value. '
-        + 'Year 0 Annual Rent = existing portfolio annual rent + new target estimated annual rent. '
-        + 'Gross Yield = Year 0 Rent / Year 0 Value. See the Diversification page for full scenario tables.';
+      assumpNote.textContent = 'Projected over a 3-year horizon from the post-investment '
+        + 'portfolio value. Year 0 annual rent = existing portfolio rent + the target\'s '
+        + 'estimated rent at its own gross yield. Two yields are shown and they answer '
+        + 'different questions: Gross Yield is rent \u00f7 value and ignores vacancy by '
+        + 'definition, while Effective Yield applies the scenario\'s occupancy rate, so it '
+        + 'is the figure the occupancy assumption actually affects. Neither deducts fees, '
+        + 'tax or transaction costs. See the Diversification page for the full scenario tables.';
       s4.appendChild(assumpNote);
 
       var projTable = document.createElement('table');
       projTable.className = 'reit-table';
       var pthead = document.createElement('thead');
       var phrow  = document.createElement('tr');
-      ['Scenario', 'Portfolio Value (3yr)', 'Annual Rent (3yr)', 'Gross Yield (3yr)', 'Value Change'].forEach(function (h) {
+      ['Scenario', 'Portfolio Value (3yr)', 'Annual Rent (3yr)', 'Gross Yield (3yr)',
+       'Effective Yield (3yr)', 'Value Change'].forEach(function (h) {
         var th = document.createElement('th');
         th.setAttribute('scope', 'col');
         th.textContent = h;
@@ -253,6 +314,7 @@
           fmtCr(s.portfolioValue),
           fmtCr(s.annualRent),
           fmtPct(s.grossYield),
+          fmtPct(s.effectiveGrossYield),
           (s.changeValuePct >= 0 ? '+' : '') + s.changeValuePct.toFixed(1) + '%'
         ].forEach(function (v) {
           var td = document.createElement('td');
@@ -302,7 +364,10 @@
     } else {
       s4.appendChild(txt('p', 'Projection engine not available or no portfolio state found.', 'reit-text-muted'));
     }
-    disclaimer('Projections use simplified flat-rate growth assumptions. No leverage, tax, vacancy costs or transaction fees are modelled. Not investment advice.', s4);
+    disclaimer('Projections apply flat growth rates to the whole portfolio; they are not '
+      + 'derived from the target segment\'s own modelled growth. No leverage, tax or '
+      + 'transaction fees are modelled, and vacancy enters only through the Effective Yield '
+      + 'column. Not investment advice.', s4);
     container.appendChild(s4);
 
     /* ── § 5  Agent Recommendations ── */
@@ -313,7 +378,18 @@
       kvRow('Selected Target',     orch.selectedTarget   || '—', s5);
       kvRow('Investment Amount',   orch.investmentAmount || '—', s5);
       kvRow('Composite Score',     typeof orch.compositeScore === 'number' ? orch.compositeScore.toFixed(1) : '—', s5);
-      kvRow('Expected Yield',      typeof orch.expectedYieldPct === 'number' ? orch.expectedYieldPct.toFixed(2) + '%' : '—', s5);
+      kvRow('Expected Gross Yield', typeof orch.expectedYieldPct === 'number' ? orch.expectedYieldPct.toFixed(2) + '%' : '—', s5);
+      if (orch.evidenceBasis) { kvRow('Evidence Basis', orch.evidenceBasis, s5); }
+      /* Provenance. A reader of a printed report cannot tell whether a paragraph
+       * came from a live model call or from stored text, so the report says. */
+      if (agentOutputs._provenance && agentOutputs._provenance.orchestrator) {
+        var provWord = { live: 'Live Gemini call made during this session',
+                         cache: 'Stored commentary whose scenario matched this run exactly',
+                         deterministic: 'No model commentary — deterministic figures only'
+                       }[agentOutputs._provenance.orchestrator] ||
+                       agentOutputs._provenance.orchestrator;
+        kvRow('Commentary Provenance', provWord, s5);
+      }
       kvRow('City HHI Effect',     orch.cityHHIEffect    || '—', s5);
       kvRow('Asset-Type Effect',   orch.assetTypeHHIEffect || '—', s5);
       if (orch.whyTopRanked) {
@@ -338,23 +414,61 @@
         disclaimer(orch.syntheticDisclaimer, s5);
       }
     } else {
-      s5.appendChild(txt('p', 'No agent output available. Run the Agent Output analysis first.', 'reit-text-muted'));
+      s5.appendChild(txt('p', 'No agent commentary available. Run the Agent Output analysis first. The deterministic analysis in sections 1 to 4 does not depend on it.', 'reit-text-muted'));
     }
-    disclaimer('Agent outputs are generated by Gemini on synthetic data. They do not constitute investment advice and should not be relied upon for real financial decisions.', s5);
+
+    /*
+     * The deterministic checks, reported separately from the agent commentary
+     * because they are a different kind of claim. The commentary is a model's
+     * description; these are arithmetic comparisons an examiner can redo by
+     * hand from the figures in section 1.
+     */
+    if (agentOutputs && agentOutputs._validation) {
+      var v = agentOutputs._validation;
+      var vh = make('h4', 'reit-report__sub-heading');
+      vh.textContent = 'Deterministic Input Checks (performed in code, not by a model)';
+      s5.appendChild(vh);
+      kvRow('Result', v.summary, s5);
+      var vTable = document.createElement('table');
+      vTable.className = 'reit-table';
+      var vThead = document.createElement('thead');
+      var vHr = document.createElement('tr');
+      ['Check', 'Result', 'What was compared'].forEach(function (h) {
+        var th = document.createElement('th');
+        th.setAttribute('scope', 'col');
+        th.textContent = h;
+        vHr.appendChild(th);
+      });
+      vThead.appendChild(vHr);
+      vTable.appendChild(vThead);
+      var vTbody = document.createElement('tbody');
+      (v.checks || []).forEach(function (c) {
+        var tr = document.createElement('tr');
+        [c.label, c.passed ? 'Pass' : 'Fail', c.detail].forEach(function (cell) {
+          var td = document.createElement('td');
+          td.textContent = String(cell);
+          tr.appendChild(td);
+        });
+        vTbody.appendChild(tr);
+      });
+      vTable.appendChild(vTbody);
+      s5.appendChild(vTable);
+    }
+
+    disclaimer('Agent commentary is generated by Gemini on synthetic data. It interprets figures computed elsewhere; it neither verifies nor recalculates them, and it does not constitute investment advice.', s5);
     container.appendChild(s5);
 
     /* ── § 6  Limitations ── */
     var s6 = make('section', 'reit-report__section');
     s6.appendChild(sectionHeading(6, 'Known Limitations'));
     var limList = make('ul', 'reit-report__list');
-    [
-      'All data is synthetic — no real portfolio, markets or transactions.',
-      'Gross yield only — no deductions for management fees, vacancy, tax, leverage or transaction costs.',
-      'HHI computed on book value (acquisition cost), not mark-to-market NAV.',
-      'Scenario projections use flat-rate growth assumptions; no correlation matrix or Monte Carlo simulation.',
-      'Gemini AI agents interpret pre-calculated outputs — they do not independently verify data or provide licensed financial advice.',
-      'No regulatory compliance review against SEBI (Real Estate Investment Trusts) Regulations, 2014.'
-    ].forEach(function (lim) {
+    /* One list, in validator.js. This section previously carried its own copy,
+     * so the report and the Agent Output page could state different limitations
+     * for the same analysis. */
+    var limits = (typeof Validator !== 'undefined' && Validator.LIMITATIONS)
+      ? Validator.LIMITATIONS
+      : ['All data is synthetic — no real portfolio, markets or transactions.'];
+    limits.forEach(function (lim) {
       var li = document.createElement('li');
       li.textContent = lim;
       limList.appendChild(li);
@@ -364,8 +478,10 @@
 
     /* ── Footer ── */
     var footer = make('div', 'reit-report__footer');
-    footer.appendChild(txt('p', 'NMIMS B.Sc. Finance | Business Analytics Project Theme 4 | September 2026 | Academic demonstration only'));
-    footer.appendChild(txt('p', 'Generated by REIT Target AI · Powered by Gemini API on synthetic data'));
+    footer.appendChild(txt('p', meta().attribution() + ' | Academic demonstration only'));
+    footer.appendChild(txt('p', 'Generated by ' + meta().PROJECT.appName +
+      ' · scoring methodology ' + meta().PROJECT.methodologyVersion +
+      ' · Gemini commentary on synthetic data'));
     container.appendChild(footer);
   }
 

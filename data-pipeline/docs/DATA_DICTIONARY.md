@@ -161,7 +161,7 @@ The following fields were added to `public/data/markets.json` for all 50 markets
 | Field | Type | Values | Description |
 |---|---|---|---|
 | `confidenceGrade` | string | A, B, C, D, E | Data confidence: A=Reported, B=Derived-high, C=Estimated-medium, D=Estimated-low, E=Synthetic |
-| `localityClass` | string | Premium / Established / Emerging / Secondary / Peripheral / Industrial | Market maturity and quality tier |
+| `localityClass` | string | Premium / Established / Emerging / Growth / Secondary / Peripheral / Industrial | Market maturity and quality tier |
 | `dataClassification` | string | Synthetic / Semi-Synthetic / Estimated / Reported | Origin of data values |
 | `isSemiSynthetic` | boolean | true/false | True for MKT-019 to MKT-050 (pipeline-generated) |
 | `sourceIds` | string[] | SRC-001 to SRC-006 | Reference to source_register.csv entries |

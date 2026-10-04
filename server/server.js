@@ -48,7 +48,7 @@ var PUBLIC_DIR = path.join(__dirname, "..", "public");
 var MAX_OUTPUT_TOKENS = parseInt(process.env.GEMINI_MAX_OUTPUT_TOKENS || "4096", 10);
 
 // Transient-failure retry settings. The Gemini endpoint intermittently returns
-// 429/500/503 ("model is currently experiencing high demand"). Because the six
+// 429/500/503 ("model is currently experiencing high demand"). Because the
 // agents run back to back, a single un-retried blip made individual agent cards
 // show "AI explanation unavailable" at random.
 var MAX_RETRIES  = parseInt(process.env.GEMINI_MAX_RETRIES || "3", 10);
@@ -232,7 +232,7 @@ function callGemini(systemInstruction, userPrompt, modelName) {
 
             // Distinguish a hard quota wall from a momentary blip. A free-tier
             // key allows only ~20 requests PER DAY on some models, and one
-            // "Run Agent Analysis" spends six of them. Waiting will not clear
+            // "Run Agent Analysis" spends four of them. Waiting will not clear
             // that, so the caller should switch models instead of sleeping.
             apiErr.quotaExhausted =
               parsed.error.status === "RESOURCE_EXHAUSTED" ||
@@ -354,8 +354,8 @@ function callGeminiWithRetry(systemInstruction, userPrompt, modelName, attempt) 
  * Try each model in MODEL_CHAIN in turn.
  *
  * Free-tier quota is counted PER MODEL PER DAY, and on some models the
- * allowance is as low as 20 requests — which one six-agent analysis run
- * nearly exhausts. When a model reports RESOURCE_EXHAUSTED there is nothing
+ * allowance is as low as 20 requests, which a handful of analysis runs exhaust.
+ * When a model reports RESOURCE_EXHAUSTED there is nothing
  * to wait for, so we move straight to the next model rather than failing the
  * agent card. Transient errors are still retried on the current model first.
  */
@@ -388,94 +388,122 @@ function callGeminiWithFallback(systemInstruction, userPrompt, idx) {
 
 // ─── Agent system prompts ────────────────────────────────────────────────────
 
+/*
+ * FOUR AGENTS, NOT SIX.
+ *
+ * The original design had six. Two were removed for reasons that are
+ * methodological rather than a matter of tidiness:
+ *
+ *   Data Quality and Statistical Analysis were one job split in two. Both
+ *   received the same statistical context, both commented on sample sizes and
+ *   dispersion, and their outputs therefore overlapped — occasionally
+ *   describing the same figure in two incompatible ways in the same run. They
+ *   are now one agent with one view of the dataset.
+ *
+ *   Validation was never a language task. Every check it made — do the weights
+ *   total 100%, are the scores inside 0–100, is the selected target present in
+ *   the ranking, do the HHI figures reproduce — has exactly one correct answer
+ *   that arithmetic establishes. A model could get it wrong, and because its
+ *   verdict gated the Orchestrator, a wrong verdict either suppressed a valid
+ *   recommendation or admitted an invalid one. Those checks are now
+ *   public/js/validator.js: deterministic, offline, reproducible, and run
+ *   BEFORE any model call. The Orchestrator is reached only when they pass.
+ *
+ * What this buys, beyond correctness: a free-tier key allows very few requests
+ * per model per day, and the old chain spent six of them per analysis run. It
+ * now spends four, and the one check that must never be wrong no longer
+ * depends on a network call at all.
+ *
+ * Every prompt below is constrained the same way: the figures are computed
+ * deterministically in the browser, and the agent's only job is to explain
+ * them. None of them may recalculate, rank, or introduce a number.
+ */
+
 var AGENT_PROMPTS = {
 
-
-  dataQuality: [
-    "You are the Data Quality Agent for REIT Target AI, an academic demonstration system.",
-    "Your role: review the data quality metrics provided and explain any issues, warnings, or limitations that could affect the investment analysis.",
+  dataStatistical: [
+    "You are the Data & Statistical Analyst for REIT Target AI, an academic demonstration system.",
+    "Your role: describe the dataset's quality AND its descriptive statistics together — sample sizes, dispersion, spread of yields and risk, and any anomalies already identified.",
     "Rules:",
-    "1. Comment only on the data quality metrics provided — do NOT invent additional issues.",
-    "2. Flag that ALL data is SYNTHETIC and created for academic illustration.",
-    "3. Identify any sample-size warnings. A segment is under-powered when its observationCount is below minObsThreshold. Base this on segmentsBelowMinObs and smallestSegmentObs — NEVER on segmentCount, which counts how many market segments a city contains and is not a sample size at all. Write the warning in plain English for a non-technical reader, naming the actual numbers and never the field names: e.g. \"Kolkata: all 3 segments have fewer than 30 observations (smallest 26)\".",
-    "4. Flag any outlier segments or cleaning pipeline rejections.",
-    "5. Do NOT present this as real investment advice.",
-    '6. Respond ONLY with valid JSON: { "overallQuality": "good|fair|poor", "dataSummary": "...", "sampleSizeWarnings": ["..."], "outlierNotes": ["..."], "pipelineSummary": "...", "recommendations": ["..."], "disclaimer": "..." }'
-  ].join("\n"),
-
-  statisticalAnalysis: [
-    "You are the Statistical Analysis Agent for REIT Target AI, an academic demonstration system.",
-    "Your role: interpret the segment-level descriptive statistics provided, highlighting yield spreads, capital value ranges, and diversification patterns across cities and property types.",
-    "Rules:",
-    "1. Comment ONLY on the statistics provided — do NOT invent or recalculate values.",
-    "2. Use median and IQR rather than mean and standard deviation where provided.",
-    "3. If bootstrap confidence intervals are provided, reference them when assessing reliability.",
-    "4. Flag that ALL data is SYNTHETIC.",
-    "5. Do NOT present this as real investment advice.",
-    '6. Respond ONLY with valid JSON: { "keyFindings": ["..."], "yieldAnalysis": "...", "capitalValueAnalysis": "...", "cityComparison": "...", "typeComparison": "...", "statisticalCaveats": ["..."], "disclaimer": "..." }'
-  ].join("\n"),
-
-  portfolioAnalysis: [
-    "You are the Portfolio Analysis Agent for REIT Target AI, an academic demonstration system.",
-    "Your role: analyse the EXISTING synthetic REIT portfolio and explain concentration risks, yield profile, and lease risks.",
-    "Rules:",
-    "1. Base ALL observations on the JSON data provided. Do NOT invent values.",
-    "2. Do NOT recalculate values — comment on the pre-calculated ones.",
-    "3. Do NOT present this as real investment advice.",
-    "4. Flag that this is a SYNTHETIC academic dataset.",
-    "5. Respond ONLY with valid JSON: { \"summary\": \"...\", \"concentrationRisks\": [\"...\"], \"yieldObservations\": [\"...\"], \"leaseRisks\": [\"...\"], \"disclaimer\": \"...\" }"
+    "1. Comment ONLY on the figures provided. Do NOT invent, recalculate or extrapolate any value.",
+    "2. State plainly that ALL data is SYNTHETIC and was generated for academic illustration.",
+    "3. Identify sample-size weaknesses. A segment is under-powered when its observationCount is below minObsThreshold. Base this on segmentsBelowMinObs and smallestSegmentObs — NEVER on segmentCount, which counts how many market segments a city contains and is not a sample size at all. Write it in plain English, naming the actual numbers and never the field names: e.g. \"Kolkata: all 3 segments rest on fewer than 30 observations (smallest 26)\".",
+    "4. Prefer median and IQR over mean and standard deviation where both are provided, and say why when you do.",
+    "5. Where a pooled figure and a within-group figure disagree, report BOTH and attribute the difference to the grouping. Do not present the pooled figure alone.",
+    "6. Refer to the records as simulated market observations. Never call them properties, listings or transactions.",
+    "7. Do NOT present any of this as investment advice.",
+    '8. Respond ONLY with valid JSON: { "overallQuality": "good|fair|poor", "dataSummary": "...", "sampleSizeWarnings": ["..."], "dispersionNotes": ["..."], "keyFindings": ["..."], "outlierNotes": ["..."], "statisticalCaveats": ["..."], "disclaimer": "..." }'
   ].join("\n"),
 
   marketScreening: [
-    "You are the Market Screening Agent for REIT Target AI, an academic demonstration system.",
-    "Your role: explain WHY the top-ranked target markets scored highly, using the pre-calculated factor scores and contributions provided.",
+    "You are the Market Screening Analyst for REIT Target AI, an academic demonstration system.",
+    "Your role: explain WHY the recommended segment scored as it did, and how the runner-up differs from it, using the pre-calculated factor scores and contributions provided.",
     "Rules:",
-    "1. Do NOT invent scores or rankings. Refer only to provided data.",
-    "2. Explain the scoring METHODOLOGY (yield, growth, diversification, demand, low-risk).",
-    "3. Flag that data is SYNTHETIC.",
-    "4. Respond ONLY with valid JSON: { \"topPickExplanation\": \"...\", \"factorInsights\": [\"...\"], \"watchPoints\": [\"...\"], \"disclaimer\": \"...\" }"
+    "1. Do NOT invent scores or rankings. Refer only to the provided data.",
+    "2. Explain the scoring methodology in terms of the five factors: rental yield, rental growth, diversification benefit, demand strength and low market risk.",
+    "3. Name the single factor that contributed most to the leading score, and the factor on which the runner-up is stronger. These contributions are given to you; do not estimate them.",
+    "4. The composite score measures attractiveness only. Evidence strength is a SEPARATE judgement supplied as governance data. If the recommended segment is not the highest-scoring one, say so and give the evidence reason provided — never imply the score was adjusted, because it was not.",
+    "5. State that ALL data is SYNTHETIC.",
+    '6. Respond ONLY with valid JSON: { "topPickExplanation": "...", "dominantFactor": "...", "runnerUpComparison": "...", "factorInsights": ["..."], "watchPoints": ["..."], "evidenceNote": "...", "disclaimer": "..." }'
   ].join("\n"),
 
-  diversification: [
-    "You are the Diversification Agent for REIT Target AI, an academic demonstration system.",
-    "Your role: interpret the before-vs-after Herfindahl-Hirschman Index (HHI) results provided.",
+  portfolioRisk: [
+    "You are the Portfolio Risk & Scenario Analyst for REIT Target AI, an academic demonstration system.",
+    "Your role: interpret the before-and-after Herfindahl-Hirschman Index (HHI) figures AND the scenario projections provided, as one assessment of what this investment would do to the portfolio.",
     "Rules:",
-    "1. Do NOT use the labels 'safe' or 'dangerous' for HHI levels — use 'concentrated', 'moderate', 'diversified'.",
-    "2. HHI above 0.25 = concentrated; 0.15-0.25 = moderate; below 0.15 = diversified.",
-    "3. Lower HHI after investment means improved diversification.",
-    "4. Do NOT recalculate. Comment only on provided values.",
-    "5. Flag SYNTHETIC data.",
-    "6. Respond ONLY with valid JSON: { \"cityHHIInterpretation\": \"...\", \"typeHHIInterpretation\": \"...\", \"yieldImpact\": \"...\", \"overallAssessment\": \"...\", \"disclaimer\": \"...\" }"
-  ].join("\n"),
-
-  validation: [
-    "You are the Validation Agent for REIT Target AI, an academic demonstration system.",
-    "Your role: check the analytical inputs for completeness, consistency and methodological limitations.",
-    "Rules:",
-    "1. Check: are all five weight values present and summing to 100%? Return weightCheck='pass' or 'fail'.",
-    "2. Check: are all scores in the 0–100 range? Return scoreRangeCheck='pass' or 'fail'.",
-    "3. Check: does the selected target appear in the top-ranked markets list? Return targetExists=true/false.",
-    "4. Check: do the city HHI and asset-type HHI values in the context match what the simulation reports? Return hhiConsistency='pass' or 'fail'.",
-    "5. Check: are synthetic-data limitations disclosed in the context?",
-    "6. Identify methodological limitations (gross yield only, no leverage, synthetic data, no transaction costs).",
-    "7. Return validatedOk=true ONLY if: weightCheck=pass AND scoreRangeCheck=pass AND targetExists=true AND hhiConsistency=pass AND no critical inconsistencies.",
-    "8. Respond ONLY with valid JSON: { \"weightCheck\": \"pass|fail\", \"scoreRangeCheck\": \"pass|fail\", \"targetExists\": true|false, \"hhiConsistency\": \"pass|fail\", \"dataQuality\": \"...\", \"inconsistencies\": [\"...\"], \"limitations\": [\"...\"], \"validatedOk\": true|false, \"disclaimer\": \"...\" }"
+    "1. Do NOT use the labels 'safe' or 'dangerous' for HHI levels — use 'concentrated', 'moderate' or 'diversified'.",
+    "2. HHI above 0.25 = concentrated; 0.15-0.25 = moderate; below 0.15 = diversified. These are descriptive benchmarks, not regulatory thresholds.",
+    "3. A lower HHI after the investment means improved diversification. Quote the actual before and after values.",
+    "4. Do NOT recalculate anything. Comment only on the provided values.",
+    "5. When projections are provided, state what they assume (flat growth rates, no leverage, no transaction costs, no tax) before stating what they show.",
+    "6. Identify the concentration that remains AFTER the investment, not only the improvement. An improvement from 0.63 to 0.58 is still concentrated.",
+    "7. State that ALL data is SYNTHETIC.",
+    '8. Respond ONLY with valid JSON: { "cityHHIInterpretation": "...", "typeHHIInterpretation": "...", "residualConcentration": "...", "yieldImpact": "...", "scenarioInterpretation": "...", "projectionCaveats": ["..."], "overallAssessment": "...", "disclaimer": "..." }'
   ].join("\n"),
 
   orchestrator: [
     "You are the Investment Orchestrator for REIT Target AI, an academic demonstration system.",
-    "You receive VALIDATED outputs from the Portfolio Analysis, Market Screening, Diversification and Validation agents.",
-    "IMPORTANT: You are called ONLY because the Validation Agent returned validatedOk=true.",
-    "Your role: synthesise all four agent outputs into one structured final recommendation.",
+    "You receive the outputs of the Data & Statistical Analyst, the Market Screening Analyst and the Portfolio Risk & Scenario Analyst, together with the result of a DETERMINISTIC validation performed in code.",
+    "IMPORTANT: You are called ONLY because those deterministic checks passed. The checks are arithmetic, not opinion: do not re-litigate them, re-perform them, or claim to have verified anything yourself.",
+    "Your role: synthesise the three analyses into one structured final recommendation.",
     "Rules:",
-    "1. Only include insights that are supported by the agent outputs and the analytical context provided.",
-    "2. Do NOT invent new analysis, recalculate scores, or cite financial figures not in the context.",
-    "3. Clearly state this is for ACADEMIC DEMONSTRATION on SYNTHETIC DATA.",
-    "4. A recommendation here is NOT real investment advice.",
-    "5. The 'selectedTarget' must be the highest-scoring market from the pre-calculated context.",
-    '6. Respond ONLY with valid JSON: { "selectedTarget": "...", "investmentAmount": "\u20b9<N> Cr", "compositeScore": 0, "expectedYieldPct": 0, "cityHHIEffect": "...", "assetTypeHHIEffect": "...", "whyTopRanked": "...", "importantRisks": ["..."], "syntheticDisclaimer": "...", "disclaimer": "..." }'
+    "1. Include only what is supported by the agent outputs and the analytical context provided.",
+    "2. Do NOT invent new analysis, recalculate scores, or cite any figure not in the context.",
+    "3. 'selectedTarget' MUST be the segment named as the recommendation in the context. That is not always the highest-scoring segment: an evidence floor applies. If the two differ, say so in 'evidenceBasis' and give the reason from the governance data.",
+    "4. State clearly that this is an ACADEMIC DEMONSTRATION on SYNTHETIC data and is NOT investment advice.",
+    "5. 'importantRisks' must include at least one risk arising from the data itself (sample size, evidence grade, or the synthetic nature of the dataset), not only market risks.",
+    '6. Respond ONLY with valid JSON: { "selectedTarget": "...", "investmentAmount": "₹<N> Cr", "compositeScore": 0, "expectedYieldPct": 0, "evidenceBasis": "...", "cityHHIEffect": "...", "assetTypeHHIEffect": "...", "whyTopRanked": "...", "importantRisks": ["..."], "syntheticDisclaimer": "...", "disclaimer": "..." }'
   ].join("\n")
 };
+
+/*
+ * Legacy agent names from the six-agent design. Requests naming one of these
+ * are served by the agent that absorbed its job rather than rejected, so an
+ * older cached scenario file or a bookmarked request keeps working. Nothing in
+ * the current application sends these.
+ */
+var LEGACY_AGENT_ALIASES = {
+  dataQuality:         "dataStatistical",
+  statisticalAnalysis: "dataStatistical",
+  portfolioAnalysis:   "portfolioRisk",
+  diversification:     "portfolioRisk"
+};
+
+/* The deterministic checks replaced the validation agent outright. A request
+ * for it is not an alias to anything — answering it with model prose would
+ * reintroduce exactly the problem the change removed — so it is refused with
+ * an explanation of where the checks now live. */
+var RETIRED_AGENTS = {
+  validation: "The validation agent was replaced by deterministic checks in " +
+              "public/js/validator.js, which run in the browser before any model call. " +
+              "There is no model prompt for it, by design."
+};
+
+function resolveAgentType(name) {
+  if (AGENT_PROMPTS[name]) { return name; }
+  if (LEGACY_AGENT_ALIASES[name]) { return LEGACY_AGENT_ALIASES[name]; }
+  return null;
+}
 
 // ─── /api/agent handler ──────────────────────────────────────────────────────
 
@@ -488,9 +516,16 @@ function handleAgentRequest(req, res) {
     var agentType = body.agentType;
     var context   = body.context;
 
-    if (!agentType || VALID_AGENTS.indexOf(agentType) === -1) {
-      return jsonResponse(res, 400, { error: "Invalid agentType. Must be one of: " + VALID_AGENTS.join(", ") });
+    if (RETIRED_AGENTS[agentType]) {
+      return jsonResponse(res, 410, { error: "Agent retired", detail: RETIRED_AGENTS[agentType] });
     }
+    var resolved = resolveAgentType(agentType);
+    if (!resolved) {
+      return jsonResponse(res, 400, {
+        error: "Invalid agentType. Must be one of: " + VALID_AGENTS.join(", ")
+      });
+    }
+    agentType = resolved;
     if (!context || typeof context !== "object") {
       return jsonResponse(res, 400, { error: "context must be a JSON object." });
     }
@@ -526,12 +561,13 @@ function handleAgentRequest(req, res) {
 
 // ─── /api/agents/analyse — sequential 6-agent chain ────────────────────────
 
+/* The chain is three analysts then the orchestrator. Validation is no longer a
+ * link in it: it runs deterministically in the browser before the chain starts,
+ * and the chain is not entered at all when it fails. */
 var ANALYSE_CHAIN = [
-  "dataQuality",
-  "statisticalAnalysis",
+  "dataStatistical",
   "marketScreening",
-  "diversification",
-  "validation",
+  "portfolioRisk",
   "orchestrator"
 ];
 
@@ -545,11 +581,17 @@ function runChain(context, chainResults, idx, callback) {
   // Build agent-specific context
   var agentCtx = Object.assign({}, context, chainResults);
 
-  // Orchestrator only runs when validation passed
+  /* The Orchestrator runs only when the browser's deterministic checks passed.
+   * The caller reports that result in context.deterministicValidation; a
+   * request that omits it is treated as not having run the checks, because
+   * assuming success would defeat the gate. */
   if (agentType === "orchestrator") {
-    var valOut = chainResults.validationOutput;
-    if (!valOut || valOut.validatedOk !== true) {
-      chainResults.orchestratorOutput = { error: "Orchestrator skipped — validation did not pass." };
+    var dv = context && context.deterministicValidation;
+    if (!dv || dv.passed !== true) {
+      chainResults.orchestratorOutput = {
+        error: "Orchestrator skipped — the deterministic checks did not pass" +
+               (dv && dv.summary ? ": " + dv.summary : " (no check result supplied).")
+      };
       return runChain(context, chainResults, idx + 1, callback);
     }
   }
@@ -675,6 +717,8 @@ var server = http.createServer(function (req, res) {
 
 server.listen(PORT, function () {
   console.log("REIT Target AI server running at http://localhost:" + PORT);
+  console.log("Agents: " + Object.keys(AGENT_PROMPTS).join(", ") +
+              "  (validation is deterministic, in public/js/validator.js)");
   console.log("Gemini model: " + MODEL +
               "  (thinking off, maxOutputTokens " + MAX_OUTPUT_TOKENS +
               ", up to " + MAX_RETRIES + " retries)");

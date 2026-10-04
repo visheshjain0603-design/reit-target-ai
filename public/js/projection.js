@@ -6,12 +6,30 @@
  * Pure functions only. No DOM, no fetch.
  * Dual CommonJS + browser-global export.
  *
- * Formulas (per Stage 6 spec):
- *   Projected Rent  = Current Rent  × (1 + g)^n
- *   Projected Value = Current Value × (1 + c)^n
- *   Gross Yield     = (Projected Annual Rent) / Projected Value
+ * Formulas:
+ *   Projected Rent      = Current Rent  × (1 + g)^n
+ *   Projected Value     = Current Value × (1 + c)^n
+ *   Gross Yield         = Projected Annual Rent / Projected Value
+ *   Effective Yield     = (Projected Annual Rent × occupancy) / Projected Value
  *
  * Three scenarios (conservative / base / optimistic) applied to each horizon.
+ *
+ * ON THE TWO YIELDS
+ * -----------------
+ * Each scenario declares an occupancy rate, and the report lists it in the
+ * assumptions table beside rental and capital growth — which reads as though
+ * all three drive the projection. Until now only two did. Gross yield is rent
+ * over value by definition and correctly ignores vacancy, so the arithmetic was
+ * never wrong; but the conservative scenario assumed a fifth of the space was
+ * empty and still reported a yield as though the portfolio were fully let, and
+ * an assumption that is displayed yet changes nothing invites the reader to
+ * believe it was applied.
+ *
+ * So effectiveGrossYield is now returned alongside grossYield, and the two are
+ * labelled distinctly wherever they appear. grossYield itself is UNCHANGED —
+ * adding a field alters no figure the project has previously reported, whereas
+ * redefining grossYield would silently restate every projection in the
+ * documentation. See data-pipeline/docs/ANALYTICS_AUDIT.md, finding A3.
  */
 
 (function (root, factory) {
@@ -77,22 +95,26 @@
 
     // Year 0 (current state)
     points.push({
-      year:             0,
-      portfolioValue:   v0,
-      annualRent:       r0,
-      grossYield:       v0 > 0 ? r0 / v0 : 0,
-      occupancyAdjRent: r0 * occ
+      year:                0,
+      portfolioValue:      v0,
+      annualRent:          r0,
+      grossYield:          v0 > 0 ? r0 / v0 : 0,
+      occupancyAdjRent:    r0 * occ,
+      effectiveGrossYield: v0 > 0 ? (r0 * occ) / v0 : 0,
+      occupancy:           occ
     });
 
     horizons.forEach(function (n) {
       var vn  = v0 * Math.pow(1 + c, n);
       var rn  = r0 * Math.pow(1 + g, n);
       points.push({
-        year:             n,
-        portfolioValue:   vn,
-        annualRent:       rn,
-        grossYield:       vn > 0 ? rn / vn : 0,
-        occupancyAdjRent: rn * occ
+        year:                n,
+        portfolioValue:      vn,
+        annualRent:          rn,
+        grossYield:          vn > 0 ? rn / vn : 0,
+        occupancyAdjRent:    rn * occ,
+        effectiveGrossYield: vn > 0 ? (rn * occ) / vn : 0,
+        occupancy:           occ
       });
     });
 
@@ -124,12 +146,27 @@
     return result;
   }
 
-  /* ── HHI projection ───────────────────────────────────────── */
+  /* ── HHI projection — UNUSED, AND NOT FOR DISPLAY ─────────── */
   /**
    * projectHHI(hhiBefore, hhiAfter, horizons)
-   * Simple linear interpolation toward hhiAfter over the horizon.
-   * In reality HHI depends on relative asset-value growth — this is
-   * a simplification flagged as such in the UI.
+   *
+   * DO NOT WIRE THIS INTO A PAGE. No page calls it, and it should stay that
+   * way. It is retained only so that the reasoning below is not lost.
+   *
+   * It interpolates linearly from the before-HHI toward the after-HHI and then
+   * multiplies the change by a per-scenario damping factor of 0.6, 1.0 or 1.3.
+   * The optimistic factor therefore projects a concentration improvement 30%
+   * LARGER than the investment being modelled actually produces, from a
+   * multiplier with no mechanism behind it.
+   *
+   * The deeper problem is that it treats HHI after a known investment as a
+   * forecast. It is not a forecast: it is arithmetic on the resulting holdings,
+   * and HHIEngine.simulateInvestment already computes it exactly. Projecting it
+   * forward would require modelling how each holding's VALUE grows relative to
+   * the others, which this function does not do and the project does not claim
+   * to do.
+   *
+   * See data-pipeline/docs/ANALYTICS_AUDIT.md, finding A4.
    *
    * @returns {Object} { conservative: [], base: [], optimistic: [] }
    *   each array: [{ year, cityHHI, typeHHI }]
@@ -177,10 +214,12 @@
       var target = pts.find ? pts.find(function (p) { return p.year === horizon; }) : null;
       if (!target) target = pts[pts.length - 1] || {};
       result[key] = {
-        portfolioValue:   target.portfolioValue   || 0,
-        annualRent:       target.annualRent        || 0,
-        grossYield:       target.grossYield        || 0,
-        occupancyAdjRent: target.occupancyAdjRent  || 0,
+        portfolioValue:      target.portfolioValue      || 0,
+        annualRent:          target.annualRent          || 0,
+        grossYield:          target.grossYield          || 0,
+        occupancyAdjRent:    target.occupancyAdjRent    || 0,
+        effectiveGrossYield: target.effectiveGrossYield || 0,
+        occupancy:           target.occupancy           || 0,
         changeValuePct:   now.portfolioValue > 0 ?
           ((target.portfolioValue - now.portfolioValue) / now.portfolioValue) * 100 : 0,
         changeRentPct:    now.annualRent > 0 ?

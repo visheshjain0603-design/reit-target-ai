@@ -129,10 +129,17 @@
       <div class="sidebar-logo">REIT Target AI</div>
       <ul class="nav-list" role="list">
         <li>
+          <a href="#overview"
+             class="nav-link"
+             data-page="overview"
+             aria-current="page">
+            Overview
+          </a>
+        </li>
+        <li>
           <a href="#portfolio"
              class="nav-link"
-             data-page="portfolio"
-             aria-current="page">
+             data-page="portfolio">
             Portfolio
           </a>
         </li>
@@ -184,9 +191,24 @@
     <!-- ── Main content ────────────────────────────────────── -->
     <main id="main-content">
 
+      <!-- Overview ──────────────────────────────────────────── -->
+      <section id="page-overview"
+               class="page page-active"
+               aria-labelledby="h-overview">
+        <h1 id="h-overview">Executive Overview</h1>
+        <p class="page-subtitle">
+          What this system is, what the current analysis concluded and on what
+          evidence, and what it must not be used for. Every figure on this page is
+          read from the shared run or derived from the dataset — none is written by hand.
+        </p>
+        <div id="overview-content">
+          <!-- Populated by js/overview.js -->
+        </div>
+      </section>
+
       <!-- Portfolio ─────────────────────────────────────────── -->
       <section id="page-portfolio"
-               class="page page-active"
+               class="page"
                aria-labelledby="h-portfolio">
         <h1 id="h-portfolio">Portfolio Analysis</h1>
         <p class="page-subtitle">
@@ -232,8 +254,10 @@
                aria-labelledby="h-agents">
         <h1 id="h-agents">Agent Recommendations</h1>
         <p class="page-subtitle">
-          Investment Orchestrator · Market Screening · Diversification ·
-          Validation agents. Powered by Gemini API on synthetic data.
+          Four Gemini agents interpret figures that were already computed
+          deterministically: Data &amp; Statistical Analyst, Market Screening Analyst,
+          Portfolio Risk &amp; Scenario Analyst, Investment Orchestrator. The input
+          checks that gate the recommendation are performed in code, not by a model.
         </p>
         <div id="agents-content">
           <!-- Populated by js/agents.js -->
@@ -293,15 +317,22 @@
   <!-- ── Scripts (no inline JS anywhere in this file) ───────── -->
   <!-- Load order: analytics engines first, then page controllers -->
   <script src="js/istTime.js"></script>
+  <script src="js/appMeta.js"></script>
   <script src="js/uiHelpers.js"></script>
   <!-- Analytics engines (CommonJS + browser global dual export) -->
   <script src="js/stateManager.js"></script>
   <script src="js/hhi.js"></script>
   <script src="js/scoringEngine.js"></script>
+  <script src="js/governance.js"></script>
+  <script src="js/filters.js"></script>
+  <script src="js/validator.js"></script>
   <!-- Page controllers (depend on engines above) -->
+  <script src="js/overview.js"></script>
   <script src="js/portfolio.js"></script>
   <script src="js/marketScreen.js"></script>
   <script src="js/diversification.js"></script>
+  <script src="js/agentContext.js"></script>
+  <script src="js/scenarioKey.js"></script>
   <script src="js/agents.js"></script>
   <!-- New modules: data pipeline, charts, projections, new pages -->
   <script src="js/stats.js"></script>

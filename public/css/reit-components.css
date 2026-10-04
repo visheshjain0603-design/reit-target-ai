@@ -2065,3 +2065,538 @@
   color: #92400e; background: rgba(217, 131, 36, 0.10);
   border-left: 3px solid #d98324; border-radius: 4px;
 }
+
+/* ── Agent output provenance banners ──────────────────────── */
+.reit-prov-banner {
+  margin: 0 0 12px 0; padding: 7px 11px; font-size: 12px; line-height: 1.5;
+  border-left: 3px solid; border-radius: 4px;
+}
+.reit-prov-live          { color: #15803d; background: rgba(34,197,94,0.09);  border-color: #22c55e; }
+.reit-prov-cache         { color: #92400e; background: rgba(217,131,36,0.10); border-color: #d98324; }
+.reit-prov-deterministic { color: #475569; background: rgba(100,116,139,0.10); border-color: #64748b; }
+.reit-hhi-note { margin-top: 10px; font-size: 12px; line-height: 1.55; color: #64748b; }
+
+/* ── Statistics page v2 ───────────────────────────────────── */
+
+/* Key Findings */
+.reit-findings { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+.reit-finding {
+  display: flex; gap: 12px; padding: 13px 15px; border-radius: 6px;
+  border-left: 4px solid; background: #f8fafc;
+}
+.reit-finding-critical { border-color: #3b7dd8; background: rgba(59,125,216,0.055); }
+.reit-finding-normal   { border-color: #2e9e6b; background: rgba(46,158,107,0.05); }
+.reit-finding-caution  { border-color: #d98324; background: rgba(217,131,36,0.06); }
+.reit-finding-num {
+  flex: 0 0 23px; height: 23px; border-radius: 50%; background: #33415c; color: #fff;
+  font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+}
+.reit-finding-body { flex: 1; min-width: 0; }
+.reit-finding-head { font-weight: 700; font-size: 14px; margin-bottom: 5px; color: #1e293b; }
+.reit-finding-text { margin: 0; font-size: 13px; line-height: 1.6; color: #334155; }
+.reit-finding-basis { margin: 6px 0 0; font-size: 11.5px; color: #64748b; font-style: italic; }
+
+/* "What this tells you" */
+.reit-interpret {
+  margin-top: 12px; padding: 11px 14px; font-size: 13px; line-height: 1.6;
+  background: rgba(59,125,216,0.06); border-left: 3px solid #3b7dd8; border-radius: 4px; color: #334155;
+}
+.reit-interpret-basis { color: #64748b; font-style: italic; font-size: 11.5px; }
+
+/* Inline definitions */
+.reit-term {
+  border-bottom: 1px dotted #64748b; cursor: help; text-decoration: none;
+}
+.reit-term:hover { border-bottom-style: solid; color: #1e40af; }
+
+/* Expandable full output */
+.reit-expandable { margin-top: 12px; border: 1px solid #e2e8f0; border-radius: 6px; }
+.reit-expandable > summary {
+  cursor: pointer; padding: 9px 13px; font-size: 12.5px; font-weight: 600;
+  color: #475569; background: #f8fafc; border-radius: 6px; user-select: none;
+}
+.reit-expandable > summary:hover { background: #f1f5f9; color: #1e40af; }
+.reit-expandable[open] > summary { border-bottom: 1px solid #e2e8f0; border-radius: 6px 6px 0 0; }
+.reit-expandable-body { padding: 12px 13px; }
+
+.reit-callout-warn { background: rgba(217,131,36,0.07); border-left-color: #d98324; }
+.reit-row-muted { opacity: 0.62; font-style: italic; }
+.reit-legend-dash {
+  width: 16px; height: 0; border-top: 2px dashed rgba(100,116,139,0.8);
+  display: inline-block; vertical-align: middle;
+}
+.reit-limit-list { margin: 10px 0 0; padding-left: 20px; font-size: 13px; line-height: 1.7; color: #334155; }
+.reit-limit-list li { margin-bottom: 7px; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   OVERVIEW, GOVERNANCE, FILTERS, OBSERVATION DISTRIBUTION, VALIDATION
+   Added with the final-submission pass. Everything below is additive: no
+   existing selector is redefined, so the pages that were already working
+   cannot change appearance because of this block.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Screen-reader-only label, for controls whose visible label is the legend. */
+.reit-sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Overview ──────────────────────────────────────────────────────────── */
+
+.reit-ov-section { margin-bottom: 26px; }
+
+.reit-ov-intro {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--gray-600, #475569);
+  max-width: 76ch;
+  margin: 4px 0 14px;
+}
+
+.reit-ov-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.reit-ov-card {
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-left: 3px solid var(--primary, #3b82f6);
+  border-radius: 6px;
+  padding: 12px 14px;
+  background: #fff;
+}
+.reit-ov-card-ok   { border-left-color: #16a34a; }
+.reit-ov-card-warn { border-left-color: #d97706; }
+
+.reit-ov-card-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--gray-500, #64748b);
+  font-weight: 700;
+}
+.reit-ov-card-value {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text-primary, #1e293b);
+  margin-top: 3px;
+  line-height: 1.25;
+}
+.reit-ov-card-sub {
+  font-size: 12px;
+  color: var(--gray-500, #64748b);
+  margin-top: 4px;
+  line-height: 1.45;
+}
+
+.reit-ov-provenance,
+.reit-ov-limits-note,
+.reit-ov-reset-note {
+  font-size: 12px;
+  color: var(--gray-500, #64748b);
+  line-height: 1.55;
+  max-width: 82ch;
+}
+
+.reit-ov-gov-note {
+  font-size: 13px;
+  line-height: 1.55;
+  padding: 9px 12px;
+  border-radius: 5px;
+  background: #eff6ff;
+  border-left: 3px solid #3b82f6;
+  margin: 10px 0;
+  max-width: 88ch;
+}
+.reit-ov-gov-warn {
+  background: #fffbeb;
+  border-left-color: #d97706;
+  color: #78350f;
+  font-size: 13px;
+  line-height: 1.55;
+  padding: 9px 12px;
+  border-radius: 5px;
+  margin: 10px 0;
+  max-width: 88ch;
+}
+
+.reit-ov-empty {
+  font-size: 14px;
+  color: var(--gray-600, #475569);
+  line-height: 1.6;
+  max-width: 76ch;
+}
+
+.reit-ov-routes { padding-left: 22px; line-height: 1.75; font-size: 14px; }
+.reit-ov-route-link { font-weight: 600; }
+.reit-ov-route-desc { color: var(--gray-500, #64748b); font-size: 13px; }
+
+.reit-ov-limits { padding-left: 22px; line-height: 1.65; font-size: 13.5px; max-width: 86ch; }
+.reit-ov-limits li { margin-bottom: 5px; }
+
+.reit-ov-link-btn {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px 14px;
+  border-radius: 5px;
+  background: var(--primary, #3b82f6);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.reit-ov-link-btn:hover { background: #2563eb; }
+
+.reit-ov-reset {
+  margin-top: 26px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color, #e2e8f0);
+}
+.reit-ov-reset-btn {
+  padding: 8px 14px;
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: 5px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.reit-ov-reset-btn:hover { background: #f8fafc; }
+.reit-ov-reset-confirm {
+  background: #fef2f2;
+  border-color: #dc2626;
+  color: #991b1b;
+}
+
+.reit-ov-compare { margin-top: 18px; }
+.reit-compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 8px;
+}
+.reit-compare-table th,
+.reit-compare-table td {
+  border: 1px solid var(--border-color, #e2e8f0);
+  padding: 6px 9px;
+  text-align: left;
+}
+.reit-compare-table thead th { background: #f8fafc; font-weight: 700; }
+.reit-compare-table tbody th { background: #fcfdfe; font-weight: 600; }
+
+/* ── Recommendation banner (score beside evidence) ─────────────────────── */
+
+.reit-rec-banner {
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 7px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  background: #fbfdff;
+}
+.reit-rec-title { margin: 0 0 10px; font-size: 16px; }
+.reit-rec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  gap: 12px;
+}
+.reit-rec-cell { border-left: 3px solid var(--border-color, #e2e8f0); padding-left: 10px; }
+.reit-rec-cell-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gray-500, #64748b);
+  font-weight: 700;
+}
+.reit-rec-cell-value {
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+.reit-rec-cell-sub {
+  font-size: 11.5px;
+  color: var(--gray-500, #64748b);
+  margin-top: 3px;
+  line-height: 1.45;
+}
+.reit-rec-note, .reit-rec-alt, .reit-rec-none {
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 12px 0 0;
+  padding: 8px 11px;
+  border-radius: 5px;
+  max-width: 94ch;
+}
+.reit-rec-note-ok   { background: #f0fdf4; border-left: 3px solid #16a34a; }
+.reit-rec-note-warn { background: #fffbeb; border-left: 3px solid #d97706; color: #78350f; }
+.reit-rec-alt       { background: #f8fafc; border-left: 3px solid #94a3b8; color: #475569; }
+.reit-rec-none      { background: #fef2f2; border-left: 3px solid #dc2626; color: #991b1b; }
+
+.reit-gov-override { margin-top: 14px; }
+.reit-gov-override label { font-size: 13px; font-weight: 600; margin-left: 6px; cursor: pointer; }
+.reit-gov-override-note {
+  font-size: 11.5px;
+  color: var(--gray-500, #64748b);
+  line-height: 1.55;
+  margin: 5px 0 0;
+  max-width: 94ch;
+}
+
+/* ── Evidence tier badges ──────────────────────────────────────────────── */
+
+.reit-evidence-badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.reit-evidence-strong       { background: #dcfce7; color: #14532d; }
+.reit-evidence-adequate     { background: #dbeafe; color: #1e3a8a; }
+.reit-evidence-limited      { background: #fef3c7; color: #78350f; }
+.reit-evidence-weak         { background: #fee2e2; color: #991b1b; }
+.reit-evidence-unclassified { background: #f1f5f9; color: #475569; }
+
+/* A row below the floor is marked, never hidden and never greyed to the point
+   of being hard to read: it is still a real result the reader may want. */
+.reit-row-below-floor td { background: #fffdf7; }
+
+.reit-breakdown-evidence {
+  font-size: 12.5px;
+  line-height: 1.55;
+  margin: 10px 0;
+  padding: 8px 11px;
+  border-radius: 5px;
+  max-width: 94ch;
+}
+.reit-evidence-ok   { background: #f0fdf4; border-left: 3px solid #16a34a; }
+.reit-evidence-warn { background: #fffbeb; border-left: 3px solid #d97706; color: #78350f; }
+
+/* ── Filters ───────────────────────────────────────────────────────────── */
+
+.reit-filter-panel {
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 7px;
+  margin-bottom: 16px;
+  background: #fff;
+}
+.reit-filter-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+}
+.reit-filter-toggle {
+  padding: 6px 12px;
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: 5px;
+  background: #f8fafc;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.reit-filter-toggle:hover { background: #f1f5f9; }
+.reit-filter-count { font-size: 12.5px; color: var(--gray-600, #475569); flex: 1 1 260px; }
+.reit-filter-reset {
+  padding: 5px 11px;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  background: #fff;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.reit-filter-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+  padding: 4px 14px 14px;
+  border-top: 1px solid var(--border-color, #e2e8f0);
+}
+.reit-filter-group {
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 5px;
+  padding: 8px 10px 10px;
+  margin: 0;
+}
+.reit-filter-group legend {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: var(--gray-500, #64748b);
+  padding: 0 4px;
+}
+.reit-filter-hint {
+  font-size: 11px;
+  color: var(--gray-500, #64748b);
+  line-height: 1.45;
+  margin: 2px 0 7px;
+}
+.reit-filter-check { display: inline-flex; align-items: center; margin: 0 10px 5px 0; }
+.reit-filter-check label { font-size: 12.5px; margin-left: 4px; cursor: pointer; }
+.reit-filter-group label { font-size: 12.5px; }
+.reit-filter-number {
+  width: 78px;
+  padding: 4px 6px;
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: 4px;
+  font-size: 12.5px;
+  margin: 0 7px 0 4px;
+}
+/* Focus must stay visible: these controls are reachable by keyboard and the
+   browser default outline is removed by the design system's reset. */
+.reit-filter-number:focus-visible,
+.reit-filter-toggle:focus-visible,
+.reit-filter-reset:focus-visible,
+.reit-filter-check input:focus-visible,
+.reit-ov-reset-btn:focus-visible,
+.reit-gov-override input:focus-visible {
+  outline: 2px solid var(--primary, #3b82f6);
+  outline-offset: 2px;
+}
+
+.reit-filter-empty {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 13px;
+  background: #fffbeb;
+  color: #78350f;
+  border-top: 1px solid #fcd34d;
+  border-radius: 0 0 7px 7px;
+}
+
+/* ── Observation Distribution ──────────────────────────────────────────── */
+
+.reit-obs-panel {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 6px;
+  background: #fcfdfe;
+}
+.reit-obs-title { margin: 0 0 5px; font-size: 13.5px; font-weight: 700; }
+.reit-obs-intro, .reit-obs-disclaimer {
+  font-size: 11.5px;
+  color: var(--gray-600, #475569);
+  line-height: 1.55;
+  margin: 0 0 9px;
+  max-width: 94ch;
+}
+.reit-obs-disclaimer { margin: 9px 0 0; font-style: italic; }
+
+.reit-obs-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+.reit-obs-table th, .reit-obs-table td {
+  border: 1px solid var(--border-color, #e2e8f0);
+  padding: 4px 7px;
+  text-align: right;
+}
+.reit-obs-table thead th { background: #f1f5f9; text-align: right; font-weight: 700; }
+.reit-obs-table tbody th { text-align: left; background: #f8fafc; font-weight: 600; }
+
+.reit-obs-hist { margin-top: 12px; }
+.reit-obs-hist-title { font-size: 11.5px; font-weight: 600; margin: 0 0 5px; color: #475569; }
+.reit-obs-hist-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.reit-obs-hist-table th {
+  text-align: right;
+  font-weight: 500;
+  padding: 2px 8px 2px 0;
+  width: 12ch;
+  white-space: nowrap;
+  color: #475569;
+}
+.reit-obs-hist-table td { padding: 2px 0; }
+.reit-obs-hist-count { width: 4ch; text-align: right; padding-left: 8px; color: #475569; }
+.reit-obs-bar {
+  display: inline-block;
+  height: 9px;
+  min-width: 1px;
+  background: var(--primary, #3b82f6);
+  border-radius: 2px;
+  vertical-align: middle;
+}
+
+/* ── Deterministic validation panel ────────────────────────────────────── */
+
+.reit-validation-panel { }
+.reit-validation-intro {
+  font-size: 12.5px;
+  color: var(--gray-600, #475569);
+  line-height: 1.6;
+  max-width: 90ch;
+}
+.reit-validation-summary {
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 9px 12px;
+  border-radius: 5px;
+  margin: 10px 0;
+  max-width: 94ch;
+}
+.reit-validation-pass { background: #f0fdf4; border-left: 3px solid #16a34a; color: #14532d; }
+.reit-validation-fail { background: #fef2f2; border-left: 3px solid #dc2626; color: #991b1b; }
+
+.reit-validation-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.reit-validation-table th,
+.reit-validation-table td {
+  border: 1px solid var(--border-color, #e2e8f0);
+  padding: 6px 9px;
+  text-align: left;
+  vertical-align: top;
+}
+.reit-validation-table thead th { background: #f8fafc; font-weight: 700; }
+.reit-validation-table tbody th { background: #fcfdfe; font-weight: 600; width: 26ch; }
+.reit-validation-detail { color: var(--gray-600, #475569); }
+
+.reit-validation-limits-title { font-size: 13px; font-weight: 700; margin: 16px 0 4px; }
+.reit-validation-limits { padding-left: 22px; font-size: 12.5px; line-height: 1.6; max-width: 90ch; }
+.reit-validation-limits li { margin-bottom: 4px; }
+
+.reit-trail-deterministic { font-style: italic; }
+
+.reit-table-caption {
+  caption-side: top;
+  text-align: left;
+  font-size: 11.5px;
+  color: var(--gray-500, #64748b);
+  line-height: 1.5;
+  padding-bottom: 6px;
+  max-width: 100ch;
+}
+
+/* ── Narrow screens ───────────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  .reit-ov-grid, .reit-rec-grid { grid-template-columns: 1fr; }
+  .reit-filter-body { grid-template-columns: 1fr; }
+  .reit-filter-head { gap: 8px; }
+  .reit-filter-count { flex-basis: 100%; }
+  /* The ranked table and the observation table both have more columns than a
+     phone can show. Scrolling them horizontally keeps every column reachable;
+     dropping columns would mean the mobile view and the desktop view answered
+     different questions. */
+  .reit-ranked-table, .reit-obs-table, .reit-validation-table, .reit-compare-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .reit-obs-table td, .reit-obs-table th { white-space: nowrap; }
+}
+
+/* ── Print ────────────────────────────────────────────────────────────── */
+
+@media print {
+  .reit-filter-panel, .reit-gov-override, .reit-ov-reset,
+  .reit-ov-link-btn, .reit-show-all-btn { display: none; }
+  .reit-validation-table, .reit-obs-table, .reit-compare-table { font-size: 10px; }
+}

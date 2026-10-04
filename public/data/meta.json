@@ -1,0 +1,112 @@
+{
+ "note": "GENERATED FILE — do not edit by hand. Produced by data-pipeline/scripts/buildMeta.js from the data files in public/data/. Every figure here is computed, none is typed.",
+ "generatedBy": "data-pipeline/scripts/buildMeta.js",
+ "project": {
+  "appName": "REIT Target AI",
+  "tagline": "Decision support for REIT target-market selection",
+  "institution": "NMIMS",
+  "programme": "B.Sc. Finance",
+  "course": "Business Analytics",
+  "theme": "Theme 4 — Building Agents/Artifacts Using Generative AI",
+  "themeShort": "BA Theme 4",
+  "author": "Vishesh Jain",
+  "academicSession": "2026",
+  "methodologyVersion": "1.0.0",
+  "dataIsSynthetic": true,
+  "syntheticNotice": "All data in this application is synthetic and was created for academic demonstration only. It does not describe any real property, tenant, transaction or market, and must not be used for any investment decision.",
+  "publicUrl": "https://visheshjain0603-design.github.io/reit-target-ai/"
+ },
+ "governance": {
+  "MIN_OBSERVATIONS": 30,
+  "MIN_GRADE": "C",
+  "GRADE_ORDER": [
+   "A",
+   "B",
+   "C",
+   "D",
+   "E"
+  ],
+  "rationale": "Thirty observations is the conventional floor at which the sampling distribution of a mean is treated as approximately normal, and grade C is the lowest grade whose estimate rests on documented evidence rather than assumption alone. Both are descriptive conventions adopted for this project, not regulatory thresholds.",
+  "overrideLabel": "Include segments that do not meet the evidence floor",
+  "overrideNote": "Overriding shows every segment in the ranking. Segments below the floor stay marked, and the report records that the override was used."
+ },
+ "agents": [
+  {
+   "key": "dataStatistical",
+   "label": "Data & Statistical Analyst",
+   "purpose": "Reads the dataset's quality and its descriptive statistics together: sample sizes, dispersion, correlation structure and the anomalies the detectors found."
+  },
+  {
+   "key": "marketScreening",
+   "label": "Market Screening Analyst",
+   "purpose": "Explains why the leading segment scored as it did, and how the runner-up differs from it."
+  },
+  {
+   "key": "portfolioRisk",
+   "label": "Portfolio Risk & Scenario Analyst",
+   "purpose": "Interprets the concentration (HHI) change this investment would cause and what the scenario projections imply."
+  },
+  {
+   "key": "orchestrator",
+   "label": "Investment Orchestrator",
+   "purpose": "Combines the three analyses into one recommendation with its rationale and risk warnings. Runs only after the deterministic checks pass."
+  }
+ ],
+ "counts": {
+  "marketCount": 50,
+  "cityCount": 8,
+  "cities": [
+   "Ahmedabad",
+   "Bengaluru",
+   "Chennai",
+   "Delhi NCR",
+   "Hyderabad",
+   "Kolkata",
+   "Mumbai",
+   "Pune"
+  ],
+  "propertyTypeCount": 3,
+  "propertyTypes": [
+   "Commercial Office",
+   "Residential",
+   "Retail"
+  ],
+  "localityClasses": [
+   "Emerging",
+   "Established",
+   "Growth",
+   "Peripheral",
+   "Premium"
+  ],
+  "confidenceGradeCounts": {
+   "B": 7,
+   "C": 20,
+   "D": 20,
+   "E": 3
+  },
+  "observationCount": 2156,
+  "observationsPerMarketMin": 26,
+  "observationsPerMarketMax": 76,
+  "assetCount": 10,
+  "portfolioValueRs": 5000000000,
+  "portfolioValueCr": 500,
+  "portfolioRentRs": 332750000,
+  "portfolioRentCr": 33.275,
+  "portfolioWeightedYield": 0.06655,
+  "datasetName": "REIT Target Market Segments — Synthetic Academic Dataset (50 Markets, derived from 2,156 observations)",
+  "dataAsOf": "2026-09-19",
+  "generatorVersion": "2.0.0",
+  "seed": 20260919,
+  "plantedAnomalies": 24,
+  "contaminationPct": 1.113,
+  "marketsBelowObsFloor": 10,
+  "agentCount": 4,
+  "presetCount": 4,
+  "methodologyVersion": "1.0.0"
+ },
+ "tests": {
+  "file": "tests/reit-tests.js",
+  "testIdCount": 62,
+  "assertCallCount": 524
+ }
+}

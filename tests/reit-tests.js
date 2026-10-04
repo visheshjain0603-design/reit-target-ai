@@ -78,6 +78,21 @@ var failed = 0;
 var errors = [];
 
 function assert(testId, description, condition, extra) {
+  /*
+   * 88 calls in this file were written assert(condition, id, description).
+   * With that order `condition` received the description string, which is
+   * always truthy, so every one of them passed whatever the code did — 11 of
+   * them were in fact false. A swapped call is recognised by its non-string
+   * first argument and re-read in the order the author intended, so those
+   * assertions now test what they claim to test.
+   */
+  if (typeof testId !== "string") {
+    var cond = testId;
+    testId = description;
+    description = condition;
+    condition = cond;
+    extra = undefined;
+  }
   if (condition) {
     passed++;
     console.log("  PASS  " + testId + " — " + description);
@@ -714,27 +729,58 @@ console.log("\n── T26-T35 New tests: shared state, HHI dimensions, preset va
 }());
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   T36  AGENT_ORDER constant — 6-agent execution order is correct
+   T36  Agent roster — FOUR agents, declared once in appMeta.js
+
+   REWRITTEN, not relaxed. The previous T36a–T36e asserted the six-agent
+   design: that AGENT_ORDER named a "dataQuality" agent and that a
+   "validation" agent sat between market screening and the orchestrator.
+   That design was deliberately replaced — dataQuality and
+   statisticalAnalysis were merged, and validation moved out of the agent
+   chain into deterministic code (public/js/validator.js) because every
+   check it made has one correct answer that arithmetic establishes.
+
+   These assertions were therefore not stale expectations about data; they
+   were correct assertions about an architecture that no longer exists. They
+   are replaced with assertions about the architecture that does, plus
+   explicit assertions that the retired one has not crept back.
    ═══════════════════════════════════════════════════════════════════════════ */
 console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects) ───────────");
 (function () {
-  // Read agents.js and verify AGENT_ORDER string
-  var fs = require("fs");
-  var agentsPath = require("path").join(__dirname, "..", "public", "js", "agents.js");
-  var src = fs.readFileSync(agentsPath, "utf8");
+  var fs   = require("fs");
+  var path = require("path");
+  var AppMeta = require(path.join(__dirname, "..", "public", "js", "appMeta.js"));
+  var agentsSrc = fs.readFileSync(
+    path.join(__dirname, "..", "public", "js", "agents.js"), "utf8");
 
-  // AGENT_ORDER must list marketScreening before validation
-  var orderMatch = src.match(/var AGENT_ORDER\s*=\s*\[([^\]]+)\]/);
-  var orderStr = orderMatch ? orderMatch[1] : "";
-  var mktPos = orderStr.indexOf("marketScreening");
-  var valPos = orderStr.indexOf("validation");
-  var orchPos = orderStr.indexOf("orchestrator");
+  var keys = AppMeta.AGENT_KEYS;
 
-  assert("T36a", "AGENT_ORDER contains dataQuality",        orderStr.indexOf("dataQuality") !== -1, "order=" + orderStr.replace(/\s+/g, " "));
-  assert("T36b", "AGENT_ORDER contains marketScreening",    mktPos !== -1, "order=" + orderStr.replace(/\s+/g, " "));
-  assert("T36c", "AGENT_ORDER: marketScreening before validation", mktPos < valPos, "mkt=" + mktPos + " val=" + valPos);
-  assert("T36d", "AGENT_ORDER: validation before orchestrator",    valPos < orchPos, "val=" + valPos + " orch=" + orchPos);
-  assert("T36e", "AGENT_ORDER: orchestrator is last",       orderStr.trim().lastIndexOf("orchestrator") > valPos, "order=" + orderStr.replace(/\s+/g, " "));
+  assert("T36a", "appMeta declares exactly 4 agents",
+    keys.length === 4, "got " + keys.length + ": " + keys.join(", "));
+  assert("T36b", "roster is: dataStatistical, marketScreening, portfolioRisk, orchestrator",
+    keys.join(",") === "dataStatistical,marketScreening,portfolioRisk,orchestrator",
+    "got " + keys.join(","));
+  assert("T36c", "orchestrator is last in the roster",
+    keys[keys.length - 1] === "orchestrator", "last=" + keys[keys.length - 1]);
+  assert("T36d", "every agent carries a label, a purpose and a trail step",
+    AppMeta.AGENTS.every(function (a) {
+      return a.label && a.purpose && a.step && a.step.id && a.step.label;
+    }), "one or more agents is missing a field");
+  assert("T36e", "agents.js reads the roster from AppMeta rather than listing it again",
+    /roster\(\)\.map/.test(agentsSrc) && agentsSrc.indexOf("AppMeta.AGENTS") !== -1,
+    "agents.js appears to declare its own agent list");
+
+  // Legacy names still resolve, so an old cached scenario file keeps working.
+  assert("T36f", "legacy name dataQuality resolves to dataStatistical",
+    AppMeta.resolveAgentKey("dataQuality") === "dataStatistical");
+  assert("T36g", "legacy name statisticalAnalysis resolves to dataStatistical",
+    AppMeta.resolveAgentKey("statisticalAnalysis") === "dataStatistical");
+  assert("T36h", "legacy name diversification resolves to portfolioRisk",
+    AppMeta.resolveAgentKey("diversification") === "portfolioRisk");
+  assert("T36i", "'validation' resolves to NO agent — it is deterministic code now",
+    AppMeta.resolveAgentKey("validation") === null,
+    "validation must not map to any model prompt");
+  assert("T36j", "an unknown agent name resolves to null",
+    AppMeta.resolveAgentKey("nonsense") === null);
 }());
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -753,27 +799,40 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
 }());
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   T38  TRAIL_STEPS order — data → stats → screening → simulation → validation → recommend
+   T38  Activity trail — four agent steps plus one deterministic step
+
+   REWRITTEN for the same reason as T36. The old T38a–T38e asserted six trail
+   steps in the six-agent order, including a "stats" step that no longer
+   exists as a separate agent. The trail now has five entries for four
+   agents: the fifth is the deterministic validation step, which is shown
+   because it genuinely runs and genuinely gates the orchestrator, and is
+   marked deterministic because presenting it as a model call would
+   misdescribe the system.
    ═══════════════════════════════════════════════════════════════════════════ */
 (function () {
-  var fs = require("fs");
-  var src = fs.readFileSync(require("path").join(__dirname, "..", "public", "js", "agents.js"), "utf8");
+  var fs   = require("fs");
+  var path = require("path");
+  var AppMeta = require(path.join(__dirname, "..", "public", "js", "appMeta.js"));
+  var src = fs.readFileSync(
+    path.join(__dirname, "..", "public", "js", "agents.js"), "utf8");
 
-  var trailMatch = src.match(/var TRAIL_STEPS\s*=\s*\[([\s\S]*?)\];/);
-  var trailStr = trailMatch ? trailMatch[1] : "";
+  var stepIds = AppMeta.AGENTS.map(function (a) { return a.step.id; });
 
-  var posData       = trailStr.indexOf('"data"');
-  var posStats      = trailStr.indexOf('"stats"');
-  var posScreening  = trailStr.indexOf('"screening"');
-  var posSimulation = trailStr.indexOf('"simulation"');
-  var posValidation = trailStr.indexOf('"validation"');
-  var posRecommend  = trailStr.indexOf('"recommend"');
-
-  assert("T38a", "TRAIL_STEPS: data is first step",              posData < posStats,           "pos=" + posData + " vs " + posStats);
-  assert("T38b", "TRAIL_STEPS: stats before screening",          posStats < posScreening,      "pos=" + posStats + " vs " + posScreening);
-  assert("T38c", "TRAIL_STEPS: screening before simulation",     posScreening < posSimulation, "pos=" + posScreening + " vs " + posSimulation);
-  assert("T38d", "TRAIL_STEPS: validation before recommend",     posValidation < posRecommend, "pos=" + posValidation + " vs " + posRecommend);
-  assert("T38e", "TRAIL_STEPS has exactly 6 step ids",          (trailStr.match(/id:/g) || []).length === 6, "count=" + (trailStr.match(/id:/g) || []).length);
+  assert("T38a", "agent trail steps are: data, screening, simulation, recommend",
+    stepIds.join(",") === "data,screening,simulation,recommend", "got " + stepIds.join(","));
+  assert("T38b", "trail step ids are unique",
+    stepIds.length === stepIds.filter(function (v, i) { return stepIds.indexOf(v) === i; }).length);
+  assert("T38c", "agents.js inserts a deterministic validation step before the orchestrator",
+    /insertValidationStep/.test(src) &&
+    src.indexOf('id: "validation"') !== -1 &&
+    src.indexOf("deterministic: true") !== -1,
+    "the deterministic validation step is not inserted");
+  assert("T38d", "the validation step is labelled as making no model call",
+    /Inputs validated \(deterministic, no model call\)/.test(src),
+    "the trail does not say the validation step is deterministic");
+  assert("T38e", "the recommend step runs the orchestrator",
+    AppMeta.agent("orchestrator").step.id === "recommend",
+    "orchestrator step id = " + AppMeta.agent("orchestrator").step.id);
 }());
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -838,11 +897,28 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
     src.indexOf("AI explanation unavailable") !== -1, "not found");
   assert("T41b", "agents.js handles offline state with error message (not empty string)",
     src.indexOf("offline: true") !== -1, "no offline flag found");
-  // Verify orchestrator skips when validatedOk is false
-  assert("T41c", "agents.js checks validatedOk === true before running orchestrator",
-    src.indexOf("validatedOk === true") !== -1, "not found");
-  assert("T41d", "agents.js has 'Orchestrator skipped' message when validation fails",
-    src.indexOf("Orchestrator skipped") !== -1, "not found");
+  /* The orchestrator gate. It used to read a model's validatedOk flag; it now
+   * reads the result of validator.js. Asserting the OLD condition would be
+   * asserting that the model's opinion still gates a recommendation, which is
+   * the thing that was fixed. */
+  assert("T41c", "agents.js gates the orchestrator on the deterministic check result",
+    src.indexOf("runDeterministicChecks") !== -1 &&
+    /if \(!validation\.passed\)/.test(src),
+    "the deterministic gate was not found");
+  /* Checks for a USE of validatedOk, not a mention of it. A bare
+   * indexOf("validatedOk") also matched the comment that explains why the flag
+   * was removed, which would have forced the explanation out of the file to
+   * make the test pass — the test dictating the documentation rather than the
+   * behaviour. Property reads, assignments and comparisons are what matter. */
+  assert("T41d", "agents.js never reads or compares a model's validatedOk flag",
+    !/[.\[]\s*validatedOk|validatedOk\s*[=!<>]|validatedOk\s*:/.test(src),
+    "validatedOk is used as a value in agents.js, not merely mentioned");
+  assert("T41e", "a failed gate says the checks are arithmetic, not an AI failure",
+    src.indexOf("These are arithmetic checks on the analysis inputs") !== -1,
+    "the failure message does not distinguish the two");
+  assert("T41f", "agents.js publishes its outputs for the Decision Report",
+    src.indexOf("window._reitAgentOutputs = published") !== -1,
+    "report.js reads window._reitAgentOutputs; nothing writes it");
 }());
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -903,17 +979,116 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
 }());
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   T44  server.js validation prompt includes all four checks
+   T44  Validation is deterministic code, and the server has no prompt for it
+
+   REWRITTEN. T44a–T44e asserted that server.js contained a validation PROMPT
+   naming weightCheck, scoreRangeCheck, targetExists, hhiConsistency and
+   validatedOk. Those five fields were a language model's self-reported
+   verdict on questions that arithmetic answers exactly, and that verdict
+   gated the recommendation. The prompt is gone by design, so the tests now
+   assert the checks exist in code, that they actually work, and that the
+   prompt has not returned.
    ═══════════════════════════════════════════════════════════════════════════ */
 (function () {
-  var fs = require("fs");
-  var serverSrc = fs.readFileSync(require("path").join(__dirname, "..", "server", "server.js"), "utf8");
+  var fs   = require("fs");
+  var path = require("path");
+  var serverSrc = fs.readFileSync(path.join(__dirname, "..", "server", "server.js"), "utf8");
+  var Validator = require(path.join(__dirname, "..", "public", "js", "validator.js"));
+  var Scoring   = require(path.join(__dirname, "..", "public", "js", "scoringEngine.js"));
+  var HHI       = require(path.join(__dirname, "..", "public", "js", "hhi.js"));
+  var markets   = require(path.join(__dirname, "..", "public", "data", "markets.json")).markets;
+  var assets    = require(path.join(__dirname, "..", "public", "data", "portfolio.json")).assets;
 
-  assert("T44a", "server validation prompt checks weightCheck",      serverSrc.indexOf("weightCheck") !== -1);
-  assert("T44b", "server validation prompt checks scoreRangeCheck",  serverSrc.indexOf("scoreRangeCheck") !== -1);
-  assert("T44c", "server validation prompt checks targetExists",     serverSrc.indexOf("targetExists") !== -1);
-  assert("T44d", "server validation prompt checks hhiConsistency",   serverSrc.indexOf("hhiConsistency") !== -1);
-  assert("T44e", "server validation prompt has validatedOk field",   serverSrc.indexOf("validatedOk") !== -1);
+  assert("T44a", "server.js has FOUR agent prompts and no validation prompt",
+    (serverSrc.match(/^  [a-zA-Z]+: \[$/gm) || []).length === 4 &&
+    !/^  validation: \[/m.test(serverSrc),
+    "prompt count = " + (serverSrc.match(/^  [a-zA-Z]+: \[$/gm) || []).length);
+  assert("T44b", "server.js refuses a request for the retired validation agent",
+    serverSrc.indexOf("RETIRED_AGENTS") !== -1 &&
+    /validation: "The validation agent was replaced by deterministic checks/.test(serverSrc),
+    "no explicit refusal for the retired agent");
+  assert("T44c", "server.js gates the orchestrator on context.deterministicValidation",
+    serverSrc.indexOf("context.deterministicValidation") !== -1 ||
+    /deterministicValidation/.test(serverSrc),
+    "the orchestrator gate does not read the deterministic result");
+
+  // The checks themselves, exercised on the real dataset.
+  var ranked = Scoring.rankMarkets(markets, Scoring.PRESETS.balanced,
+                                   assets, HHI.diversificationScore).ranked;
+  var tv = HHI.totalValue(assets), tr = HHI.totalAnnualRent(assets);
+  function ctx(over) {
+    return Object.assign({
+      dataNote: "SYNTHETIC ACADEMIC DATA — not real market values",
+      weights: Scoring.PRESETS.balanced,
+      investmentCr: 50,
+      portfolio: {
+        assetCount: assets.length,
+        totalValueCr: parseFloat((tv / 1e7).toFixed(3)),
+        annualRentCr: parseFloat((tr / 1e7).toFixed(3)),
+        weightedYieldPct: parseFloat(((tr / tv) * 100).toFixed(3)),
+        cityHHI: parseFloat(HHI.cityHHI(assets).toFixed(4)),
+        assetTypeHHI: parseFloat(HHI.typeHHI(assets).toFixed(4))
+      },
+      selectedTarget: { marketId: ranked[0].marketId }
+    }, over || {});
+  }
+
+  var good = Validator.validate({ context: ctx(), ranked: ranked, assets: assets, hhiEngine: HHI });
+  assert("T44d", "deterministic checks pass on a correct analysis",
+    good.passed === true, good.summary);
+  assert("T44e", "there are 8 deterministic checks, each reporting what it compared",
+    good.checks.length === 8 && good.checks.every(function (c) { return !!c.detail; }),
+    "count=" + good.checks.length);
+
+  // Each check must actually be capable of failing.
+  var badWeights = Validator.validate({
+    context: ctx({ weights: { yieldWeight: 0.5, growthWeight: 0.5, diversWeight: 0.5,
+                              demandWeight: 0.5, riskWeight: 0.5 } }),
+    ranked: ranked, assets: assets, hhiEngine: HHI });
+  assert("T44f", "weights that total 250% fail the weight check",
+    badWeights.passed === false &&
+    badWeights.failed.some(function (c) { return c.id === "weights"; }),
+    badWeights.summary);
+
+  var badTarget = Validator.validate({
+    context: ctx({ selectedTarget: { marketId: "MKT-999" } }),
+    ranked: ranked, assets: assets, hhiEngine: HHI });
+  assert("T44g", "a target absent from the ranking fails the target check",
+    badTarget.failed.some(function (c) { return c.id === "target"; }), badTarget.summary);
+
+  var badHHI = Validator.validate({
+    context: (function () { var c = ctx(); c.portfolio.cityHHI = 0.1; return c; }()),
+    ranked: ranked, assets: assets, hhiEngine: HHI });
+  assert("T44h", "an HHI figure that does not reproduce fails the HHI check",
+    badHHI.failed.some(function (c) { return c.id === "hhi"; }), badHHI.summary);
+
+  var badYield = Validator.validate({
+    context: (function () { var c = ctx(); c.portfolio.weightedYieldPct = 99; return c; }()),
+    ranked: ranked, assets: assets, hhiEngine: HHI });
+  assert("T44i", "a weighted yield that is not rent ÷ value fails the identity check",
+    badYield.failed.some(function (c) { return c.id === "yieldIdentity"; }), badYield.summary);
+
+  var noNotice = Validator.validate({
+    context: ctx({ dataNote: "" }), ranked: ranked, assets: assets, hhiEngine: HHI });
+  assert("T44j", "a context without the synthetic-data notice fails",
+    noNotice.failed.some(function (c) { return c.id === "synthetic"; }), noNotice.summary);
+
+  var misordered = ranked.slice(0, 5).reverse();
+  var badOrder = Validator.validate({
+    context: ctx({ selectedTarget: { marketId: misordered[0].marketId } }),
+    ranked: misordered, assets: assets, hhiEngine: HHI });
+  assert("T44k", "a ranking not in descending score order fails the order check",
+    badOrder.failed.some(function (c) { return c.id === "rankOrder"; }), badOrder.summary);
+
+  assert("T44l", "the limitation list is fixed in code, not generated per run",
+    Array.isArray(Validator.LIMITATIONS) && Validator.LIMITATIONS.length >= 6 &&
+    Validator.LIMITATIONS.every(function (l) { return typeof l === "string" && l.length > 20; }),
+    "count=" + (Validator.LIMITATIONS || []).length);
+  assert("T44m", "the deterministic verdict is reproducible for identical inputs",
+    JSON.stringify(Validator.validate({ context: ctx(), ranked: ranked,
+                                        assets: assets, hhiEngine: HHI })) ===
+    JSON.stringify(good),
+    "two runs on identical inputs disagreed");
 }());
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -928,7 +1103,16 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
   assert("T45c", "orchestrator prompt has assetTypeHHIEffect field", serverSrc.indexOf('"assetTypeHHIEffect"') !== -1);
   assert("T45d", "orchestrator prompt has whyTopRanked field",       serverSrc.indexOf('"whyTopRanked"') !== -1);
   assert("T45e", "orchestrator prompt has syntheticDisclaimer",      serverSrc.indexOf('"syntheticDisclaimer"') !== -1);
-  assert("T45f", "orchestrator prompt: called ONLY if validatedOk",  serverSrc.indexOf("validatedOk=true") !== -1);
+  /* The orchestrator is now told that the gate was arithmetic and that it must
+   * not claim to have verified anything itself — the opposite of the old
+   * instruction, which invited it to reason about a validatedOk flag. */
+  assert("T45f", "orchestrator prompt states the checks were deterministic",
+    serverSrc.indexOf("The checks are arithmetic, not opinion") !== -1,
+    "not found");
+  assert("T45g", "orchestrator prompt has the evidenceBasis field",
+    serverSrc.indexOf('"evidenceBasis"') !== -1);
+  assert("T45h", "orchestrator prompt forbids assuming the recommendation is rank 1",
+    serverSrc.indexOf("That is not always the highest-scoring segment") !== -1);
 }());
 
 
@@ -1429,45 +1613,59 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
   var agentsPath = path.join(__dirname, '..', 'public', 'js', 'agents.js');
   var agentsSrc = fs.readFileSync(agentsPath, 'utf8');
 
-  // T78a — AGENT_ORDER contains all 6 agents
-  var t78a = [
-    'dataQuality', 'statisticalAnalysis', 'marketScreening',
-    'diversification', 'validation', 'orchestrator'
-  ].every(function (a) { return agentsSrc.indexOf('"' + a + '"') !== -1; });
-  assert(t78a, 'T78a', 'AGENT_ORDER contains all 6 agents', true, t78a);
+  /*
+   * T78a, c, f, g and h were written for the six-agent chain and asserted that
+   * the six retired names, six trail steps, and the dataQuality /
+   * statisticalAnalysis calls were present. That architecture was deliberately
+   * replaced (four agents; validation moved into validator.js — HANDOFF.md §2).
+   * They never failed only because their arguments were passed to assert() in
+   * the wrong order. They are rewritten to assert the current design, and each
+   * also checks that the retired form has not crept back.
+   */
+
+  // T78a — the chain calls the four current agents and none of the retired ones
+  var t78a = ['dataStatistical', 'marketScreening', 'portfolioRisk', 'orchestrator']
+    .every(function (a) { return agentsSrc.indexOf('callAgent("' + a + '"') !== -1; }) &&
+    ['dataQuality', 'statisticalAnalysis', 'diversification', 'validation']
+    .every(function (a) { return agentsSrc.indexOf('callAgent("' + a + '"') === -1; });
+  assert(t78a, 'T78a', 'runSequence calls the four current agents and no retired agent');
 
   // T78b — portfolioAnalysis NOT in AGENT_ORDER
   var noOldAgent = agentsSrc.indexOf('"portfolioAnalysis"') === -1;
   assert(noOldAgent, 'T78b', 'portfolioAnalysis absent from AGENT_ORDER', true, noOldAgent);
 
-  // T78c — TRAIL_STEPS has 6 steps (data, stats, screening, simulation, validation, recommend)
-  var trailIds = ['data', 'stats', 'screening', 'simulation', 'validation', 'recommend'];
-  var t78c = trailIds.every(function (id) {
-    return agentsSrc.indexOf('id: "' + id + '"') !== -1;
-  });
-  assert(t78c, 'T78c', 'TRAIL_STEPS has all 6 step ids', true, t78c);
+  // T78c — trail: one step per agent from AppMeta, plus the deterministic validation step
+  var AM78 = require(path.join(__dirname, '..', 'public', 'js', 'appMeta.js'));
+  var stepIds78 = AM78.AGENTS.map(function (a) { return a.step.id; });
+  var t78c = stepIds78.join(',') === 'data,screening,simulation,recommend' &&
+             agentsSrc.indexOf('id: "validation"') !== -1 &&
+             agentsSrc.indexOf('id: "stats"') === -1;
+  assert(t78c, 'T78c', 'trail steps are data, screening, simulation, validation (code), recommend', stepIds78.join(','));
 
   // T78d — checkServerStatus uses /api/health not /api/status
   var t78d = agentsSrc.indexOf('"/api/health"') !== -1
           && agentsSrc.indexOf('"/api/status"') === -1;
   assert(t78d, 'T78d', 'checkServerStatus calls /api/health', true, t78d);
 
-  // T78e — buildContext includes Stats engine call
-  var t78e = agentsSrc.indexOf('Stats.portfolioStats(state.markets)') !== -1;
-  assert(t78e, 'T78e', 'buildContext calls Stats.portfolioStats', true, t78e);
+  // T78e — the context carries the Stats engine output (built in agentContext.js)
+  var ctxSrc78 = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'agentContext.js'), 'utf8');
+  var t78e = ctxSrc78.indexOf('Stats.portfolioStats(markets)') !== -1 &&
+             agentsSrc.indexOf('AgentContext.build(') !== -1;
+  assert(t78e, 'T78e', 'agents.js builds its context through AgentContext, which calls Stats.portfolioStats');
 
-  // T78f — runSequence calls dataQuality and statisticalAnalysis
-  var t78f = agentsSrc.indexOf('callAgent("dataQuality"') !== -1
-          && agentsSrc.indexOf('callAgent("statisticalAnalysis"') !== -1;
-  assert(t78f, 'T78f', 'runSequence calls dataQuality and statisticalAnalysis', true, t78f);
+  // T78f — the Data & Statistical Analyst output feeds the later agents
+  var t78f = agentsSrc.indexOf('dataStatisticalOutput: dsRes.output') !== -1;
+  assert(t78f, 'T78f', 'later agents receive dataStatisticalOutput');
 
-  // T78g — orchCtx includes statisticalAnalysisOutput
-  var t78g = agentsSrc.indexOf('statisticalAnalysisOutput') !== -1;
-  assert(t78g, 'T78g', 'orchCtx includes statisticalAnalysisOutput', true, t78g);
+  // T78g — the Orchestrator sees all three analysts and the deterministic checks
+  var t78g = ['portfolioRiskOutput:', 'marketScreeningOutput:', 'deterministicValidation:']
+    .every(function (k) { return agentsSrc.indexOf(k) !== -1; }) &&
+    agentsSrc.indexOf('statisticalAnalysisOutput') === -1;
+  assert(t78g, 'T78g', 'orchCtx carries the three analyst outputs and deterministicValidation');
 
-  // T78h — validCtx includes dataQualityOutput
-  var t78h = agentsSrc.indexOf('dataQualityOutput:         state.results.dataQuality') !== -1;
-  assert(t78h, 'T78h', 'validCtx includes dataQualityOutput from state', true, t78h);
+  // T78h — no model-built validation context remains
+  var t78h = agentsSrc.indexOf('validCtx') === -1 && agentsSrc.indexOf('dataQualityOutput') === -1;
+  assert(t78h, 'T78h', 'no validCtx / dataQualityOutput — validation is no longer an agent');
 }());
 
 
@@ -1664,9 +1862,14 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
   assert(rptSrc.indexOf('NMIMS') !== -1,
     'T83a', 'report.js cover mentions NMIMS');
 
-  // T83b: Author Vishesh Jain present
-  assert(rptSrc.indexOf('Vishesh Jain') !== -1,
-    'T83b', 'report.js mentions Vishesh Jain');
+  // T83b: Author Vishesh Jain on the cover.
+  // Rewritten: the name used to be typed into report.js; it is now declared
+  // once in AppMeta.PROJECT and the report reads it from there (HANDOFF.md §1),
+  // so searching report.js for the literal asserted the replaced design.
+  var AM83 = require(path.join(__dirname, '..', 'public', 'js', 'appMeta.js'));
+  assert(AM83.PROJECT.author === 'Vishesh Jain' &&
+         rptSrc.indexOf('meta().PROJECT.author') !== -1,
+    'T83b', 'report cover takes the author (Vishesh Jain) from AppMeta.PROJECT');
 
   // T83c: Descriptive target name logic (locality/city/propertyType) present
   assert(rptSrc.indexOf('rm.locality') !== -1,
@@ -1680,10 +1883,13 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
   assert(rptSrc.indexOf('Weight Preset') !== -1,
     'T83e', 'report.js shows Weight Preset row with label');
 
-  // T83f: SPJIMR is gone from cover/subtitle (moved to NMIMS)
-  // The subtitle line should now say NMIMS not SPJIMR
-  assert(rptSrc.indexOf("'NMIMS B.Sc. Finance | Business Analytics | Theme 4") !== -1,
-    'T83f', 'report.js subtitle uses NMIMS B.Sc. Finance');
+  // T83f: subtitle says NMIMS, not SPJIMR.
+  // Rewritten: the subtitle is now AppMeta.attribution() rather than a literal
+  // in report.js — T-154 asserts the literal is ABSENT, which the old form of
+  // this test contradicted.
+  assert(/^NMIMS B\.Sc\. Finance \| Business Analytics \| Theme 4/.test(AM83.attribution()) &&
+         rptSrc.indexOf('meta().attribution()') !== -1,
+    'T83f', 'report subtitle is AppMeta.attribution(), which names NMIMS B.Sc. Finance');
 
 }());
 
@@ -1890,7 +2096,10 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
 
   // ── T-106: localityClass is a known value ────────────────────────────
   (function () {
-    var valid = ["Premium","Established","Emerging","Secondary","Peripheral","Industrial"];
+    // "Growth" added: generator v2.0.0 assigns it (DATA_DICTIONARY.md, locality_class)
+    // and 9 markets in the committed data carry it. The old list predates the
+    // generator; the data was not changed to fit the test.
+    var valid = ["Premium","Established","Emerging","Growth","Secondary","Peripheral","Industrial"];
     var invalid = markets.filter(function(m) { return valid.indexOf(m.localityClass) === -1; });
     assert(invalid.length === 0,
       "T-106", "All localityClass values are recognised categories");
@@ -1905,7 +2114,9 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
 
   // ── T-108: dataClassification is a recognised value ──────────────────
   (function () {
-    var valid = ["Synthetic","Semi-Synthetic","Estimated","Reported"];
+    // "Derived" added: it is a documented evidence class (DATA_DICTIONARY.md,
+    // evidence_classification; pipeline test T-11) and 8 committed markets carry it.
+    var valid = ["Synthetic","Semi-Synthetic","Estimated","Derived","Reported"];
     var invalid = markets.filter(function(m) { return valid.indexOf(m.dataClassification) === -1; });
     assert(invalid.length === 0,
       "T-108", "All dataClassification values are recognised categories");
@@ -2073,22 +2284,34 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
       "T-124", "All totalScore values are in [0, 100]");
   }());
 
-  // ── T-125: MKT-010 is rank 1 under balanced preset ───────────────────
+  // ── T-125: rank 1 under balanced preset, portfolio-free call ─────────
+  // Rewritten: MKT-010 was rank 1 in the dataset that generator v2.0.0
+  // replaced. This call omits the portfolio, so it is NOT the ranking the app
+  // shows (that is locked by T-157, through the screener's own call); it pins
+  // the portfolio-free ranking that HANDOFF.md §9 documents as MKT-034.
   (function () {
     var result = SE.rankMarkets(markets, SE.PRESETS.balanced);
-    assert(result.ranked[0].marketId === "MKT-010",
-      "T-125", "MKT-010 (HITEC City) is rank 1 under balanced preset");
+    assert(result.ranked[0].marketId === "MKT-034",
+      "T-125", "MKT-034 is rank 1 under balanced preset when no portfolio is supplied",
+      result.ranked[0].marketId);
   }());
 
-  // ── T-126: scoreMarket recomputed = ranked score for MKT-010 ───────────
+  // ── T-126: scoreMarket recomputed = ranked score for the rank-1 market ─
+  // Rewritten: it compared MKT-010's recomputed score with whatever was rank 1,
+  // which stopped being MKT-010 when the dataset was regenerated. The property
+  // it tests — scoreMarket() and rankMarkets() agree — is now checked on the
+  // market that is actually rank 1.
   (function () {
     var result = SE.rankMarkets(markets, SE.PRESETS.balanced);
     var r = result.ranges;
-    var m = markets.find(function(x) { return x.marketId === "MKT-010"; });
-    var recomputed = SE.scoreMarket(m, SE.PRESETS.balanced, r);
-    var fromRanked = result.ranked[0].totalScore;
-    assert(Math.abs(recomputed.totalScore - fromRanked) < 0.01,
-      "T-126", "scoreMarket() recomputed score for MKT-010 matches ranked output");
+    var top = result.ranked[0];
+    var m = markets.find(function(x) { return x.marketId === top.marketId; });
+    // 50 is the flat diversification factor rankMarkets() uses when no
+    // portfolio is supplied; omitting it made the recomputed score NaN.
+    var recomputed = SE.scoreMarket(m, SE.PRESETS.balanced, r, 50);
+    assert(Math.abs(recomputed.totalScore - top.totalScore) < 0.01,
+      "T-126", "scoreMarket() recomputed score for the rank-1 market matches ranked output",
+      top.marketId + ": " + recomputed.totalScore + " vs " + top.totalScore);
   }());
 
   // ── T-127: All markets have non-empty sourceIds array ────────────────
@@ -2430,8 +2653,884 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   T-149  Canonical metadata — every headline figure is DERIVED, never typed
+   ═══════════════════════════════════════════════════════════════════════════ */
+console.log("\n── T-149-T-156 Final-submission additions ────────────────────────────────");
+(function () {
+  var fs = require("fs"), path = require("path");
+  var AppMeta = require(path.join(__dirname, "..", "public", "js", "appMeta.js"));
+  var ScenarioKey = require(path.join(__dirname, "..", "public", "js", "scenarioKey.js"));
+  var marketsDoc   = require(path.join(__dirname, "..", "public", "data", "markets.json"));
+  var portfolioDoc = require(path.join(__dirname, "..", "public", "data", "portfolio.json"));
+  var statsDoc     = require(path.join(__dirname, "..", "public", "data", "statistics.json"));
+  var metaPath = path.join(__dirname, "..", "public", "data", "meta.json");
+
+  var c = AppMeta.derive({ marketsDoc: marketsDoc, portfolioDoc: portfolioDoc,
+                           statisticsDoc: statsDoc });
+
+  assert("T-149a", "derived market count equals the markets actually in the file",
+    c.marketCount === marketsDoc.markets.length, "derived=" + c.marketCount);
+  assert("T-149b", "derived observation count equals the sum of per-segment counts",
+    c.observationCount === marketsDoc.markets.reduce(function (t, m) {
+      return t + m.observationCount; }, 0), "derived=" + c.observationCount);
+  assert("T-149c", "derived city count equals the distinct cities present",
+    c.cityCount === c.cities.length && c.cityCount > 0, "cityCount=" + c.cityCount);
+  assert("T-149d", "derived portfolio value equals the sum of holding values",
+    c.portfolioValueRs === portfolioDoc.assets.reduce(function (t, a) {
+      return t + a.propertyValue; }, 0), "derived=" + c.portfolioValueRs);
+  assert("T-149e", "derived weighted yield equals rent ÷ value",
+    Math.abs(c.portfolioWeightedYield - (c.portfolioRentRs / c.portfolioValueRs)) < 1e-12);
+  assert("T-149f", "agent count in metadata equals the length of the roster",
+    c.agentCount === AppMeta.AGENTS.length && c.agentCount === 4);
+
+  /* The two modules that declare a methodology version must agree. If they
+   * drift, cached commentary could survive a change to the scoring logic it
+   * describes — a silent correctness failure rather than a visible one. */
+  assert("T-149g", "appMeta and scenarioKey declare the same methodology version",
+    AppMeta.PROJECT.methodologyVersion === ScenarioKey.METHODOLOGY_VERSION,
+    AppMeta.PROJECT.methodologyVersion + " vs " + ScenarioKey.METHODOLOGY_VERSION);
+
+  assert("T-149h", "the institution is NMIMS, stated in exactly one place",
+    AppMeta.PROJECT.institution === "NMIMS");
+
+  assert("T-149i", "meta.json exists and matches a fresh derivation",
+    fs.existsSync(metaPath) &&
+    JSON.stringify(JSON.parse(fs.readFileSync(metaPath, "utf8")).counts) === JSON.stringify(c),
+    "meta.json is missing or stale — run node data-pipeline/scripts/buildMeta.js");
+
+  /* meta.json must not carry a build timestamp: a timestamp would change on
+   * every run and break the CI assertion that regeneration is reproducible. */
+  assert("T-149j", "meta.json carries no build timestamp",
+    fs.existsSync(metaPath) &&
+    !/generatedAt|builtAt|timestamp/i.test(fs.readFileSync(metaPath, "utf8")),
+    "meta.json contains a timestamp, which makes regeneration non-reproducible");
+}());
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   T-150  Documentation drift — no document may contradict the canonical facts
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function () {
+  var fs = require("fs"), path = require("path");
+  var repo = path.join(__dirname, "..");
+
+  function mdFiles(dir) {
+    var out = [];
+    if (!fs.existsSync(dir)) { return out; }
+    fs.readdirSync(dir).forEach(function (f) {
+      if (/\.md$/i.test(f)) { out.push(path.join(dir, f)); }
+    });
+    return out;
+  }
+  var docs = mdFiles(path.join(repo, "docs"))
+    .concat(mdFiles(path.join(repo, "data-pipeline", "docs")))
+    .concat([path.join(repo, "README.md")].filter(fs.existsSync));
+
+  /*
+   * Each pattern is a figure that WAS true of an earlier revision of this
+   * project and is not true now. A document asserting one of them is not
+   * merely out of date: it contradicts another document in the same
+   * repository, and a reader has no way to tell which to believe.
+   *
+   * Two escapes exist, both narrow:
+   *
+   *   - verification-evidence.md is exempt wholesale, because its job is to
+   *     record the institution-name migration and it must quote the old value.
+   *
+   *   - any single line containing the marker [superseded] is skipped. Several
+   *     documents are historical records — a decision log, a prompt version
+   *     history, an earlier test run — and deleting the figures they recorded
+   *     would destroy the audit trail to satisfy a test. Marking the line says
+   *     "this was true then and is not true now", which is exactly the
+   *     distinction the check exists to enforce. An unmarked line asserting a
+   *     superseded figure still fails.
+   */
+  var STALE = [
+    { pattern: /450\s*Cr/,                    was: "₹450 Cr portfolio" },
+    { pattern: /\b18\s+market(s| segments)/,  was: "18 market segments" },
+    { pattern: /\b18\s+segments/,             was: "18 segments" },
+    { pattern: /\b7\s+cities\b/,              was: "7 cities" },
+    { pattern: /\bsix agents\b/i,             was: "six agents" },
+    { pattern: /\b6\s+agents\b/,              was: "6 agents" },
+    { pattern: /\b2,?000\s+observations/,     was: "2,000 observations" },
+    { pattern: /SPJIMR/,                      was: "SPJIMR as the institution" }
+  ];
+  var EXEMPT = ["verification-evidence.md"];
+
+  var offences = [];
+  docs.forEach(function (file) {
+    var base = path.basename(file);
+    if (EXEMPT.indexOf(base) !== -1) { return; }
+    var lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
+    lines.forEach(function (line, i) {
+      if (line.indexOf("[superseded]") !== -1) { return; }
+      STALE.forEach(function (rule) {
+        if (rule.pattern.test(line)) {
+          offences.push(base + ":" + (i + 1) + " — " + rule.was);
+        }
+      });
+    });
+  });
+
+  assert("T-150a", "no document asserts a superseded figure",
+    offences.length === 0, "\n    " + offences.join("\n    "));
+
+  assert("T-150b", "docs/CANONICAL_FACTS.md exists and is marked as generated",
+    fs.existsSync(path.join(repo, "docs", "CANONICAL_FACTS.md")) &&
+    /GENERATED FILE/.test(fs.readFileSync(path.join(repo, "docs", "CANONICAL_FACTS.md"), "utf8")));
+
+  /* Source comments are documentation too, and carried the same drift. */
+  var jsFiles = [];
+  ["public/js", "data-pipeline/scripts", "server"].forEach(function (d) {
+    var dir = path.join(repo, d);
+    if (!fs.existsSync(dir)) { return; }
+    fs.readdirSync(dir).forEach(function (f) {
+      if (/\.js$/.test(f)) { jsFiles.push(path.join(dir, f)); }
+    });
+  });
+  /*
+   * Comments are stripped before this check. Two files legitimately NAME the
+   * superseded institution in a comment, to record that the migration happened
+   * and why nothing should hardcode an institution again. Flagging that would
+   * have forced the explanation out of the code to satisfy the test — the test
+   * dictating the documentation rather than the behaviour. What must not
+   * appear is the name as a VALUE: in a string, a label, or displayed text.
+   */
+  function stripComments(text) {
+    return text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  }
+  var srcOffences = [];
+  jsFiles.forEach(function (file) {
+    var code = stripComments(fs.readFileSync(file, "utf8"));
+    if (/SPJIMR/.test(code)) { srcOffences.push(path.basename(file) + ": SPJIMR"); }
+  });
+  assert("T-150c", "no source file names the wrong institution",
+    srcOffences.length === 0, "\n    " + srcOffences.join("\n    "));
+}());
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   T-151  Evidence governance — eligibility is separate from the score
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function () {
+  var path = require("path");
+  var Governance = require(path.join(__dirname, "..", "public", "js", "governance.js"));
+  var Scoring    = require(path.join(__dirname, "..", "public", "js", "scoringEngine.js"));
+  var HHI        = require(path.join(__dirname, "..", "public", "js", "hhi.js"));
+  var markets = require(path.join(__dirname, "..", "public", "data", "markets.json")).markets;
+  var assets  = require(path.join(__dirname, "..", "public", "data", "portfolio.json")).assets;
+
+  var R = Governance.rules();
+  assert("T-151a", "the floor is 30 observations and grade C",
+    R.MIN_OBSERVATIONS === 30 && R.MIN_GRADE === "C");
+
+  assert("T-151b", "a segment with 29 observations at grade A is ineligible",
+    Governance.evaluate({ observationCount: 29, confidenceGrade: "A" }).eligible === false);
+  assert("T-151c", "a segment with 500 observations at grade D is ineligible",
+    Governance.evaluate({ observationCount: 500, confidenceGrade: "D" }).eligible === false);
+  assert("T-151d", "a segment with 30 observations at grade C is eligible",
+    Governance.evaluate({ observationCount: 30, confidenceGrade: "C" }).eligible === true);
+  assert("T-151e", "a missing confidence grade is ineligible, not assumed good",
+    Governance.evaluate({ observationCount: 500, confidenceGrade: null }).eligible === false);
+  assert("T-151f", "an ineligible segment states every reason it failed",
+    Governance.evaluate({ observationCount: 10, confidenceGrade: "E" }).reasons.length === 2);
+
+  /*
+   * The property that matters most: annotating and choosing must not touch a
+   * single score or rank. If governance could alter a score, the ranking shown
+   * on the screener would stop being the ranking the scoring engine produced.
+   */
+  var ranked = Scoring.rankMarkets(markets, Scoring.PRESETS.balanced,
+                                   assets, HHI.diversificationScore).ranked;
+  var before = ranked.map(function (m) { return m.marketId + ":" + m.totalScore + ":" + m.rank; });
+  var chosen = Governance.chooseTarget(ranked, {});
+  var after  = ranked.map(function (m) { return m.marketId + ":" + m.totalScore + ":" + m.rank; });
+  assert("T-151g", "governance changes no score and no rank",
+    before.join("|") === after.join("|"),
+    "the ranking was mutated by the eligibility pass");
+
+  assert("T-151h", "the recommendation meets the floor when the floor is applied",
+    chosen.target && chosen.target.governance.eligible === true,
+    chosen.note);
+  assert("T-151i", "the highest-scoring segment is still reported, even when not recommended",
+    chosen.topOverall && chosen.topOverall.marketId === ranked[0].marketId);
+  assert("T-151j", "segments outranking the recommendation are listed with their reasons",
+    chosen.outranked.every(function (m) {
+      return m.totalScore > chosen.target.totalScore && m.governance.reasons.length > 0;
+    }), "outranked list is inconsistent");
+
+  var overridden = Governance.chooseTarget(ranked, { override: true });
+  assert("T-151k", "the override recommends the highest-scoring segment",
+    overridden.target.marketId === ranked[0].marketId && overridden.overrideUsed === true);
+  assert("T-151l", "the override is recorded, not silent",
+    /overridden/i.test(overridden.note));
+
+  var sum = Governance.summarise(markets);
+  assert("T-151m", "the eligibility breakdown accounts for every segment",
+    sum.eligible + sum.failObsOnly + sum.failGradeOnly + sum.failBoth === sum.total,
+    JSON.stringify(sum));
+
+  // Evidence tiers must be ordered sensibly.
+  assert("T-151n", "evidence tiers run Strong, Adequate, Limited, Weak",
+    Governance.evidenceTier(70, "B") === "Strong" &&
+    Governance.evidenceTier(40, "C") === "Adequate" &&
+    Governance.evidenceTier(40, "D") === "Limited" &&
+    Governance.evidenceTier(10, "E") === "Weak");
+}());
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   T-152  Screener filters — combinable, reversible, and never re-ranking
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function () {
+  var path = require("path");
+  var Filters    = require(path.join(__dirname, "..", "public", "js", "filters.js"));
+  var Governance = require(path.join(__dirname, "..", "public", "js", "governance.js"));
+  var markets = require(path.join(__dirname, "..", "public", "data", "markets.json")).markets;
+
+  var none = Filters.defaults();
+  var all  = Filters.apply(markets, none);
+  assert("T-152a", "no filters keeps every segment",
+    all.keptCount === markets.length && all.removed === 0);
+  assert("T-152b", "no filters reports itself as inactive",
+    Filters.isActive(none) === false && Filters.activeNames(none).length === 0);
+
+  var d = Filters.describe(markets);
+  assert("T-152c", "filter domains are derived from the data, not hardcoded",
+    d.cities.length > 0 && d.propertyTypes.length > 0 && d.grades.length > 0 &&
+    d.observations.min <= d.observations.max);
+
+  var f1 = Filters.defaults(); f1.cities = [markets[0].city];
+  var r1 = Filters.apply(markets, f1);
+  assert("T-152d", "a city filter keeps only that city",
+    r1.kept.every(function (m) { return m.city === markets[0].city; }) && r1.keptCount > 0);
+
+  var f2 = Filters.defaults(); f2.propertyTypes = ["Retail"]; f2.minObservations = 40;
+  var r2 = Filters.apply(markets, f2);
+  assert("T-152e", "filters combine as AND, not OR",
+    r2.kept.every(function (m) {
+      return m.propertyType === "Retail" && m.observationCount >= 40;
+    }), "a kept row fails one of the two filters");
+
+  var impossible = Filters.defaults();
+  impossible.yieldMin = 999;
+  var r3 = Filters.apply(markets, impossible);
+  assert("T-152f", "an impossible filter returns an empty result, not an error",
+    r3.keptCount === 0 && r3.removed === markets.length);
+  assert("T-152g", "an empty result names the filter responsible",
+    /Nothing matches/.test(Filters.summary(impossible, r3)) &&
+    /minimum yield/.test(Filters.summary(impossible, r3)),
+    Filters.summary(impossible, r3));
+
+  /* Filters decide what is DISPLAYED. The rank attached to a kept row must
+   * still be its rank within the whole universe — otherwise "rank 12" would
+   * mean something different on a filtered screen than in the report. */
+  var Scoring = require(path.join(__dirname, "..", "public", "js", "scoringEngine.js"));
+  var HHI     = require(path.join(__dirname, "..", "public", "js", "hhi.js"));
+  var assets  = require(path.join(__dirname, "..", "public", "data", "portfolio.json")).assets;
+  var ranked  = Scoring.rankMarkets(markets, Scoring.PRESETS.balanced,
+                                    assets, HHI.diversificationScore).ranked;
+  var fr = Filters.apply(Governance.annotate(ranked), f2);
+  assert("T-152h", "filtering preserves each row's rank within the full universe",
+    fr.kept.every(function (m) { return ranked[m.rank - 1].marketId === m.marketId; }),
+    "a filtered row's rank no longer indexes the full ranking");
+  assert("T-152i", "filtering preserves score order among the kept rows",
+    fr.kept.every(function (m, i) {
+      return i === 0 || fr.kept[i - 1].totalScore >= m.totalScore;
+    }));
+
+  var fe = Filters.defaults(); fe.eligibleOnly = true;
+  var re = Filters.apply(Governance.annotate(markets), fe);
+  assert("T-152j", "the evidence-floor filter keeps only eligible segments",
+    re.kept.every(function (m) { return m.governance.eligible; }) &&
+    re.keptCount === Governance.summarise(markets).eligible);
+
+  assert("T-152k", "reset returns to the no-filter state",
+    JSON.stringify(Filters.defaults()) === JSON.stringify(none));
+
+  // Yield used by the filter must agree with the yield the engine scored.
+  assert("T-152l", "the filter's gross yield matches the scoring engine's",
+    ranked.every(function (m) {
+      return Math.abs(Filters.grossYieldPct(m) - m.grossYield * 100) < 1e-9;
+    }), "filter yield and engine yield disagree");
+}());
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   T-153  Observation distribution — precomputed, consistent, correctly named
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function () {
+  var fs = require("fs"), path = require("path");
+  var file = path.join(__dirname, "..", "public", "data", "observation-distribution.json");
+  assert("T-153a", "observation-distribution.json exists",
+    fs.existsSync(file), "run node data-pipeline/scripts/buildObservationDistribution.js");
+  if (!fs.existsSync(file)) { return; }
+
+  var D = JSON.parse(fs.readFileSync(file, "utf8"));
+  var markets = require(path.join(__dirname, "..", "public", "data", "markets.json")).markets;
+
+  assert("T-153b", "every market segment has a summary",
+    markets.every(function (m) { return !!D.segments[m.marketId]; }));
+  assert("T-153c", "per-segment observation counts match markets.json exactly",
+    markets.every(function (m) {
+      return D.segments[m.marketId].observations === m.observationCount;
+    }), "a count disagrees between the two files");
+  assert("T-153d", "the summarised totals add up to the dataset total",
+    Object.keys(D.segments).reduce(function (t, k) {
+      return t + D.segments[k].observations; }, 0) === D.totalObservations);
+
+  /* The segment figures used in the ranking are described as the medians of
+   * these observations. That claim is testable, so it is tested. */
+  var mismatches = markets.filter(function (m) {
+    var med = D.segments[m.marketId].metrics.monthly_rent_psf.summary.median;
+    return Math.abs(med - m.medianMonthlyRentPerSqFt) > 0.15;
+  }).map(function (m) { return m.marketId; });
+  assert("T-153e", "each segment's rent equals the median of its observations",
+    mismatches.length === 0, "mismatched: " + mismatches.slice(0, 5).join(", "));
+
+  assert("T-153f", "histogram bins sum to the segment's observation count",
+    Object.keys(D.segments).every(function (k) {
+      var h = D.segments[k].metrics.gross_yield_pct.histogram;
+      if (!h) { return true; }
+      return h.counts.reduce(function (t, c) { return t + c; }, 0) ===
+             D.segments[k].observations;
+    }), "a histogram loses or duplicates observations");
+
+  assert("T-153g", "quantiles are monotone in every segment and metric",
+    Object.keys(D.segments).every(function (k) {
+      return (D.metricOrder || []).every(function (mk) {
+        var su = D.segments[k].metrics[mk].summary;
+        if (!su) { return true; }
+        return su.min <= su.p10 && su.p10 <= su.q1 && su.q1 <= su.median &&
+               su.median <= su.q3 && su.q3 <= su.p90 && su.p90 <= su.max;
+      });
+    }), "a quantile sequence is out of order");
+
+  /*
+   * Terminology. These records are simulated draws, and calling them
+   * properties, listings or transactions would assert that something real
+   * happened. The approved noun is carried in the file so no page can quietly
+   * choose a different one, and the forbidden words must not appear in the
+   * screener's own observation panel.
+   */
+  assert("T-153h", "the approved record noun is 'simulated market observation'",
+    D.terminology.recordNoun === "simulated market observation" &&
+    D.terminology.panelTitle === "Observation Distribution");
+
+  var screenerSrc = fs.readFileSync(
+    path.join(__dirname, "..", "public", "js", "marketScreen.js"), "utf8");
+  var panelStart = screenerSrc.indexOf("function buildObservationPanel");
+  var panelEnd   = screenerSrc.indexOf("function buildHistogram");
+  var panelSrc   = panelStart !== -1 && panelEnd > panelStart
+    ? screenerSrc.slice(panelStart, panelEnd) : "";
+  var banned = ["properties", "listings", "transactions", "comparables"];
+  var found = banned.filter(function (w) {
+    // Only flag the word used as a label, not a sentence saying it is not one.
+    var re = new RegExp('"[^"]*\\b' + w + '\\b[^"]*"', "i");
+    var m = panelSrc.match(re);
+    return m && !/never|not\b|nor\b/i.test(m[0]);
+  });
+  assert("T-153i", "the observation panel never labels the records as real assets",
+    found.length === 0, "found: " + found.join(", "));
+}());
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   T-154  Decision Report — the score column and the agent section both work
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function () {
+  var fs = require("fs"), path = require("path");
+  var src = fs.readFileSync(path.join(__dirname, "..", "public", "js", "report.js"), "utf8");
+
+  /*
+   * The defect: the screening table read m.score, which ranked markets do not
+   * carry — the field is totalScore. Every row printed an em dash while the
+   * screener showed real numbers for the same markets. A regex test is a crude
+   * instrument, but this defect was a single wrong property name, which is
+   * exactly what a regex can pin down.
+   */
+  assert("T-154a", "the report's screening table reads totalScore",
+    /typeof m\.totalScore === 'number' \? m\.totalScore\.toFixed\(1\)/.test(src),
+    "the score column does not read totalScore");
+  assert("T-154b", "the report no longer reads the non-existent m.score field",
+    !/typeof m\.score === 'number'/.test(src),
+    "m.score is still read");
+
+  assert("T-154c", "the report states the commentary's provenance",
+    src.indexOf("Commentary Provenance") !== -1);
+  assert("T-154d", "the report includes the deterministic check results",
+    src.indexOf("Deterministic Input Checks") !== -1);
+  assert("T-154e", "the report states the target's evidence and whether it meets the floor",
+    src.indexOf("Target Evidence") !== -1 && src.indexOf("Meets Evidence Floor") !== -1);
+  assert("T-154f", "the report takes its limitations from validator.js, not a second copy",
+    /Validator\.LIMITATIONS/.test(src) &&
+    !/HHI computed on book value \(acquisition cost\), not mark-to-market NAV/.test(src),
+    "the report still carries its own limitation list");
+  assert("T-154g", "the report takes its attribution from AppMeta",
+    /meta\(\)\.attribution\(\)/.test(src) && src.indexOf("'NMIMS B.Sc. Finance | Business") === -1,
+    "the cover still hardcodes the institution");
+}());
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   T-155  Overview page — present, wired, and the default route
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function () {
+  var fs = require("fs"), path = require("path");
+  var repo = path.join(__dirname, "..");
+  var html = fs.readFileSync(path.join(repo, "public", "index.html"), "utf8");
+  var ui   = fs.readFileSync(path.join(repo, "public", "js", "uiHelpers.js"), "utf8");
+
+  assert("T-155a", "overview.js exists and is loaded by index.html",
+    fs.existsSync(path.join(repo, "public", "js", "overview.js")) &&
+    html.indexOf('src="js/overview.js"') !== -1);
+  assert("T-155b", "the Overview section exists and is the initially active page",
+    /id="page-overview"[\s\S]{0,120}class="page page-active"/.test(html),
+    "page-overview is not the active section");
+  assert("T-155c", "Overview is the first sidebar link",
+    html.indexOf('data-page="overview"') !== -1 &&
+    html.indexOf('data-page="overview"') < html.indexOf('data-page="portfolio"'));
+  assert("T-155d", "no page other than Overview is marked page-active",
+    (html.match(/class="page page-active"/g) || []).length === 1,
+    "found " + (html.match(/class="page page-active"/g) || []).length);
+
+  /* The default route is read from the markup rather than named in code, so
+   * adding or reordering a page cannot leave the hash router and the sidebar
+   * disagreeing about where a bare URL lands. */
+  assert("T-155e", "the router derives its default page from the first sidebar link",
+    ui.indexOf("var DEFAULT_PAGE") !== -1 &&
+    (ui.match(/DEFAULT_PAGE/g) || []).length >= 4 &&
+    !/getElementById\("page-portfolio"\)/.test(ui) &&
+    !/\|\| "portfolio";?\s*$/m.test(ui.replace(/var DEFAULT_PAGE[^\n]*\n/, "")),
+    "the router still resolves its default page by naming a specific page");
+
+  var ov = fs.readFileSync(path.join(repo, "public", "js", "overview.js"), "utf8");
+  assert("T-155f", "the Overview page offers Reset Demo with a confirmation step",
+    ov.indexOf("Reset demo") !== -1 && ov.indexOf("Click again to confirm reset") !== -1);
+  assert("T-155g", "Reset Demo clears only this application's own state",
+    /ReitState\.clear\(\)/.test(ov) && !/localStorage\.clear\(\)/.test(ov),
+    "reset must not clear unrelated browser storage");
+  assert("T-155h", "the Overview page says nothing has run before anything has",
+    ov.indexOf("No analysis has been run in this browser yet") !== -1,
+    "the landing page would show defaults that read as results");
+  assert("T-155i", "the Overview page compares the target with the runner-up",
+    ov.indexOf("Target against the next-best segment") !== -1);
+  assert("T-155j", "every nav link has a matching section",
+    (html.match(/data-page="([a-z]+)"/g) || []).every(function (m) {
+      var id = m.replace(/data-page="|"/g, "");
+      return html.indexOf('id="page-' + id + '"') !== -1;
+    }), "a sidebar link points at a section that does not exist");
+}());
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   T-156  Evaluator CSV fixtures — one valid, one deliberately invalid
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function () {
+  var fs = require("fs"), path = require("path");
+  var dir = path.join(__dirname, "fixtures");
+  var validPath   = path.join(dir, "markets-valid.csv");
+  var invalidPath = path.join(dir, "markets-invalid.csv");
+
+  assert("T-156a", "both evaluator fixtures exist",
+    fs.existsSync(validPath) && fs.existsSync(invalidPath),
+    "tests/fixtures is missing one or both CSV files");
+  if (!fs.existsSync(validPath) || !fs.existsSync(invalidPath)) { return; }
+
+  var Cleaner = require(path.join(__dirname, "..", "public", "js", "dataCleaner.js"));
+
+  function parse(text) {
+    var lines = text.trim().split(/\r?\n/);
+    var head = lines[0].split(",").map(function (h) { return h.trim(); });
+    return lines.slice(1).map(function (line) {
+      var cells = line.split(",");
+      var row = {};
+      head.forEach(function (h, i) {
+        var v = (cells[i] || "").trim();
+        row[h] = v === "" ? null : (isNaN(Number(v)) ? v : Number(v));
+      });
+      return row;
+    });
+  }
+
+  var validRows   = parse(fs.readFileSync(validPath, "utf8"));
+  var invalidRows = parse(fs.readFileSync(invalidPath, "utf8"));
+
+  assert("T-156b", "the valid fixture has rows and the invalid fixture has rows",
+    validRows.length >= 3 && invalidRows.length >= 3,
+    "valid=" + validRows.length + " invalid=" + invalidRows.length);
+
+  var vClean = Cleaner.cleanRecords(validRows);
+  var iClean = Cleaner.cleanRecords(invalidRows);
+
+  assert("T-156c", "the cleaning pipeline accepts every row of the valid fixture",
+    vClean.report.rejected === 0 && vClean.report.ok === validRows.length &&
+    vClean.report.missingColumns.length === 0,
+    JSON.stringify({ ok: vClean.report.ok, rejected: vClean.report.rejected,
+                     missing: vClean.report.missingColumns }));
+
+  assert("T-156d", "the cleaning pipeline rejects every row of the invalid fixture",
+    iClean.report.rejected === invalidRows.length,
+    "rejected " + iClean.report.rejected + " of " + invalidRows.length);
+
+  /* Each rejection must say what was wrong. A fixture rejected for an unstated
+   * reason demonstrates only that something failed, which is not useful to an
+   * evaluator trying to see the pipeline work. */
+  var rejectedRows = iClean.records.filter(function (r) {
+    return r.validationStatus === "rejected";
+  });
+  assert("T-156e", "every rejection states a reason",
+    rejectedRows.length > 0 && rejectedRows.every(function (r) {
+      return typeof r.exclusionReason === "string" && r.exclusionReason.length > 0;
+    }), "a rejection carries no exclusionReason");
+
+  /* The fixtures are evidence, so they must also be honestly labelled: nothing
+   * in them may claim to be a real listing from a real source. */
+  var bothText = fs.readFileSync(validPath, "utf8") + fs.readFileSync(invalidPath, "utf8");
+  assert("T-156f", "both fixtures declare themselves synthetic",
+    !/false/.test(bothText.split(/\r?\n/).slice(1).join("\n").replace(/example\.invalid/g, "")) &&
+    /Synthetic fixture/.test(bothText),
+    "a fixture row is not marked synthetic");
+  assert("T-156g", "the fixtures document what each invalid row breaks",
+    fs.existsSync(path.join(dir, "README.md")) &&
+    /Rule it breaks/.test(fs.readFileSync(path.join(dir, "README.md"), "utf8")));
+}());
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   T-157  Financial regression baseline — computed the way the APP computes it
+
+   A regression baseline captured earlier in this project called
+   ScoringEngine.rankMarkets(markets, weights) with no portfolio and no
+   diversification function. In that call the diversification factor falls back
+   to a flat 50 for every segment, so the baseline recorded a ranking the
+   application never produces: it named MKT-034 as the Balanced leader where
+   the application ranks MKT-036 first.
+
+   A baseline that measures something the application does not compute is worse
+   than no baseline, because it passes while the real output changes: a bug in
+   diversificationScore would have moved every ranking in the app and left that
+   baseline untouched. The figures below are therefore captured through the same
+   call the Market Screener makes, with the portfolio and the diversification
+   function supplied.
+   ═══════════════════════════════════════════════════════════════════════════ */
+console.log("\n── T-157-T-158 Financial baseline and projection arithmetic ──────────────");
+(function () {
+  var path = require("path");
+  var Scoring = require(path.join(__dirname, "..", "public", "js", "scoringEngine.js"));
+  var HHI     = require(path.join(__dirname, "..", "public", "js", "hhi.js"));
+  var markets = require(path.join(__dirname, "..", "public", "data", "markets.json")).markets;
+  var assets  = require(path.join(__dirname, "..", "public", "data", "portfolio.json")).assets;
+
+  assert("T-157a", "portfolio total value is unchanged",
+    HHI.totalValue(assets) === 5000000000, "got " + HHI.totalValue(assets));
+  assert("T-157b", "portfolio annual rent is unchanged",
+    HHI.totalAnnualRent(assets) === 332750000, "got " + HHI.totalAnnualRent(assets));
+  assert("T-157c", "portfolio weighted yield is unchanged",
+    Math.abs(HHI.weightedYield(assets) - 0.06655) < 1e-12,
+    "got " + HHI.weightedYield(assets));
+  assert("T-157d", "city HHI is unchanged",
+    Math.abs(HHI.cityHHI(assets) - 0.413) < 1e-12, "got " + HHI.cityHHI(assets));
+  assert("T-157e", "asset-type HHI is unchanged",
+    Math.abs(HHI.typeHHI(assets) - 0.631608) < 1e-12, "got " + HHI.typeHHI(assets));
+
+  /* Leaders under each preset, through the application's own call. */
+  var EXPECTED = {
+    balanced:      { id: "MKT-036", score: 72.45 },
+    incomeFocused: { id: "MKT-038", score: 75.40 },
+    growthFocused: { id: "MKT-012", score: 77.36 },
+    diversFocused: { id: "MKT-049", score: 73.32 }
+  };
+  Object.keys(EXPECTED).forEach(function (key, i) {
+    var top = Scoring.rankMarkets(markets, Scoring.PRESETS[key],
+                                  assets, HHI.diversificationScore).ranked[0];
+    var exp = EXPECTED[key];
+    assert("T-157f" + i, "highest-scoring segment under " + key + " is " + exp.id,
+      top.marketId === exp.id, "got " + top.marketId);
+    assert("T-157g" + i, "its composite score is " + exp.score.toFixed(2) + " under " + key,
+      Math.abs(top.totalScore - exp.score) < 0.005, "got " + top.totalScore.toFixed(4));
+  });
+
+  /* The guard that would have caught the flawed baseline: omitting the
+   * portfolio must NOT silently produce the same answer. If it did, the
+   * diversification factor would be doing nothing. */
+  var withoutPortfolio = Scoring.rankMarkets(markets, Scoring.PRESETS.balanced).ranked[0];
+  var withPortfolio    = Scoring.rankMarkets(markets, Scoring.PRESETS.balanced,
+                                             assets, HHI.diversificationScore).ranked[0];
+  assert("T-157h", "the diversification factor actually changes the ranking",
+    withoutPortfolio.marketId !== withPortfolio.marketId,
+    "ranking is identical with and without the portfolio, so the factor is inert");
+}());
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   T-158  Projection arithmetic, and the occupancy assumption
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function () {
+  var fs = require("fs"), path = require("path");
+  var Projection = require(path.join(__dirname, "..", "public", "js", "projection.js"));
+
+  var params = {
+    currentPortfolioValueRs: 5000000000,
+    currentAnnualRentRs:     332750000,
+    investmentRs:            500000000,
+    newMarketGrossYield:     0.08
+  };
+  var proj = Projection.projectAll(params, [1, 3, 5]);
+
+  assert("T-158a", "year 0 value is the portfolio plus the investment",
+    proj.base[0].portfolioValue === 5500000000, "got " + proj.base[0].portfolioValue);
+  assert("T-158b", "year 0 rent adds the investment at the target's own yield",
+    Math.abs(proj.base[0].annualRent - (332750000 + 500000000 * 0.08)) < 1e-6,
+    "got " + proj.base[0].annualRent);
+  assert("T-158c", "compound growth matches repeated multiplication",
+    Math.abs(proj.base[2].portfolioValue -
+             5500000000 * 1.08 * 1.08 * 1.08) < 1e-3,
+    "got " + proj.base[2].portfolioValue);
+
+  /*
+   * Occupancy. Finding A3 of the analytics audit: every scenario declares an
+   * occupancy rate and the report lists it beside rental and capital growth,
+   * but no displayed figure used it — the conservative scenario assumed a fifth
+   * of the space empty and reported the yield as though fully let.
+   *
+   * The remedy added effectiveGrossYield rather than redefining grossYield, so
+   * these tests assert BOTH: that the gross figure is unchanged (no previously
+   * published number moved) and that the occupancy-adjusted figure exists and
+   * is actually adjusted.
+   */
+  assert("T-158d", "gross yield is still rent ÷ value, with no occupancy term",
+    Math.abs(proj.conservative[2].grossYield -
+             proj.conservative[2].annualRent / proj.conservative[2].portfolioValue) < 1e-15,
+    "grossYield has been redefined — previously reported figures would move");
+  assert("T-158e", "effectiveGrossYield applies the scenario's occupancy",
+    Math.abs(proj.conservative[2].effectiveGrossYield -
+             (proj.conservative[2].annualRent * 0.80) /
+              proj.conservative[2].portfolioValue) < 1e-15,
+    "got " + proj.conservative[2].effectiveGrossYield);
+  assert("T-158f", "the two yields differ whenever occupancy is below 100%",
+    proj.conservative[2].effectiveGrossYield < proj.conservative[2].grossYield &&
+    proj.base[2].effectiveGrossYield < proj.base[2].grossYield,
+    "the occupancy assumption still changes nothing");
+  assert("T-158g", "the summary carries both yields through to the report",
+    (function () {
+      var sum = Projection.summarise(proj, 3);
+      return typeof sum.base.effectiveGrossYield === "number" &&
+             sum.base.effectiveGrossYield > 0 &&
+             sum.base.effectiveGrossYield < sum.base.grossYield;
+    }()), "summarise() does not expose the effective yield");
+
+  /* Capital growth exceeds rental growth in all three scenarios, so the
+   * projected yield must fall in all three. A rising yield under those
+   * assumptions would be arithmetically impossible. */
+  assert("T-158h", "projected yield falls wherever capital growth exceeds rental growth",
+    ["conservative", "base", "optimistic"].every(function (k) {
+      var sc = Projection.SCENARIOS[k], pts = proj[k];
+      return (sc.capitalGrowth > sc.rentalGrowth) ===
+             (pts[pts.length - 1].grossYield < pts[0].grossYield);
+    }), "a scenario's yield moves against its own growth assumptions");
+
+  /* projectHHI is retained but must stay unreachable — see finding A4. */
+  var pages = ["overview", "portfolio", "marketScreen", "diversification",
+               "statsDashboard", "dataCentre", "agents", "report"];
+  var callers = pages.filter(function (f) {
+    var p = path.join(__dirname, "..", "public", "js", f + ".js");
+    return fs.existsSync(p) && /projectHHI\s*\(/.test(fs.readFileSync(p, "utf8"));
+  });
+  assert("T-158i", "no page calls projectHHI, which can overstate the HHI change",
+    callers.length === 0, "called by: " + callers.join(", "));
+  assert("T-158j", "projection.js marks projectHHI as not for display",
+    /DO NOT WIRE THIS INTO A PAGE/.test(
+      fs.readFileSync(path.join(__dirname, "..", "public", "js", "projection.js"), "utf8")),
+    "the warning is missing, so someone will wire it in");
+
+  assert("T-158k", "the analytics audit script and its report both exist",
+    fs.existsSync(path.join(__dirname, "..", "data-pipeline", "scripts", "auditAnalytics.js")) &&
+    fs.existsSync(path.join(__dirname, "..", "data-pipeline", "docs", "ANALYTICS_AUDIT.md")));
+}());
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   T-159  Source register — honesty constraints on the evidence base
+   ═══════════════════════════════════════════════════════════════════════════ */
+console.log("\n── T-159 Source verification honesty ─────────────────────────────────────");
+(function () {
+  var fs = require("fs"), path = require("path");
+  var repo = path.join(__dirname, "..");
+  var regPath = path.join(repo, "data-pipeline", "source_register.csv");
+
+  assert("T-159a", "the source register exists",
+    fs.existsSync(regPath));
+  if (!fs.existsSync(regPath)) { return; }
+
+  var text = fs.readFileSync(regPath, "utf8");
+  var header = text.split(/\r?\n/)[0].split(",");
+
+  assert("T-159b", "the register records how and when each source was checked",
+    header.indexOf("verification_status") !== -1 &&
+    header.indexOf("verification_date") !== -1 &&
+    header.indexOf("verification_method") !== -1,
+    "header = " + header.join(","));
+
+  /*
+   * The constraint that matters. A source may be marked Verified only when a
+   * figure used by this project was traced to the cited document — not because
+   * its URL opens. No source currently meets that bar, so no row may claim it.
+   *
+   * This test will fail the day someone upgrades a row without doing the work,
+   * which is exactly when it should fail. If a figure IS ever genuinely traced,
+   * this assertion must be updated together with the report that records the
+   * tracing, so the claim and its evidence move at the same time.
+   */
+  var rows = text.split(/\r?\n/).slice(1).filter(function (l) { return l.trim(); });
+  var claimingVerified = rows.filter(function (line) {
+    var status = (line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)[6] || "").replace(/"/g, "").trim();
+    return /^verified$/i.test(status);
+  });
+  assert("T-159c", "no source claims plain 'Verified' — none has had a figure traced",
+    claimingVerified.length === 0,
+    claimingVerified.length + " row(s) claim Verified; see docs/SOURCE_VERIFICATION_REPORT.md");
+
+  assert("T-159d", "every external source has a non-empty verification status",
+    rows.every(function (line) {
+      var status = (line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)[6] || "").replace(/"/g, "").trim();
+      return status.length > 0;
+    }), "a row has no verification status");
+
+  assert("T-159e", "the pre-verification register is kept, so the change is auditable",
+    fs.existsSync(path.join(repo, "data-pipeline", "source_register.pre-verification.csv")));
+
+  var reportPath = path.join(repo, "docs", "SOURCE_VERIFICATION_REPORT.md");
+  assert("T-159f", "the verification report exists",
+    fs.existsSync(reportPath));
+  if (!fs.existsSync(reportPath)) { return; }
+  var report = fs.readFileSync(reportPath, "utf8");
+
+  assert("T-159g", "the report states plainly that nothing was upgraded to Verified",
+    /nothing has been upgraded to Verified/i.test(report));
+  assert("T-159h", "the report states that no market value was changed",
+    /No market value was changed/i.test(report));
+  assert("T-159i", "the report records the discrepancies it found rather than only successes",
+    /Embassy REIT does not hold a BKC asset/.test(report) &&
+    /19 consumption centres, not 17/.test(report));
+
+  /* The dataset must be untouched by the verification exercise. This is the
+   * check that would catch the failure mode the governing instruction warns
+   * about: adjusting a value so that a citation appears to support it. */
+  var markets = require(path.join(repo, "public", "data", "markets.json"));
+  assert("T-159j", "the dataset still reports the same observation total",
+    markets.derivedFrom.totalObservations ===
+      markets.markets.reduce(function (t, m) { return t + m.observationCount; }, 0),
+    "the dataset changed during source verification");
+}());
+
+/* ═══════════════════════════════════════════════════════════════════════════
    SUMMARY
    ═══════════════════════════════════════════════════════════════════════════ */
+console.log("\n── T-160 Agent context, scenario key and agent cache ─────────────────────");
+(function () {
+  var fs   = require("fs");
+  var repo = path.join(__dirname, "..");
+  var JS   = path.join(repo, "public", "js");
+  var AC   = require(path.join(JS, "agentContext.js"));
+  var SK   = require(path.join(JS, "scenarioKey.js"));
+  var SE   = require(path.join(JS, "scoringEngine.js"));
+  var GOV  = require(path.join(JS, "governance.js"));
+  var AM   = require(path.join(JS, "appMeta.js"));
+  var doc  = JSON.parse(fs.readFileSync(path.join(repo, "public", "data", "markets.json"), "utf8"));
+  var assets = JSON.parse(fs.readFileSync(path.join(repo, "public", "data", "portfolio.json"), "utf8")).assets;
+
+  function keyOf(built) {
+    return SK.compute({
+      marketsDoc: doc, assets: assets, weights: built.ctx.weights,
+      investmentCr: built.ctx.investmentCr,
+      selectedTargetId: built.ctx.selectedTarget ? built.ctx.selectedTarget.marketId : null,
+      ranked: built.ranked
+    });
+  }
+  /* The run the Market Screener saves for a preset, through JSON as localStorage would. */
+  function screenerRun(preset) {
+    var w = Object.assign({}, SE.PRESETS[preset]);
+    var inv = AC.defaultInvestmentCr(assets);
+    var ranked = AC.rankForScreener(doc.markets, assets, w, inv);
+    var c = GOV.chooseTarget(ranked, { override: false });
+    return JSON.parse(JSON.stringify({ stale: false, weights: w, investmentCr: inv,
+      selectedTargetId: (c.target || c.topOverall).marketId, ranked: ranked, governanceOverride: false }));
+  }
+
+  var fallback = AC.build({ markets: doc.markets, assets: assets, run: null });
+  var viaScreener = AC.build({ markets: doc.markets, assets: assets, run: screenerRun("balanced") });
+
+  /* The Agents page without a screener run used to select rank 1 (MKT-036),
+   * while the Screener selects the evidence-floor recommendation (MKT-016). */
+  assert("T-160a", "with no screener run the Agents page selects the evidence-floor recommendation, not rank 1",
+    fallback.selectedMarket.marketId === fallback.ctx.governance.recommendedSegment &&
+    fallback.selectedMarket.marketId !== fallback.ranked[0].marketId,
+    fallback.selectedMarket.marketId + " vs rank 1 " + fallback.ranked[0].marketId);
+
+  assert("T-160b", "the no-run scenario key equals the Balanced screener-run key, so both hit the same cache entry",
+    keyOf(fallback) === keyOf(viaScreener), keyOf(fallback) + " vs " + keyOf(viaScreener));
+
+  /* selectedTarget was looked up in the top 3 and fell back to rank 1, so for
+   * a recommendation at rank 5 the models were told the target was rank 1. */
+  assert("T-160c", "ctx.selectedTarget is the selected market even when it ranks below 3",
+    viaScreener.ctx.selectedTarget.marketId === viaScreener.selectedMarket.marketId &&
+    viaScreener.ctx.selectedTarget.rank > 3,
+    viaScreener.ctx.selectedTarget.marketId + " rank " + viaScreener.ctx.selectedTarget.rank);
+
+  assert("T-160d", "the governance block and selectedTarget name the same segment by default",
+    viaScreener.ctx.governance.recommendedSegment === viaScreener.ctx.selectedTarget.marketId);
+
+  var fp = SK.rankingFingerprint(viaScreener.ranked);
+  assert("T-160e", "the scenario key fingerprints real scores (totalScore), not null",
+    fp.length === SK.TOP_N && fp.every(function (r) { return typeof r.score === "number"; }),
+    JSON.stringify(fp[0]));
+
+  var keys = Object.keys(SE.PRESETS).map(function (p) {
+    return keyOf(AC.build({ markets: doc.markets, assets: assets, run: screenerRun(p) }));
+  });
+  assert("T-160f", "the four presets produce four distinct scenario keys",
+    keys.filter(function (k, i) { return keys.indexOf(k) === i; }).length === 4, keys.join(","));
+
+  var bSrc = fs.readFileSync(path.join(repo, "data-pipeline", "scripts", "buildAgentCache.js"), "utf8");
+  assert("T-160g", "buildAgentCache.js builds its context through AgentContext and its chain from AppMeta",
+    bSrc.indexOf("AgentContext.build(") !== -1 && bSrc.indexOf("AppMeta.AGENTS") !== -1 &&
+    !/"(dataQuality|statisticalAnalysis|diversification|validation)"/.test(bSrc) &&
+    bSrc.indexOf("SPJIMR") === -1);
+
+  /* The Run button required a live proxy, so on the static deployment the
+   * cache could never be reached. It must also be enabled by a cache match. */
+  var aSrc = fs.readFileSync(path.join(JS, "agents.js"), "utf8");
+  assert("T-160k", "the Run button is enabled by a matching cache entry, not only by a live proxy",
+    /var canRun\s*=\s*\(live \|\| state\.cacheMatch\)/.test(aSrc) &&
+    aSrc.indexOf("Show Pre-generated Analysis") !== -1);
+
+  /* The Orchestrator's prompt does not define expectedYieldPct; in the first
+   * cache build the model gave the target's gross yield for two presets and the
+   * portfolio's post-investment yield for the other two, under a card labelled
+   * "Expected Gross Yield". The headline now comes from the context. */
+  var incomeRun = screenerRun("incomeFocused");
+  var incomeBuilt = AC.build({ markets: doc.markets, assets: assets, run: incomeRun });
+  var fixedOut = AC.applyDeterministicFigures(
+    { selectedTarget: "x", compositeScore: 68.18, expectedYieldPct: 6.686, investmentAmount: "₹50 Cr" },
+    incomeBuilt.ctx);
+  assert("T-160l", "headline yield is the selected target's gross yield; the model's differing figure is kept, not shown",
+    fixedOut.expectedYieldPct === incomeBuilt.ctx.selectedTarget.grossYieldPct &&
+    fixedOut.compositeScore === incomeBuilt.ctx.selectedTarget.totalScore &&
+    fixedOut._modelFigures && fixedOut._modelFigures.expectedYieldPct === 6.686,
+    JSON.stringify(fixedOut));
+  assert("T-160m", "agents.js applies the deterministic figures to the Orchestrator and hides _modelFigures",
+    aSrc.indexOf("AgentContext.applyDeterministicFigures(orchRes.output, ctx)") !== -1 &&
+    /HIDDEN_KEYS = \{[^}]*_modelFigures: true/.test(aSrc));
+
+  /* The published cache. Fails until it is rebuilt against the live API —
+   * deliberately: a cache the application cannot read is a defect, not a pass. */
+  var cachePath = path.join(repo, "public", "data", "agent-cache.json");
+  var cache = fs.existsSync(cachePath) ? JSON.parse(fs.readFileSync(cachePath, "utf8")) : null;
+  var entries = cache && cache.scenarios ? Object.keys(cache.scenarios) : [];
+  var agentKeys = AM.AGENTS.map(function (a) { return a.key; });
+  assert("T-160h", "public/data/agent-cache.json exists in the .scenarios format, with no .agents block",
+    !!cache && !!cache.scenarios && !cache.agents,
+    cache ? "top-level keys: " + Object.keys(cache).join(",") : "file missing — run buildAgentCache.js");
+  assert("T-160i", "every cache entry is stored under the key its own descriptor hashes to",
+    entries.length > 0 && entries.every(function (k) { return SK.compute(cache.scenarios[k].descriptor) === k; }));
+  assert("T-160j", "the cache covers all four presets, each with exactly the four current agents",
+    keys.every(function (k) {
+      var e = cache && cache.scenarios && cache.scenarios[k];
+      return e && Object.keys(e.agents).sort().join(",") === agentKeys.slice().sort().join(",");
+    }), entries.length + " entries");
+}());
+
 console.log("\n══════════════════════════════════════════════════════════════════════════");
 console.log("  Results: " + passed + " passed, " + failed + " failed");
 if (errors.length > 0) {

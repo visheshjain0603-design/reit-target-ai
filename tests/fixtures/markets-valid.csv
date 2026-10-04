@@ -1,0 +1,7 @@
+city,locality,propertyType,areaSqFt,askingPriceINR,monthlyRentINR,recordId,sourceName,sourceUrl,collectionDate,datasetType,isSynthetic,listingType
+Mumbai,Fixture Park,Commercial Office,5000,150000000,1000000,FIX-V01,Synthetic fixture,https://example.invalid/fixture,2026-09-01,synthetic,true,sale
+Pune,Fixture Gardens,Commercial Office,4000,80000000,600000,FIX-V02,Synthetic fixture,https://example.invalid/fixture,2026-09-01,synthetic,true,sale
+Bengaluru,Fixture Heights,Retail,2500,75000000,550000,FIX-V03,Synthetic fixture,https://example.invalid/fixture,2026-09-01,synthetic,true,sale
+Chennai,Fixture Quay,Residential,1800,27000000,80000,FIX-V04,Synthetic fixture,https://example.invalid/fixture,2026-09-01,synthetic,true,sale
+Hyderabad,Fixture Mews,Residential,1500,22500000,70000,FIX-V05,Synthetic fixture,https://example.invalid/fixture,2026-09-01,synthetic,true,sale
+Kolkata,Fixture Row,Retail,3000,60000000,450000,FIX-V06,Synthetic fixture,https://example.invalid/fixture,2026-09-01,synthetic,true,sale

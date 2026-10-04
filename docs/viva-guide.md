@@ -282,11 +282,11 @@ T23a-c check that XSS strings (e.g., `"<script>alert(1)</script>"`) used as fiel
 
 **Q: Is any of the data real?**
 
-No. All 10 portfolio holdings and 18 market segments are entirely synthetic, hand-crafted for academic illustration. Every record carries `"isSynthetic": true` and `"sourceType": "synthetic_academic_placeholder"`. No real transaction, tenant, valuation, or market observation is included.
+No. Every portfolio holding and market segment is entirely synthetic (counts: [CANONICAL_FACTS.md](CANONICAL_FACTS.md)); the segments are medians of a seeded simulation, not hand-typed figures and not observed transactions. Every record carries `"isSynthetic": true` and `"sourceType": "synthetic_academic_placeholder"`. No real transaction, tenant, valuation, or market observation is included.
 
 ---
 
-**Q: Why did you choose 18 market segments?**
+**Q: Why that many market segments?**
 
 Large enough to make ranking and normalisation meaningful (at least 3 per city, providing within-city variation across asset types) but small enough for the factor score breakdown table to be readable on a laptop screen. Eighteen segments also fit comfortably in a Gemini prompt context without truncation.
 

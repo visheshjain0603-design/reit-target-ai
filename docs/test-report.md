@@ -1,5 +1,14 @@
 # Test Report — REIT Target AI
 
+> **On the `[superseded]` marker.** Lines in this document tagged
+> `[superseded]` record something that was true of an earlier revision of the
+> project and is not true now. They are kept deliberately: a log or a test
+> record edited to agree with the present is no longer evidence of what
+> happened. The current figures are in
+> [`CANONICAL_FACTS.md`](CANONICAL_FACTS.md), and the test suite fails on any
+> *unmarked* line that contradicts them.
+
+
 **NMIMS B.Sc. Finance | Business Analytics Project Theme 4 | Academic Demo**
 **Test run date:** 20 September 2026
 **Node.js version:** v22.23.2
@@ -78,7 +87,7 @@
 | T44 | server.js validation prompt has all four checks | server.js source | weightCheck, scoreRangeCheck, targetExists, hhiConsistency, validatedOk all present | All present | ✅ PASS |
 | T45 | server.js orchestrator prompt has expanded schema | server.js source | selectedTarget, cityHHIEffect, assetTypeHHIEffect, whyTopRanked, syntheticDisclaimer, validatedOk=true gate | All present | ✅ PASS |
 
-| T78a | agents.js: AGENT_ORDER contains all 6 agents | agents.js source | dataQuality, statisticalAnalysis, marketScreening, diversification, validation, orchestrator all present | All 6 present | ✅ PASS |
+| T78a | agents.js: AGENT_ORDER contains all 6 agents | agents.js source | dataQuality, statisticalAnalysis, marketScreening, diversification, validation, orchestrator all present | All 6 present | ✅ PASS (recorded against the six-agent design) [superseded] |
 | T78b | agents.js: portfolioAnalysis removed from AGENT_ORDER | agents.js source | String not present | Absent | ✅ PASS |
 | T78c | agents.js: TRAIL_STEPS has 6 step ids | agents.js source | data, stats, screening, simulation, validation, recommend | 6 ids found | ✅ PASS |
 | T78d | agents.js: checkServerStatus uses /api/health | agents.js source | /api/health present, /api/status absent | Confirmed | ✅ PASS |
@@ -127,10 +136,10 @@ The following tests require a running browser and/or server. Screenshots to be t
 
 | Test ID | Test | Steps | Expected | Screenshot |
 |---------|------|-------|----------|------------|
-| M01 | Portfolio page loads | Open http://localhost:3001/#portfolio | 10 holdings table rendered, total ₹450 Cr displayed | screenshot-portfolio.png |
+| M01 | Portfolio page loads | Open http://localhost:3001/#portfolio | 10 holdings table rendered, total ₹450 Cr displayed | screenshot-portfolio.png | [superseded]
 | M02 | Portfolio add asset | Click "Add Asset", fill form, save | New row appears, totals update | screenshot-add-asset.png |
 | M03 | Portfolio delete asset | Click delete on any asset | Confirm dialog; row disappears; totals update | screenshot-delete-asset.png |
-| M04 | Market Screener loads | Navigate to #screener | Rankings table with 18 segments, score breakdown expandable | screenshot-screener.png |
+| M04 | Market Screener loads | Navigate to #screener | Rankings table with 18 segments, score breakdown expandable | screenshot-screener.png | [superseded]
 | M05 | Weight slider interaction | Move yield slider to 40% | Rankings update in real-time, other weights adjust | screenshot-weights.png |
 | M06 | CSV import | Import markets.csv | Table refreshes with imported data, "CSV loaded" toast shown | screenshot-csv-import.png |
 | M07 | Market selection | Click "Select" on top market | Navigates to Diversification page, market shown | screenshot-select-market.png |

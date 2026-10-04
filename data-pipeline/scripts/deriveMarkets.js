@@ -1,6 +1,6 @@
 /**
  * deriveMarkets.js — rebuild public/data/markets.json FROM the observation data
- * SPJIMR — BA Theme 4 (Academic Demo).  ALL DATA IS SYNTHETIC.
+ * NMIMS B.Sc. Finance — BA Theme 4 (Academic Demo).  ALL DATA IS SYNTHETIC.
  *
  * Why this exists
  * ---------------

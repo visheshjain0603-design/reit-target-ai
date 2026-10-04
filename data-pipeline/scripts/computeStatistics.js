@@ -1,6 +1,6 @@
 /**
  * computeStatistics.js — build-time statistical analysis for the dashboard
- * SPJIMR — BA Theme 4 (Academic Demo).  ALL DATA IS SYNTHETIC.
+ * NMIMS B.Sc. Finance — BA Theme 4 (Academic Demo).  ALL DATA IS SYNTHETIC.
  *
  * WHY THIS RUNS AT BUILD TIME, NOT IN THE BROWSER
  * -----------------------------------------------

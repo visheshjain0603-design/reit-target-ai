@@ -1,0 +1,114 @@
+{
+ "results": [
+  {
+   "page": "overview",
+   "active": "page-overview",
+   "chars": 4653,
+   "stillLoading": false,
+   "errorMsg": null,
+   "newErrors": 0,
+   "head": "Executive Overview |  | What this system is, what the current analysis concluded and on what evidence, and what it must not be used for. Every figure on this pa"
+  },
+  {
+   "page": "portfolio",
+   "active": "page-portfolio",
+   "chars": 2430,
+   "stillLoading": false,
+   "errorMsg": null,
+   "newErrors": 0,
+   "head": "Portfolio Analysis |  | Synthetic REIT holdings — city, asset class, value, yield and occupancy. No real properties, tenants or financial records. |  | Portfoli"
+  },
+  {
+   "page": "screener",
+   "active": "page-screener",
+   "chars": 4548,
+   "stillLoading": false,
+   "errorMsg": null,
+   "newErrors": 0,
+   "head": "Market Screener |  | Target market segments ranked by rental yield, rental growth, diversification benefit, demand strength and market risk. |  | Recommended ta"
+  },
+  {
+   "page": "diversification",
+   "active": "page-diversification",
+   "chars": 4329,
+   "stillLoading": false,
+   "errorMsg": null,
+   "newErrors": 0,
+   "head": "Diversification (HHI) |  | Herfindahl-Hirschman Index measuring geographic and asset-class concentration in the synthetic portfolio. |  | Current Portfolio Conc"
+  },
+  {
+   "page": "statsdash",
+   "active": "page-statsdash",
+   "chars": 10665,
+   "stillLoading": false,
+   "errorMsg": null,
+   "newErrors": 0,
+   "head": "Statistical Analysis |  | Consolidated analysis of the full observation-level dataset: distributions, correlation structure, regression fit, outlier-detection p"
+  },
+  {
+   "page": "agents",
+   "active": "page-agents",
+   "chars": 1571,
+   "stillLoading": false,
+   "errorMsg": null,
+   "newErrors": 0,
+   "head": "Agent Recommendations |  | Four Gemini agents interpret figures that were already computed deterministically: Data & Statistical Analyst, Market Screening Analy"
+  },
+  {
+   "page": "datacentre",
+   "active": "page-datacentre",
+   "chars": 11565,
+   "stillLoading": false,
+   "errorMsg": null,
+   "newErrors": 0,
+   "head": "Data Centre |  | Dataset status, data quality pipeline, provenance and import controls. All data is synthetic — no live feed or external database connection. | "
+  },
+  {
+   "page": "report",
+   "active": "page-report",
+   "chars": 4731,
+   "stillLoading": false,
+   "errorMsg": null,
+   "newErrors": 0,
+   "head": "Investment Decision Report |  | Printable summary of the full analysis chain: portfolio, screening, diversification, scenario projections and agent recommendati"
+  }
+ ],
+ "inter": {
+  "recBanner": "Recommended target | SEGMENT | Gurugram — Cyber Hub, Delhi NCR | Commercial Office · Premium · rank 5 of 50 | COMPOSITE SCORE | 67.7 / 100 | How attractive the segment looks on the five weighted factors | EVIDENCE | Strong — grade B, 73 obs | Meets the floor of 30 observations and grade C | INVESTME",
+  "filterOpen": true,
+  "filterGroups": 9,
+  "afterRetail": "10 of 50 segments match 1 active filter: property type.",
+  "rowsAfterRetail": 10,
+  "afterReset": "No filters applied — showing all 50 market segments.",
+  "afterOverride": "Evidence floor overridden. The recommendation is the highest-scoring segment, which does not meet it (only 26 observations, below the floor of 30; confidence grade D, below the floor of C).",
+  "obsPanel": "Observation Distribution |  | 26 simulated market observations behind this segment. Each record is one draw from this project's seeded simulation. No record corresponds to a real property, listing or transaction, and the segment figures shown elsewhere in this application are the medians of these dr",
+  "obsHistRows": 10,
+  "reportScores": [
+   "Nexus Vertex Tower(REIT-001) | Mumbai · BKC | Commercial Office | ₹125.00 Cr | ₹9.000 Cr | 7.20% | 96.0% | 31/03/2030 | Banking & Financial Services",
+   "Primus Heights(REIT-002) | Mumbai · Lower Parel | Commercial Office | ₹85.00 Cr | ₹5.780 Cr | 6.80% | 94.0% | 31/12/2028 | IT Services & Consulting",
+   "Centra Plaza(REIT-003)Low Occ | Mumbai · Andheri East | Commercial Office | ₹42.00 Cr | ₹2.352 Cr | 5.60% | 72.0% | 30/09/2027 | Media & Entertainment",
+   "Harbour Crest Mall(REIT-004) | Mumbai · Bandra West | Retail | ₹43.00 Cr | ₹2.494 Cr | 5.80% | 91.0% | 30/06/2029 | Lifestyle Retail",
+   "Techbridge One(REIT-005) | Pune · Hinjewadi | Commercial Office | ₹65.00 Cr | ₹4.875 Cr | 7.50% | 97.0% | 31/03/2031 | Pharmaceuticals & Biotech",
+   "Riverside Residency(REIT-006)Expiry Soon | Pune · Kharadi | Residential | ₹25.00 Cr | ₹1.000 Cr | 4.00% | 88.0% | 31/03/2027 | Residential",
+   "Apex Infopark(REIT-007)★ Best Yield | Bengaluru · Whitefield | Commercial Office | ₹58.00 Cr | ₹4.640 Cr | 8.00% | 95.0% | 30/09/2029 | Technology & Startups",
+   "Koramangala Galleria(REIT-008) | Bengaluru · Koramangala | Retail | ₹27.00 Cr | ₹1.674 Cr | 6.20% | 87.0% | 30/06/2030 | Food & Beverage Retail",
+   "HITEC Nexus Campus(REIT-009) | Hyderabad · HITEC City | Commercial Office | ₹14.00 Cr | ₹0.980 Cr | 7.00% | 93.0% | 31/03/2028 | IT Services & Consulting",
+   "Gachibowli Greens(REIT-010) | Hyderabad · Gachibowli | Residential | ₹16.00 Cr | ₹0.480 Cr | 3.00% | 85.0% | 30/09/2028 | Residential"
+  ],
+  "reportEvidence": [
+   "Target Composite Score67.7 / 100",
+   "Target EvidenceStrong — confidence grade B, 73 simulated market observations",
+   "Meets Evidence FloorYes (floor: at least 30 observations and grade C or better)",
+   "Selection Basis4 segments scored above the recommendation but did not meet the evidence floor, so the recommendation is the highest-scoring segment that did: Gurugram — Cyber Hub, Delhi NCR (rank 5, score 67.7)."
+  ],
+  "mobileHorizontalOverflow": false,
+  "mobileErrors": 0
+ },
+ "consoleErrors": [
+  "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+ ],
+ "pageErrors": [],
+ "failedRequests": [
+  "http://localhost:3001/api/health :: net::ERR_CONNECTION_REFUSED"
+ ]
+}

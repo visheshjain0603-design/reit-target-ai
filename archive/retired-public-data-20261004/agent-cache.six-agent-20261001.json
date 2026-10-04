@@ -1,0 +1,136 @@
+{
+ "note": "Pre-generated Gemini agent responses. Served when the local proxy is unreachable (for example on a static deployment). Clearly labelled as cached in the interface — these are NOT live calls.",
+ "builtAt": "2026-09-30T19:26:25.090Z",
+ "datasetObservations": 2156,
+ "agents": {
+  "dataQuality": {
+   "output": {
+    "overallQuality": "fair",
+    "dataSummary": "The dataset consists of 10 synthetic assets across 8 cities, providing a broad but statistically thin overview of market performance. All data is synthetic and created for academic illustration purposes only; it does not represent real-world investment values or market conditions.",
+    "sampleSizeWarnings": [
+     "Ahmedabad: all 2 segments have fewer than 30 observations (smallest 26).",
+     "Chennai: 1 segment has fewer than 30 observations (smallest 26).",
+     "Delhi NCR: 1 segment has fewer than 30 observations (smallest 26).",
+     "Hyderabad: 1 segment has fewer than 30 observations (smallest 26).",
+     "Kolkata: all 3 segments have fewer than 30 observations (smallest 26).",
+     "Pune: 2 segments have fewer than 30 observations (smallest 26)."
+    ],
+    "outlierNotes": [
+     "Delhi NCR: 1 yield outlier detected.",
+     "Mumbai: 1 yield outlier detected.",
+     "Pune: 1 capital value outlier detected."
+    ],
+    "pipelineSummary": "Data is generated via triangular distributions calibrated to Q4 2024 industry research. The pipeline flagged 10 total sample size warnings across the portfolio, indicating that several micro-market segments lack sufficient density for high-confidence statistical inference.",
+    "recommendations": [
+     "Exercise caution when interpreting results for markets with fewer than 30 observations.",
+     "Prioritize analysis of segments with higher observation counts (e.g., Mumbai or Bengaluru) for more stable yield estimates.",
+     "Review the impact of identified outliers in Delhi NCR, Mumbai, and Pune before finalizing any model assumptions."
+    ],
+    "disclaimer": "This analysis is for academic demonstration purposes only. All data is synthetic. This is not investment advice."
+   },
+   "model": "gemini-3.1-flash-lite",
+   "cachedAt": "2026-09-30T19:25:57.800Z",
+   "isCached": true
+  },
+  "statisticalAnalysis": {
+   "output": {
+    "keyFindings": [
+     "The portfolio exhibits a median gross yield of 7.90% with an IQR of 1.73%.",
+     "Capital values across the portfolio show significant dispersion, ranging from 4,130 to 50,367 per sq ft with a median of 10,687.",
+     "Top-ranked assets (Pune, Mumbai, Chennai) demonstrate high yield performance, with Pune's Baner locality leading with a central yield estimate of 8.84%.",
+     "Diversification is moderate, with a city HHI of 0.413 and an asset type HHI of 0.6316, indicating a concentration in commercial office space."
+    ],
+    "yieldAnalysis": "Portfolio yields range from 2.66% to 9.87%. Ahmedabad shows the highest median yield at 9.45%, while Delhi NCR and Mumbai exhibit lower median yields (7.03% and 7.39% respectively), likely reflecting higher capital value premiums in those markets.",
+    "capitalValueAnalysis": "The median capital value is 10,687 per sq ft with an IQR of 12,503. Delhi NCR and Mumbai represent the high-value end of the spectrum, while Ahmedabad and Kolkata represent the lower end, with median values near 6,300 per sq ft.",
+    "cityComparison": "Bengaluru and Mumbai provide the most robust data (no sample size warnings). Pune and Chennai show strong yield potential in specific commercial segments, though several segments in these cities fall below the 30-observation threshold.",
+    "typeComparison": "The portfolio is heavily weighted toward Commercial Office assets (HHI 0.6316), which generally command higher yield stability compared to the broader portfolio mix of residential and retail.",
+    "statisticalCaveats": [
+     "All data presented is SYNTHETIC and intended for academic demonstration only.",
+     "Several city segments (e.g., Ahmedabad, Kolkata) have observation counts below the 30-unit threshold, reducing statistical confidence.",
+     "Uncertainty intervals for top-ranked assets are based on empirical P10-P90 distributions from synthetic generation, not historical market volatility."
+    ],
+    "disclaimer": "This analysis is for academic demonstration purposes only and does not constitute investment advice, financial guidance, or a recommendation to buy or sell any assets."
+   },
+   "model": "gemini-3.1-flash-lite",
+   "cachedAt": "2026-09-30T19:26:07.423Z",
+   "isCached": true
+  },
+  "marketScreening": {
+   "output": {
+    "topPickExplanation": "Pune (Baner) is the top-ranked market primarily due to its exceptional performance in rental growth potential and strong gross yield, which together account for nearly 47% of its total score. The market demonstrates a high growth trajectory, making it an attractive target for capital appreciation within a balanced investment strategy.",
+    "factorInsights": [
+     "Growth Potential: Pune (Baner) achieved a perfect growth score, reflecting strong projected rental appreciation.",
+     "Yield Efficiency: All top three markets (Pune, Mumbai, Chennai) show robust gross yields, with Pune leading at approximately 8.99%.",
+     "Methodology: Scores are calculated using a weighted multi-factor model (Yield 25%, Growth 25%, Diversification 20%, Demand 20%, Risk 10%) to balance income generation against market stability.",
+     "Demand Dynamics: Mumbai (Navi Mumbai) shows the highest demand score among the top three, indicating strong tenant interest despite slightly lower growth scores compared to Pune."
+    ],
+    "watchPoints": [
+     "Data Confidence: All top-ranked markets currently carry a 'D' confidence grade, indicating reliance on synthetic estimations rather than high-density empirical data.",
+     "Sample Size: Several markets, including Pune and Chennai, have segments with fewer than 30 observations, triggering sample size warnings.",
+     "Risk Profile: Risk scores remain moderate across the board; investors should monitor the volatility in capital values, particularly in peripheral micro-markets like Ambattur.",
+     "Synthetic Nature: All provided metrics are derived from triangular distributions and are intended for academic demonstration only."
+    ],
+    "disclaimer": "This analysis is based on SYNTHETIC ACADEMIC DATA. It does not represent real-world market values, financial advice, or investment recommendations. All figures are generated for demonstration purposes only."
+   },
+   "model": "gemini-3.1-flash-lite",
+   "cachedAt": "2026-09-30T19:26:12.902Z",
+   "isCached": true
+  },
+  "diversification": {
+   "output": {
+    "cityHHIInterpretation": "The current city-level HHI of 0.413 indicates a highly concentrated portfolio, significantly exceeding the 0.25 threshold for concentration.",
+    "typeHHIInterpretation": "The asset type HHI of 0.6316 reflects a heavily concentrated portfolio, suggesting a lack of diversity across property categories.",
+    "yieldImpact": "The selected target offers a gross yield of approximately 8.99%, which is competitive relative to the portfolio median of 7.90%, though it does not address the underlying concentration issues.",
+    "overallAssessment": "The portfolio is currently concentrated across both geographic and asset-type dimensions. Adding the selected target will not improve these metrics, as the portfolio requires broader exposure to new cities and property types to achieve a diversified status.",
+    "disclaimer": "This analysis is based on SYNTHETIC academic data and is intended for demonstration purposes only; it does not represent real market conditions or investment advice."
+   },
+   "model": "gemini-3.1-flash-lite",
+   "cachedAt": "2026-09-30T19:26:17.411Z",
+   "isCached": true
+  },
+  "validation": {
+   "output": {
+    "weightCheck": "pass",
+    "scoreRangeCheck": "pass",
+    "targetExists": true,
+    "hhiConsistency": "pass",
+    "dataQuality": "The dataset is entirely synthetic and intended for academic demonstration. It contains multiple sample size warnings (10 instances) where segments fall below the 30-observation threshold, which limits the statistical reliability of the findings.",
+    "inconsistencies": [],
+    "limitations": [
+     "Gross yield only (no net operating income or expense ratios)",
+     "No leverage or debt service considerations",
+     "Synthetic data (not based on real-world transactions)",
+     "No transaction costs or taxes included",
+     "High concentration risk (HHI values indicate lack of diversification)"
+    ],
+    "validatedOk": true,
+    "disclaimer": "This analysis is for academic demonstration purposes only. All data is synthetic. This is not investment advice."
+   },
+   "model": "gemini-3.1-flash-lite",
+   "cachedAt": "2026-09-30T19:26:21.711Z",
+   "isCached": true
+  },
+  "orchestrator": {
+   "output": {
+    "selectedTarget": "Pune - Baner (Commercial Office)",
+    "investmentAmount": "₹50 Cr",
+    "compositeScore": 73.39,
+    "expectedYieldPct": 8.99,
+    "cityHHIEffect": "Neutral to negative; current portfolio HHI of 0.413 indicates high geographic concentration which this addition does not mitigate.",
+    "assetTypeHHIEffect": "Negative; current asset type HHI of 0.6316 indicates heavy concentration in commercial office space, which this selection reinforces.",
+    "whyTopRanked": "Pune (Baner) achieved the highest composite score due to its superior rental growth potential (perfect growth score) and a competitive gross yield of 8.99%, balancing income generation with strong appreciation prospects.",
+    "importantRisks": [
+     "High reliance on synthetic data with 'D' confidence grade.",
+     "Sample size limitations (fewer than 30 observations in the Pune segment).",
+     "High portfolio concentration risk across both geography and asset type.",
+     "Capital value volatility in peripheral micro-markets."
+    ],
+    "syntheticDisclaimer": "This analysis is based on SYNTHETIC ACADEMIC DATA and is intended for demonstration purposes only.",
+    "disclaimer": "This is an academic demonstration system. The output is NOT real investment advice, financial guidance, or a recommendation to buy or sell any assets."
+   },
+   "model": "gemini-3.1-flash-lite",
+   "cachedAt": "2026-09-30T19:26:25.090Z",
+   "isCached": true
+  }
+ }
+}

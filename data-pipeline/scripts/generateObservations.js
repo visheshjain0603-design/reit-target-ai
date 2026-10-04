@@ -1,6 +1,6 @@
 /**
  * generateObservations.js — REIT Target AI observation-level data generator (v2)
- * SPJIMR — BA Theme 4 (Academic Demo).  ALL DATA IS SYNTHETIC.
+ * NMIMS B.Sc. Finance — BA Theme 4 (Academic Demo).  ALL DATA IS SYNTHETIC.
  *
  * Supersedes scripts/generateSemiSyntheticData.js (v1), which is retained
  * unchanged for provenance.  Reasons v1 is superseded, each verified by
