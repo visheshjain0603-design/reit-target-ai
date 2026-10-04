@@ -53,7 +53,7 @@
   {
    "key": "orchestrator",
    "label": "Investment Orchestrator",
-   "purpose": "Combines the three analyses into one recommendation with its rationale and risk warnings. Runs only after the deterministic checks pass."
+   "purpose": "Combines the three analyses into one structured summary of the selected target, its screening basis, risks and next steps. Runs only after the deterministic checks pass."
   }
  ],
  "counts": {
@@ -228,6 +228,108 @@
    }
   ]
  },
+ "presets": [
+  {
+   "key": "balanced",
+   "label": "Balanced",
+   "eligibleCount": 25,
+   "scenarioKey": "60e51559",
+   "highestRaw": {
+    "marketId": "MKT-036",
+    "name": "Ambattur, Chennai",
+    "score": "72.45",
+    "passes": false,
+    "failsOn": "both"
+   },
+   "candidate": {
+    "marketId": "MKT-016",
+    "name": "Gurugram — Cyber Hub, Delhi NCR",
+    "rawRank": 5,
+    "score": "67.71",
+    "grossYieldPct": "7.03",
+    "observations": 73,
+    "supportGrade": "B",
+    "cityHHIAfter": "0.3496",
+    "typeHHIAfter": "0.6588",
+    "year0RentCr": "36.789"
+   }
+  },
+  {
+   "key": "incomeFocused",
+   "label": "Income Focused",
+   "eligibleCount": 25,
+   "scenarioKey": "abc2191a",
+   "highestRaw": {
+    "marketId": "MKT-038",
+    "name": "GIFT City, Ahmedabad",
+    "score": "75.40",
+    "passes": false,
+    "failsOn": "both"
+   },
+   "candidate": {
+    "marketId": "MKT-024",
+    "name": "Aerocity, Delhi NCR",
+    "rawRank": 8,
+    "score": "68.18",
+    "grossYieldPct": "7.00",
+    "observations": 75,
+    "supportGrade": "C",
+    "cityHHIAfter": "0.3496",
+    "typeHHIAfter": "0.6588",
+    "year0RentCr": "36.773"
+   }
+  },
+  {
+   "key": "growthFocused",
+   "label": "Growth Focused",
+   "eligibleCount": 25,
+   "scenarioKey": "7ba66b74",
+   "highestRaw": {
+    "marketId": "MKT-012",
+    "name": "Banjara Hills, Hyderabad",
+    "score": "77.36",
+    "passes": true,
+    "failsOn": null
+   },
+   "candidate": {
+    "marketId": "MKT-012",
+    "name": "Banjara Hills, Hyderabad",
+    "rawRank": 1,
+    "score": "77.36",
+    "grossYieldPct": "2.66",
+    "observations": 47,
+    "supportGrade": "C",
+    "cityHHIAfter": "0.3595",
+    "typeHHIAfter": "0.5438",
+    "year0RentCr": "34.607"
+   }
+  },
+  {
+   "key": "diversFocused",
+   "label": "Diversification Focused",
+   "eligibleCount": 25,
+   "scenarioKey": "f7884bb9",
+   "highestRaw": {
+    "marketId": "MKT-049",
+    "name": "New Town (Rajarhat), Kolkata",
+    "score": "73.32",
+    "passes": false,
+    "failsOn": "both"
+   },
+   "candidate": {
+    "marketId": "MKT-012",
+    "name": "Banjara Hills, Hyderabad",
+    "rawRank": 2,
+    "score": "72.82",
+    "grossYieldPct": "2.66",
+    "observations": 47,
+    "supportGrade": "C",
+    "cityHHIAfter": "0.3595",
+    "typeHHIAfter": "0.5438",
+    "year0RentCr": "34.607"
+   }
+  }
+ ],
  "terminology": {
   "terms": {
    "attractivenessScore": {
@@ -308,7 +410,7 @@
  },
  "tests": {
   "file": "tests/reit-tests.js",
-  "testIdCount": 68,
-  "assertCallCount": 581
+  "testIdCount": 73,
+  "assertCallCount": 596
  }
 }

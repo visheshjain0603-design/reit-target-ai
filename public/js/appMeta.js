@@ -279,9 +279,10 @@
     {
       key:   "orchestrator",
       label: "Investment Orchestrator",
-      purpose: "Combines the three analyses into one recommendation with its rationale " +
-               "and risk warnings. Runs only after the deterministic checks pass.",
-      step:  { id: "recommend", label: "Recommendation synthesised" },
+      purpose: "Combines the three analyses into one structured summary of the selected " +
+               "target, its screening basis, risks and next steps. Runs only after the " +
+               "deterministic checks pass.",
+      step:  { id: "recommend", label: "Summary of the selected target synthesised" },
       legacy: ["orchestrator"]
     }
   ];

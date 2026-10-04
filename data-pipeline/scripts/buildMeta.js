@@ -110,6 +110,31 @@ var sourceVerification = {
   rows: regRows
 };
 
+/* ─── Preset results, through the application's own analysis run ───────── */
+
+var AnalysisRun = require(path.join(PROJECT, "public", "js", "analysisRun.js"));
+var runData = {
+  marketsDoc: marketsDoc, sampleAssets: portfolioDoc.assets, portfolioMode: "sample",
+  customAssets: [], statisticsDoc: statisticsDoc, sourceOutcomes: outcomes
+};
+var presets = AnalysisRun.PRESET_KEYS.map(function (key) {
+  var run = AnalysisRun.compute({ preset: key }, runData);
+  var raw = AnalysisRun.rawLeader(run), cand = AnalysisRun.selected(run);
+  return {
+    key: key,
+    label: run.presetLabel,
+    eligibleCount: run.eligibleCount,
+    scenarioKey: run.scenarioKey,
+    highestRaw: { marketId: raw.marketId, name: AnalysisRun.name(raw), score: raw.totalScore.toFixed(2),
+                  passes: raw.governance.eligible, failsOn: raw.governance.failsOn },
+    candidate: { marketId: cand.marketId, name: AnalysisRun.name(cand), rawRank: cand.rank,
+                 score: cand.totalScore.toFixed(2), grossYieldPct: (cand.grossYield * 100).toFixed(2),
+                 observations: cand.observationCount, supportGrade: cand.confidenceGrade,
+                 cityHHIAfter: run.hhi.cityAfter.toFixed(4), typeHHIAfter: run.hhi.typeAfter.toFixed(4),
+                 year0RentCr: (run.projections.year0AnnualRentRs / 1e7).toFixed(3) }
+  };
+});
+
 var counts = AppMeta.derive({
   marketsDoc:    marketsDoc,
   portfolioDoc:  portfolioDoc,
@@ -151,6 +176,7 @@ var meta = {
   }),
   counts: counts,
   sourceVerification: sourceVerification,
+  presets: presets,
   terminology: {
     terms: AppMeta.TERMS,
     supportGrades: AppMeta.SUPPORT_GRADES,
@@ -164,10 +190,12 @@ counts.externalCalibrationStatus = calibrationValues.length === 1 ? calibrationV
 
 fs.writeFileSync(path.join(DATA, "meta.json"), JSON.stringify(meta, null, 1) + "\n", "utf8");
 
-// ─── docs/CANONICAL_FACTS.md ────────────────────────────────────────────────
+// ─── docs/CANONICAL_FACTS.md and the generated blocks in every document ─────
+
+var Blocks = require(path.join(__dirname, "canonicalBlocks.js"));
+var blocks = Blocks.render(meta);
 
 function row(label, value) { return "| " + label + " | " + value + " |"; }
-
 var c = counts;
 var gradeList = Object.keys(c.confidenceGradeCounts).sort().map(function (g) {
   return g + ": " + c.confidenceGradeCounts[g];
@@ -179,50 +207,49 @@ var md = [
   "**REIT Target AI | " + AppMeta.attribution() + "**",
   "",
   "**GENERATED FILE.** Produced by `data-pipeline/scripts/buildMeta.js`, which derives",
-  "every figure below from `public/data/`. Do not edit it by hand, and do not restate",
-  "these figures elsewhere — link to this file instead. If a number here is wrong, the",
-  "data is wrong; fix the data and regenerate.",
+  "every figure below from `public/data/` and from the application's own analysis run",
+  "(`public/js/analysisRun.js`). Do not edit it by hand. Other documents carry the same",
+  "figures in generated blocks, and `tests/reit-tests.js` fails if any block is stale.",
   "",
   "All data in this project is synthetic. Nothing below describes a real market.",
   "",
-  "## Dataset",
+  "## Key figures",
+  "",
+  blocks["key-figures"],
+  "",
+  "## Dataset detail",
   "",
   "| Fact | Value |",
   "|---|---|",
-  row("Market segments", AppMeta.num(c.marketCount)),
-  row("Observation-level records", AppMeta.num(c.observationCount)),
-  row("Observations per segment", c.observationsPerMarketMin + " – " + c.observationsPerMarketMax),
   row("Cities", c.cityCount + " (" + c.cities.join(", ") + ")"),
   row("Property types", c.propertyTypeCount + " (" + c.propertyTypes.join(", ") + ")"),
   row("Locality classes", c.localityClasses.length + " (" + c.localityClasses.join(", ") + ")"),
-  row("Confidence grades", gradeList),
-  row("Segments below the " + AppMeta.GOVERNANCE.MIN_OBSERVATIONS + "-observation floor", c.marketsBelowObsFloor),
-  row("Planted anomalies", c.plantedAnomalies + " (" + c.contaminationPct + "% contamination)"),
-  row("Generator version", c.generatorVersion),
-  row("Random seed", String(c.seed)),   // never grouped: a seed is an identifier, not a quantity
-  row("Data as of", c.dataAsOf),
+  row("Assumption Support Grades", gradeList),
+  row("Segments below " + AppMeta.GOVERNANCE.MIN_OBSERVATIONS + " simulated observations", c.marketsBelowObsFloor),
+  row("Random seed", String(c.seed)),
   "",
-  "## Portfolio",
+  "## Results at the defaults, for every preset",
+  "",
+  blocks["preset-results"],
+  "",
+  "## Simulation support and external calibration",
+  "",
+  blocks["screen-and-calibration"],
+  "",
+  "## Terminology",
+  "",
+  blocks["terminology"],
+  "",
+  "## Repository",
   "",
   "| Fact | Value |",
   "|---|---|",
-  row("Holdings", c.assetCount),
-  row("Total value", AppMeta.cr(c.portfolioValueRs)),
-  row("Annual rent", AppMeta.cr(c.portfolioRentRs, 3)),
-  row("Weighted gross yield", (c.portfolioWeightedYield * 100).toFixed(3) + "%"),
-  "",
-  "## Application",
-  "",
-  "| Fact | Value |",
-  "|---|---|",
-  row("Gemini agents", c.agentCount + " (" + AppMeta.AGENTS.map(function (a) { return a.label; }).join("; ") + ")"),
-  row("Weight presets", c.presetCount),
   row("Scoring methodology version", c.methodologyVersion),
-  row("Recommendation evidence floor",
-      "at least " + AppMeta.GOVERNANCE.MIN_OBSERVATIONS + " observations and confidence grade " +
-      AppMeta.GOVERNANCE.MIN_GRADE + " or better"),
+  row("Agent context version", ScenarioKey.CONTEXT_VERSION),
   meta.tests ? row("Assertion calls in " + meta.tests.file, meta.tests.assertCallCount) : null,
   meta.tests ? row("Distinct test identifiers (T-nnn) in " + meta.tests.file, meta.tests.testIdCount) : null,
+  row("Repository", AppMeta.PROJECT.repoUrl),
+  row("Live site", AppMeta.PROJECT.publicUrl),
   "",
   "## Regenerating",
   "",
@@ -230,17 +257,28 @@ var md = [
   "node data-pipeline/scripts/generateObservations.js",
   "node data-pipeline/scripts/deriveMarkets.js",
   "node data-pipeline/scripts/computeStatistics.js",
+  "node data-pipeline/scripts/buildObservationDistribution.js",
   "node data-pipeline/scripts/buildMeta.js",
   "```",
   "",
-  "The first three steps are seeded and reproduce byte-identical output; CI asserts this.",
+  "The generator is seeded and reproduces byte-identical output; CI asserts this.",
   "This file carries no build timestamp for the same reason.",
   ""
-].filter(function (l) { return l !== null; }).join("\n");   // null = omitted row; "" = a real blank line
+].filter(function (l) { return l !== null; }).join("\n");
 
 fs.writeFileSync(path.join(PROJECT, "docs", "CANONICAL_FACTS.md"), md + "\n", "utf8");
 
-console.log("Wrote public/data/meta.json and docs/CANONICAL_FACTS.md");
+var filled = [];
+Blocks.DOCUMENTS.forEach(function (rel) {
+  var p = path.join(PROJECT, rel);
+  if (!fs.existsSync(p)) { return; }
+  var before = fs.readFileSync(p, "utf8");
+  var after = Blocks.fill(before, blocks);
+  if (after !== before) { fs.writeFileSync(p, after, "utf8"); filled.push(rel); }
+});
+
+console.log("Wrote public/data/meta.json and docs/CANONICAL_FACTS.md" +
+            (filled.length ? "; refreshed blocks in " + filled.join(", ") : ""));
 console.log("  " + c.marketCount + " markets, " + AppMeta.num(c.observationCount) +
             " observations, " + c.cityCount + " cities, " + c.assetCount + " holdings, " +
             AppMeta.cr(c.portfolioValueRs) + ", " + c.agentCount + " agents");

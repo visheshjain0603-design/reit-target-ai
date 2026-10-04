@@ -9,7 +9,7 @@
 
 ## 1. Purpose
 
-This document explains how market data was constructed, estimated, and simulated for the 50-segment Indian REIT investment target universe. All numbers are either directly reported in public sources or explicitly derived / estimated with documented assumptions; nothing is fabricated or reverse-engineered from application outputs.
+This document explains how market data was constructed, estimated, and simulated for the 50-segment Indian REIT investment target universe. All numbers are synthetic: each assumption was written to follow a cited benchmark or was derived / estimated with documented assumptions, and nothing is reverse-engineered from application outputs. None of the cited benchmark documents has been located or traced (docs/SOURCE_VERIFICATION_REPORT.md), so external calibration is Unverified for every segment.
 
 ---
 
@@ -57,9 +57,11 @@ Every estimate in `market_estimates_long.csv` carries one of five classification
 
 ---
 
-## 5. Confidence Grades
+## 5. Assumption Support Grades
 
-| Grade | Uncertainty Band | Interpretation |
+The grade records how each segment's ASSUMPTION SET was constructed and how wide a band was assumed. The "Interpretation" column states the kind of benchmark the assumptions were intended to follow; none of those benchmarks has been located, so no grade is evidence of real-market accuracy.
+
+| Grade | Uncertainty Band | Interpretation (intended basis — unverified) |
 |---|---|---|
 | A | ±5–8% | Direct quotation from Tier-1 source; multiple confirming sources |
 | B | ±10–12% | Good Tier-1 or Tier-2 coverage; minor interpolation |

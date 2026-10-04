@@ -899,6 +899,18 @@
 
     container.appendChild(el("p", "reit-agent-disclaimer",
       stats.disclaimer || "Synthetic academic data. Not investment advice."));
+
+    /* Give every table an accessible name from the section and the nearest
+     * heading or disclosure summary above it, so a screen reader announces
+     * what each table is rather than "table". */
+    Array.prototype.forEach.call(container.querySelectorAll("table"), function (t, i) {
+      if (t.querySelector("caption") || t.getAttribute("aria-label") || t.getAttribute("aria-labelledby")) { return; }
+      var sec = t.closest(".reit-section");
+      var h2 = sec && sec.querySelector("h2");
+      var det = t.closest("details");
+      var sum = det && det.querySelector("summary");
+      t.setAttribute("aria-label", (h2 ? h2.textContent : "Statistics") + (sum ? " — " + sum.textContent : " — table " + (i + 1)));
+    });
   }
 
   function render() {

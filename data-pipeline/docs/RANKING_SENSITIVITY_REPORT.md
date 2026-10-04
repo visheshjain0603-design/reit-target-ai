@@ -6,6 +6,8 @@
 
 ---
 
+> Lines tagged `[superseded]` record results from an earlier revision of the dataset and are kept as a historical record; current figures are in [`docs/CANONICAL_FACTS.md`](../../docs/CANONICAL_FACTS.md).
+
 ## 1. Methodology
 
 Rankings were computed independently under each of the four weight presets using `ScoringEngine.rankMarkets()`. Each market's **rank volatility** (rank spread = maximum rank − minimum rank across all four presets) was calculated. A spread of 0 indicates a market ranks identically regardless of investor preference; a high spread indicates a market is sensitive to how the investor weights income vs. growth vs. diversification vs. demand vs. risk.
@@ -20,7 +22,7 @@ All computations use the post-fix dataset (riskScore correctly set for all 50 ma
 
 | Market | Type | Rank Range | Notes |
 |---|---|---|---|
-| MKT-010 HITEC City | Com | **1–1** | Undisputed #1 in all presets. Highest growth (10%), high demand (80), moderate risk (34). |
+| MKT-010 HITEC City | Com | **1–1** | Undisputed #1 in all presets. Highest growth (10%), high demand (80), moderate risk (34). [superseded]
 | MKT-048 Undri/Pisoli | Res | **50–50** | Consistently last. Low yield (4.82%), low demand (53.9), highest risk (65). |
 | MKT-004 Hinjewadi Ph1 | Com | 3–4 | Stable top-5. High yield+growth combination. |
 | MKT-007 Whitefield | Com | 2–4 | Stable top-4. Highest demand (85) anchors diversification preset. |
@@ -56,7 +58,7 @@ Residential markets as a class exhibit high rank volatility because they score n
 
 | Market | Type | Balanced | Income | Growth | Divers | Spread |
 |---|---|---|---|---|---|---|
-| MKT-010 HITEC City | Com | 1 | 1 | 1 | 1 | 0 |
+| MKT-010 HITEC City | Com | 1 | 1 | 1 | 1 | 0 [superseded]
 | MKT-048 Undri/Pisoli | Res | 50 | 50 | 50 | 50 | 0 |
 | MKT-004 Hinjewadi Ph1 | Com | 4 | 3 | 3 | 4 | 1 |
 | MKT-007 Whitefield | Com | 3 | 2 | 4 | 2 | 2 |
@@ -112,7 +114,7 @@ Residential markets as a class exhibit high rank volatility because they score n
 
 ## 4. Key Findings
 
-### F1 — HITEC City (MKT-010) is universally dominant
+### F1 — HITEC City (MKT-010) is universally dominant [superseded]
 Rank 1 in all four presets. No other market achieves this. Its combination of highest growth rate (10%), high demand (80), and moderate risk (34) makes it the preferred market under any rational weighting scheme. Score range: 69.3 (diversification) to 81.9 (growth-focused).
 
 ### F2 — Residential markets are highly volatile; use case matters
@@ -134,7 +136,7 @@ The diversification weight (45%) reduces the spread between top and bottom score
 - **Income investors:** Shortlist ranks 1–15 in `incomeFocused` preset. Avoid residential.
 - **Growth investors:** Residential markets with high growth rates (Gachibowli, Sarjapur Road) enter top 10. Consider MKT-011 and MKT-008.
 - **Portfolio diversifiers:** Low-risk markets (BKC, Golf Course Rd, Aerocity, Outer Ring Road — riskScore 26) cluster in top 10 under `diversFocused`.
-- **All investors:** MKT-010 HITEC City is the only market in the top 5 across all four presets. It merits consideration in any REIT target portfolio.
+- **All investors:** MKT-010 HITEC City is the only market in the top 5 across all four presets. It merits consideration in any REIT target portfolio. [superseded]
 
 ---
 

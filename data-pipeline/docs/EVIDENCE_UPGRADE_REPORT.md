@@ -2,13 +2,15 @@
 **NMIMS B.Sc. Finance | Business Analytics Project Theme 4 | Academic Demo**
 
 **Report date:** 20 September 2026  
-**Author:** Claude (Cowork) on behalf of KJ  
+**Author:** Claude (Cowork) on behalf of Vishesh Jain  
 **Scope:** `public/data/markets.json` — all 50 markets
 
 ---
 
+> Lines tagged `[superseded]` record results from an earlier revision of the dataset and are kept as a historical record; current figures are in [`docs/CANONICAL_FACTS.md`](../../docs/CANONICAL_FACTS.md).
+
 > **Required disclosure (verbatim):**
-> *This is a semi-synthetic academic dataset calibrated to published market evidence.
+> *This is a synthetic academic dataset whose assumptions were written to follow cited market publications; none of those publications has been located or traced, so its external calibration is Unverified (docs/SOURCE_VERIFICATION_REPORT.md).
 > Locality-level estimates may be derived from city, corridor or comparable-asset
 > benchmarks. Reported, derived, estimated and synthetic values are explicitly
 > distinguished. Uncertainty ranges represent modelling assumptions unless
@@ -45,7 +47,7 @@ Safety rules observed throughout:
 | 4 | Critical | Uniform 4.29% gross yield for all residential markets | MKT-046 to MKT-050 | Residential markets indistinguishable on yield |
 | 5 | Moderate | `uncertainty.rentalGrowthPct` bounds stored in bps not % | All 50 | Non-monotone bounds; range wrong by ×100 |
 | 6 | Moderate | Metadata fields absent (`dataClassification`, `uncertainty`) | All 50 | No uncertainty disclosure; classification unknown |
-| 7 | Low | `confidenceGrade`, `localityClass` absent from original 18 | MKT-001 to MKT-018 | Labelling only |
+| 7 | Low | `confidenceGrade`, `localityClass` absent from original 18 | MKT-001 to MKT-018 | Labelling only [superseded]
 
 ### 2.2 Before-state data classification
 
@@ -106,7 +108,7 @@ For JLL/CBRE-calibrated localities:
 ```
 JLL/CBRE city benchmark (Tier 2 source) → city anchor
   → locality-class multiplier (ASM-xxx) → locality estimate
-  → uncertainty range per confidence grade
+  → uncertainty range per Assumption Support Grade
 ```
 
 For peripheral synthetic localities:
@@ -167,22 +169,22 @@ Rankings before the upgrade are reconstructed from the pre-fix state (riskScore=
 
 | Rank | Before (v1.0) | After (v2.0) |
 |------|--------------|-------------|
-| 1 | MKT-010 HITEC City | MKT-010 HITEC City |
+| 1 | MKT-010 HITEC City | MKT-010 HITEC City [superseded]
 | 2 | MKT-007 Whitefield | MKT-005 Kharadi |
 | 3 | MKT-005 Kharadi | MKT-007 Whitefield |
 | 4 | MKT-004 Hinjewadi | MKT-004 Hinjewadi |
 | 5 | MKT-019 Navi Mumbai | MKT-019 Navi Mumbai |
 
-*Note: Top rankings are broadly stable because riskScore changes are largest for markets that were already penalised by weaker demand/yield. MKT-010 retains #1 across all 4 presets.*
+*Note: Top rankings are broadly stable because riskScore changes are largest for markets that were already penalised by weaker demand/yield. MKT-010 retains #1 across all 4 presets.* [superseded]
 
 ### All-preset top market (v2.0):
 
 | Preset | Rank 1 | Score |
 |--------|--------|-------|
-| Balanced | MKT-010 HITEC City | 89.4 |
-| Income-focused | MKT-010 HITEC City | 86.0 |
-| Growth-focused | MKT-010 HITEC City | 91.9 |
-| Diversification-focused | MKT-010 HITEC City | 91.8 |
+| Balanced | MKT-010 HITEC City | 89.4 [superseded]
+| Income-focused | MKT-010 HITEC City | 86.0 [superseded]
+| Growth-focused | MKT-010 HITEC City | 91.9 [superseded]
+| Diversification-focused | MKT-010 HITEC City | 91.8 [superseded]
 
 ---
 

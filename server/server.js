@@ -5,7 +5,7 @@
  * IMPORTANT: The GEMINI_API_KEY is read from .env and NEVER sent to the browser.
  *
  * Start:  node server.js          (or: npm start)
- * Requires Node.js >= 16
+ * Requires Node.js >= 18 (matches server/package.json)
  *
  * Routes:
  *   POST /api/agent      — run one agent call

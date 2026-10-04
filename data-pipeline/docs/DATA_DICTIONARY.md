@@ -6,6 +6,8 @@
 
 ---
 
+> Lines tagged `[superseded]` record results from an earlier revision of the dataset and are kept as a historical record; current figures are in [`docs/CANONICAL_FACTS.md`](../../docs/CANONICAL_FACTS.md).
+
 ## File: source_register.csv
 
 | Field | Type | Description |
@@ -60,7 +62,7 @@
 | property_type | string | Commercial Office / Retail / Residential |
 | geography_level | string | Micro-market / Sub-city |
 | locality_class | string | Premium / Established / Growth / Peripheral |
-| existing_id | boolean | True if in the original 18-market dataset |
+| existing_id | boolean | True if in the original 18-market dataset [superseded]
 | analysis_ready | boolean | True if all required fields for scoring are present |
 | evidence_ready | boolean | True if at least one Tier-1/2 evidence record exists |
 | confidence_grade | string | Overall confidence A–E |
@@ -149,7 +151,7 @@ Run metadata written after each generator execution.
 | isolation_note | string | Confirms pipeline isolation |
 | outputs | object | Relative paths to output files |
 | observations_by_property_type | object | Count by property type |
-| observations_by_confidence | object | Count by confidence grade |
+| observations_by_confidence | object | Count by Assumption Support Grade |
 | summary_statistics | object | Per-metric mean, std_dev, min, max |
 
 ---
@@ -160,10 +162,10 @@ The following fields were added to `public/data/markets.json` for all 50 markets
 
 | Field | Type | Values | Description |
 |---|---|---|---|
-| `confidenceGrade` | string | A, B, C, D, E | Data confidence: A=Reported, B=Derived-high, C=Estimated-medium, D=Estimated-low, E=Synthetic |
+| `confidenceGrade` | string | A, B, C, D, E | Displayed as the **Assumption Support Grade**: the project's internal classification of how the segment's assumptions were built (A = intended to follow a named primary benchmark … E = placeholder). Not an evidence grade; no benchmark has been verified |
 | `localityClass` | string | Premium / Established / Emerging / Growth / Secondary / Peripheral / Industrial | Market maturity and quality tier |
 | `dataClassification` | string | Synthetic / Semi-Synthetic / Estimated / Reported | Origin of data values |
-| `isSemiSynthetic` | boolean | true/false | True for MKT-019 to MKT-050 (pipeline-generated) |
+| `isSemiSynthetic` | boolean | true/false | Currently false for all 50 segments; every segment is synthetic (`isSynthetic: true`) |
 | `sourceIds` | string[] | SRC-001 to SRC-006 | Reference to source_register.csv entries |
 | `assumptionIds` | string[] | ASM-xxx | Reference to assumptions.csv entries |
 | `methodologyNote` | string | free text | Brief summary of estimation method |

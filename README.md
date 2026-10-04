@@ -1,298 +1,249 @@
-# REIT Target AI — Academic Demo
+# REIT Target AI
 
-**NMIMS B.Sc. Finance | Business Analytics Project Theme 4**
-**Theme 4: Building Agents and Artifacts using Generative AI**
+**NMIMS B.Sc. Finance | Business Analytics | Theme 4 — Building Agents/Artifacts Using Generative AI**
+**Author: Vishesh Jain**
 
-> **⚠ Academic Demo — Synthetic Data Only**
-> All portfolio holdings, market segments, rental figures, and valuations are
-> entirely fabricated for academic illustration. This project is not connected
-> to any live database, real fund, or regulated financial service.
+REIT Target AI is an academic decision-support prototype. For a sample REIT
+portfolio it ranks candidate market segments for a new investment, tests whether
+each segment's simulated figures are precise enough to shortlist, measures how
+the investment would change portfolio concentration, projects the result under
+three scenarios, and asks four Gemini agents to explain the outcome in plain
+language. Every calculation is deterministic JavaScript. The language model only
+interprets figures that have already been computed, and its replies are checked
+against those figures before they are shown.
 
-**Every headline figure in this project lives in one place:
-[`docs/CANONICAL_FACTS.md`](docs/CANONICAL_FACTS.md).** That file is generated
-from the data by `data-pipeline/scripts/buildMeta.js`, and the test suite fails
-if any document in the repository contradicts it. Figures are not restated
-here, because an earlier revision restated them and the copies drifted apart —
-this README claimed 18 market segments while the dataset held 50. [superseded]
+> **Synthetic data only.** Every holding, market segment, rent, valuation and
+> simulated observation in this project was generated for academic
+> demonstration. Nothing describes a real property, listing, transaction or
+> market, no figure has been externally verified, and nothing here is
+> investment advice.
 
----
+- **Live site:** https://visheshjain0603-design.github.io/reit-target-ai/
+- **Repository:** https://github.com/visheshjain0603-design/reit-target-ai
 
-## Quick start
+## Key figures
 
-### Requirements
-- Node.js ≥ 16 (no npm packages needed)
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- A free [Google AI Studio](https://aistudio.google.com/app/apikey) API key *(optional — all deterministic features work without it)*
+Generated from `public/data/` by `data-pipeline/scripts/buildMeta.js` — do not
+edit by hand. The full set is in [docs/CANONICAL_FACTS.md](docs/CANONICAL_FACTS.md).
 
-### 1. Clone / download
+<!-- canonical:BEGIN key-figures -->
+| Fact | Value |
+|---|---|
+| Market segments | 50 across 8 cities and 3 property types |
+| Simulated market observations | 2,156 (26–76 per segment) |
+| Sample portfolio | 10 holdings, ₹500.00 Cr value, ₹33.275 Cr annual rent, 6.655% weighted gross yield |
+| Default investment | ₹50.00 Cr (10% of the sample portfolio) |
+| Gemini agents | 4 (Data & Statistical Analyst; Market Screening Analyst; Portfolio Risk & Scenario Analyst; Investment Orchestrator) |
+| Weight presets | 4 (Balanced, Income Focused, Growth Focused, Diversification Focused) |
+| Simulation-support screen | at least 30 simulated observations and Assumption Support Grade C or better — 25 of 50 segments pass |
+| External calibration | 0 of 12 cited external sources verified; all 50 segments Unverified |
+| Known synthetic anomalies | 24 (1.113% of observations) |
+| Generator / seed / data as of | 2.0.0 / 20260919 / 2026-09-19 |
+| Institution and author | NMIMS B.Sc. Finance, Business Analytics — Vishesh Jain |
+<!-- canonical:END key-figures -->
 
-```bash
-git clone <repo-url>
-cd reit-target-demo
-```
+## Three separate questions
 
-### 2. Configure the Gemini API key (optional)
+The application keeps three concepts apart and never lets one stand in for
+another (`public/js/appMeta.js`, `public/js/governance.js`):
 
-```bash
-cp server/.env.example server/.env
-# Edit server/.env and replace the placeholder with your real key:
-#   GEMINI_API_KEY=AIza...
-```
+1. **Composite attractiveness score.** How attractive a segment looks on five
+   normalised factors — rental yield, rental growth, diversification benefit,
+   demand and low market risk — weighted by one of four presets (Balanced,
+   Income Focused, Growth Focused, Diversification Focused) or by custom weights
+   that sum to 100%. Computed by `scoringEngine.js`. Nothing else changes a
+   score or a rank.
+2. **Simulation support.** How many simulated observations stand behind a
+   segment's medians, how wide their P10–P90 spread is, and the project's
+   internal **Assumption Support Grade** (A–E), which records how the segment's
+   assumptions were built and how wide a band was assumed around them. It is not
+   an evidence grade. The **simulation-support screen** requires at least 30
+   simulated observations and grade C or better — a transparent project
+   governance convention for simulation precision, not a regulatory or universal
+   statistical threshold. More draws narrow the estimate around the *assumed*
+   distribution; they are not market evidence.
+3. **External calibration.** Verified, Partially supported or Unverified,
+   derived only from the source register (`data-pipeline/source_register.csv`).
+   No cited document has been located, so every segment is Unverified — see
+   [docs/SOURCE_VERIFICATION_REPORT.md](docs/SOURCE_VERIFICATION_REPORT.md).
 
-### 3. Start the local server
+The screen's output is the **shortlist candidate**: the highest-ranked candidate
+passing the simulation-support screen. It is an exploratory model output, not an
+investment recommendation, and it always carries the same caveat: "Exploratory
+shortlist only. External calibration remains unverified — proceed to further
+evidence collection and due diligence before any real decision." The highest
+raw-score market is always shown beside it with the reason it failed the screen.
+A user may ignore the screen; that choice is explicit and recorded in the report.
 
-```bash
-node server/server.js
-```
+<!-- canonical:BEGIN screen-and-calibration -->
+- **Composite attractiveness score** — the five weighted factors. Never changed by the screen.
+- **Simulation support** — simulated observations behind a segment's medians, their P10–P90 spread, and the project's own Assumption Support Grade (A–E). A transparent project governance convention for simulation precision, not a regulatory or universal statistical threshold. Thirty draws keeps the P10–P90 spread of a segment's simulated medians reasonably narrow; grade C or better excludes segments whose assumptions the project itself classed as interpolated or placeholder. Passing the screen says nothing about real-market accuracy.
+- **Simulation-support screen** — at least 30 simulated observations and Assumption Support Grade C or better. 25 of 50 segments pass.
+- **External calibration** — from the source register only: 0 of 12 cited external sources verified; 0 partially supported. A segment is Verified only when every external source it cites is verified. Every segment is Unverified.
+- **Wording** — the model output is a *shortlist candidate*: "Exploratory shortlist only. External calibration remains unverified — proceed to further evidence collection and due diligence before any real decision."
+<!-- canonical:END screen-and-calibration -->
 
-Server starts at **http://localhost:3001**. Open that URL in your browser.
+## One shared analysis run
 
-### 4. Run the automated test suite
-
-```bash
-node tests/reit-tests.js
-```
-
-Every assertion should pass, and the run prints its own count rather than this
-file quoting one. There is a second suite for the data pipeline:
-
-```bash
-node data-pipeline/tests/dataPipeline.test.js
-```
-
----
-
-## Project structure
-
-```
-reit-target-demo/
-├── public/
-│   ├── index.html              # Single-page app shell (hash routing)
-│   ├── css/
-│   │   ├── styles.css          # Shared design tokens
-│   │   ├── m-app.css           # App layout primitives
-│   │   └── reit-components.css # REIT-specific component styles
-│   ├── data/
-│   │   ├── portfolio.json      # Synthetic REIT holdings
-│   │   ├── markets.json        # Synthetic market segments, DERIVED from observations.json
-│   │   ├── observations.json   # Observation-level simulated records (the source of truth)
-│   │   ├── statistics.json     # Build-time statistics for the Statistics page
-│   │   ├── observation-distribution.json  # Per-segment distribution summaries
-│   │   ├── meta.json           # GENERATED canonical counts and labels
-│   │   ├── agent-cache.json    # Pre-generated agent replies, scenario-keyed
-│   │   └── markets.csv         # CSV form, for import testing
-│   └── js/
-│       ├── appMeta.js          # CANONICAL counts and labels — derived, not typed
-│       ├── istTime.js          # IST date/time helpers (no Date() risk)
-│       ├── uiHelpers.js        # Toast, formatINRCr, DOM helpers, hash router
-│       ├── hhi.js              # HHI analytics engine (pure, no DOM)
-│       ├── scoringEngine.js    # Market scoring & ranking engine (pure, no DOM)
-│       ├── governance.js       # Evidence eligibility — a SEPARATE axis from score
-│       ├── filters.js          # Screener filter model (pure, unit-tested)
-│       ├── validator.js        # Deterministic input checks (replaced an agent)
-│       ├── scenarioKey.js      # Canonical scenario identity for the agent cache
-│       ├── stateManager.js     # Shared localStorage state (ReitState)
-│       ├── stats.js  charts.js  projection.js  dataCleaner.js
-│       ├── overview.js         # Executive Overview — the landing page
-│       ├── portfolio.js        # Portfolio Analysis page controller
-│       ├── marketScreen.js     # Market Screener page controller
-│       ├── diversification.js  # Diversification (HHI) page controller
-│       ├── dataCentre.js       # Data Centre page controller
-│       ├── statsDashboard.js   # Statistics page controller
-│       ├── report.js           # Decision Report page controller
-│       └── agents.js           # Agent Recommendations page controller
-├── server/
-│   ├── server.js               # Node.js Gemini proxy (zero npm dependencies)
-│   ├── package.json
-│   ├── .env.example            # Template — copy to .env, add your key
-│   └── .env                    # NOT committed (in .gitignore)
-├── tests/
-│   ├── reit-tests.js           # Application test suite (Node.js, no browser)
-│   └── fixtures/               # Evaluator CSV fixtures: one valid, one invalid
-├── docs/
-│   ├── architecture.md         # System design + Mermaid diagram
-│   ├── test-report.md          # Full test log with pass/fail table
-│   ├── limitations.md          # Academic limitations and caveats
-│   ├── ai-use-declaration.md   # How AI was used in this project
-│   ├── data-documentation.md   # Synthetic data schema and rationale
-│   ├── process-log.md          # Development decisions and rationale
-│   ├── prompt-design.md        # Gemini prompt engineering notes
-│   ├── project-report-draft.md # Full academic report draft
-│   ├── CANONICAL_FACTS.md      # GENERATED — the only place figures are stated
-│   ├── SOURCE_VERIFICATION_REPORT.md  # What was checked, and what was not
-│   ├── verification-evidence.md       # Record of the institution-name migration
-│   └── viva-guide.md           # Formula reference and Q&A prep
-├── .gitignore
-└── README.md
-```
-
----
-
-## How it works
-
-### Architecture
-
-```
-Browser (Vanilla JS SPA)
-  │
-  ├── hhi.js + scoringEngine.js    ← deterministic analytics (no AI)
-  │      Pure functions; unit-tested; no DOM, no fetch
-  │
-  ├── governance.js + filters.js   ← evidence eligibility and display filtering
-  │      Neither rescores nor reorders anything. Separate axes from the score.
-  │
-  ├── validator.js                 ← eight deterministic input checks
-  │      Gates the Orchestrator. No network, no API key, no quota.
-  │
-  ├── overview.js / portfolio.js / marketScreen.js / diversification.js /
-  ├── statsDashboard.js / dataCentre.js / agents.js / report.js
-  │      Page controllers; fetch JSON data; build DOM safely via textContent
-  │
-  └── fetch /api/agent  ──▶  server/server.js  ──▶  Gemini API
-           (POST JSON)        (Node stdlib only)      (HTTPS; key never reaches browser)
-```
-
-### Three things kept deliberately separate
-
-| Question | Answered by | Never affects |
-|---|---|---|
-| How attractive does a segment look? | the composite score (`scoringEngine.js`) | — |
-| Can the evidence carry a recommendation? | the evidence floor (`governance.js`) | any score or rank |
-| Which rows are on screen? | the filters (`filters.js`) | any score or rank |
-
-A rank shown anywhere in the application is always the rank within the full
-segment universe, so "rank 12" means the same thing on a filtered screen as it
-does in the report.
-
-### AI role and limits
-
-Gemini is used **only to interpret** the deterministic outputs:
-
-| Task | Who does it |
-|------|-------------|
-| HHI calculation | `hhi.js` (deterministic) |
-| Market ranking | `scoringEngine.js` (deterministic) |
-| Post-investment simulation | `hhi.js` (deterministic) |
-| Evidence eligibility | `governance.js` (deterministic) |
-| Input validation | `validator.js` (deterministic) |
-| Explaining *why* the top market scored highly | Gemini |
-| Interpreting HHI change in plain language | Gemini |
-| Final recommendation narrative | Gemini (Investment Orchestrator) |
-
-If Gemini is unavailable, all numerical analysis still works, including the
-checks that gate the recommendation. The page says plainly that there is no AI
-interpretation, and no fabricated text is inserted.
-
-**Validation is not an agent.** It was, in an earlier design. Every check it
-made — do the weights total 100%, are the scores within range, is the selected
-target present in the ranking, do the HHI figures reproduce — has exactly one
-correct answer that arithmetic establishes, so a model could get it wrong, and
-its verdict gated the recommendation. Those checks are now `validator.js`:
-deterministic, offline, reproducible, and they report the figures they
-compared.
-
----
+Every page renders a single object: the analysis run computed by
+`public/js/analysisRun.js`. It is recomputed deterministically from the persisted
+inputs — preset, exact weights, investment amount (by default 10% of the active
+portfolio's value), whether the screen is ignored, selection mode, manual target
+and display filters — together with the active portfolio (the sample, or the
+user's custom portfolio) and the data files. The run holds the full ranking (raw
+rank, eligible rank, simulation support and external calibration for every
+segment), the highest raw-score market, the shortlist candidate, the selected
+target, HHI before and after, the scenario projections, a sensitivity table for
+all four presets, the deterministic validation, the agent context and the
+scenario key. Any input change goes through `AnalysisRun.update()`, which saves
+the inputs (never the results), recomputes, and notifies every subscribed page in
+the same tick. In **automatic** mode the selected target is the shortlist
+candidate and follows every change. In **manual** mode the user's pick is kept,
+labelled "Manually selected target" on every page, flagged when it differs from
+the current candidate, and undone with "Return to automatic recommendation".
+Reset Demo on the Overview asks for confirmation, restores the defaults and
+recomputes at once. [docs/architecture.md](docs/architecture.md) explains the
+design and the cross-page defect it replaced.
 
 ## Pages
 
-| Page | Hash | Description |
-|------|------|-------------|
-| Executive Overview | `#overview` | The landing page: what the system is, what the current run concluded and on what evidence, where to look next, and what it must not be used for. Carries Reset Demo. |
-| Portfolio Analysis | `#portfolio` | The synthetic holdings; add/remove; concentration warning |
-| Market Screener | `#screener` | Every segment ranked by weighted score, with filters, the evidence floor, per-segment observation distributions, and CSV import |
-| Diversification (HHI) | `#diversification` | Before/after HHI simulation; sensitivity analysis |
-| Statistics | `#statsdash` | The whole observation-level dataset: distributions, correlation structure, regression, and anomaly-detection performance measured against known ground truth |
-| Agent Output | `#agents` | The Gemini agents, plus the deterministic checks that gate the recommendation |
-| Data Centre | `#datacentre` | Provenance, the cleaning pipeline, CSV import |
-| Decision Report | `#report` | The whole chain in one printable document |
+1. **Overview** (`#overview`) — what the system is, the current analysis, its comparison with the highest raw-score alternative or next eligible candidate, what it must not be used for, and Reset Demo.
+2. **Portfolio** (`#portfolio`) — the sample portfolio, or a custom portfolio the user builds (add, edit, delete).
+3. **Market Screener** (`#screener`) — presets, weight sliders, investment amount, screen override, manual selection, filters and each segment's simulated distribution.
+4. **Diversification** (`#diversification`) — HHI before and after for the selected target, raw-score and eligible-shortlist tables, sensitivity across all four presets (raw leader and candidate), projections.
+5. **Agent Output** (`#agents`) — the four agents, the deterministic checks that gate the Orchestrator, and the consistency check on every reply.
+6. **Data Centre** (`#datacentre`) — five data levels (portfolio holdings; market segment aggregates; simulated observation dataset; source/calibration register; data quality and cleaning results, with CSV import) and the System Check.
+7. **Statistics** (`#statsdash`) — descriptive statistics, sample adequacy, stratified correlation and Simpson's paradox, a limited regression, detection of the known synthetic anomalies, limitations and key findings.
+8. **Decision Report** (`#report`) — a printable record of the whole run; agent commentary is included only when it was produced for this exact run.
 
-Segment and holding counts are in
-[`docs/CANONICAL_FACTS.md`](docs/CANONICAL_FACTS.md), not here.
+## Agents and the deterministic gate
 
----
-
-## Security notes
-
-- `GEMINI_API_KEY` lives only in `server/.env`, which is git-ignored, along with
-  every `server/.env.*` variant
-- The key is never sent to the browser. `/api/health` reports only whether one
-  is configured, as a boolean
-- The server never logs the key's value
-- All user-supplied text is inserted via `textContent` (never `innerHTML`), and
-  the test suite fails on any non-empty `innerHTML` assignment in `public/js`
-- Static server has path-traversal protection
-- No secret appears in any generated document; the full git history has been
-  scanned blob by blob and contains none
-
----
-
-## Disclaimer
-
-This project was built for **academic assessment purposes only**. No part of it
-constitutes investment advice, financial analysis, or a regulated financial
-service. All data, figures, and AI-generated narratives are synthetic and
-should not be used for any real investment decision.
-
-*Submitted for NMIMS B.Sc. Finance | Business Analytics — September 2026*
-
----
-
-## Published version (no terminal needed)
-
-The browser application is deployed to GitHub Pages from `public/` on every
-push to `main`. Opening the published URL requires nothing installed.
-
-**What works on the published site**
-
-Everything deterministic: portfolio analysis, market screening, the scoring
-engine, HHI diversification simulation, projections, the statistics dashboard,
-and the decision report. All of it runs in the browser against committed data
-files.
-
-**What is different on the published site**
-
-The Gemini agents are reached through the Node proxy in `server/`, which is a
-server and therefore cannot run on GitHub Pages. The application detects the
-missing proxy and serves `public/data/agent-cache.json` instead — a captured
-run of the agents. Those cards are **labelled as pre-generated** on screen and
-are not live calls, and a cached reply is served only when the scenario on
-screen matches the stored one in every respect — the weights, the investment
-amount, the selected target, the portfolio and the dataset version. If any of
-those differ, the page shows the deterministic figures and says why there is no
-commentary, rather than displaying confident prose about a market the table no
-longer recommends.
-
-To get live agent calls, run the proxy locally (see Quick start above).
-
-### Regenerating everything
-
-The data pipeline is seeded and reproducible — the same commands always
-produce byte-identical output.
-
-```bash
-node data-pipeline/scripts/generateObservations.js            # observations + planted anomalies
-node data-pipeline/scripts/deriveMarkets.js                  # market aggregates, derived
-node data-pipeline/scripts/computeStatistics.js              # statistics.json for the dashboard
-node data-pipeline/scripts/buildObservationDistribution.js   # per-segment distributions
-node data-pipeline/scripts/buildMeta.js                      # meta.json + CANONICAL_FACTS.md
-node tests/reit-tests.js                                     # application suite
-node data-pipeline/tests/dataPipeline.test.js                # pipeline suite
+```
+Data & Statistical Analyst → Market Screening Analyst → Portfolio Risk & Scenario Analyst
+    → [validator.js: eight deterministic checks] → Investment Orchestrator
 ```
 
-To refresh the cached agent replies (needs a working API key):
+The agents never calculate, rank or validate. Each receives a context built
+deterministically by `AgentContext.fromRun()` (`public/js/agentContext.js`) with
+explicit fields — raw rank, eligible rank, highest raw-score market, shortlist
+candidate, selected target, selection mode, screen result and exact exclusion
+reasons, simulated observations, support grade, external calibration — and
+every figure supplied as a fixed-decimal string, so it is quoted at exactly the
+precision the interface shows. Each must reply in a strict JSON schema of prose fields only
+(`public/js/agentOutputCheck.js`), which the proxy passes to Gemini as
+`responseSchema`. `validator.js` runs in code before the Orchestrator and the
+Orchestrator is called only when every check passes. Every reply is then checked
+by `AgentOutputCheck.check()`: markets exist and are in the context, ranks,
+figures and exclusion reasons match, the dominant factor is the largest
+contribution, retired terms, evidence overclaims and field-name leakage are
+rejected, and the Orchestrator must name the selected target and state that
+calibration is unverified and due diligence is required. Headline figures on
+each card come from the context, never from the prose, and each card shows its
+check result. Prompts are in `server/server.js`; see
+[docs/prompt-design.md](docs/prompt-design.md).
+
+## Running it
+
+Requirements: Node.js 18 or later (no npm packages) and a modern browser. A
+Gemini API key is needed only for live mode.
+
+```bash
+git clone https://github.com/visheshjain0603-design/reit-target-ai.git
+cd reit-target-ai
+```
+
+### Static mode (no server, no key)
+
+Open the live site, or serve `public/` with any static file server, for example
+`python3 -m http.server 8080 --directory public`. Everything deterministic works.
+On Agent Output the proxy is not contacted: **Show Pre-generated Analysis**
+serves stored commentary from `public/data/agent-cache.json` only when the
+current run's scenario key matches a stored scenario exactly (each preset at its
+defaults), and the button then reads **Hide Pre-generated Analysis**. For any
+other configuration the page lists the inputs that differ and shows no
+commentary.
+
+### Live mode (local proxy with a Gemini key)
+
+```bash
+cp server/.env.example server/.env   # then set GEMINI_API_KEY in server/.env
+node server/server.js                 # then open http://localhost:3001
+```
+
+`server/.env` is git-ignored, along with every `server/.env.*` variant. Never
+commit a real key; if one is ever pushed, treat it as compromised and rotate it.
+Live calls are made only when the page is served by the proxy at
+http://localhost:3001. The key stays on the server; `/api/health` reports only
+whether one is configured.
+
+## Tests and rebuilding
+
+```bash
+node tests/reit-tests.js                        # application suite (Node, no browser)
+node data-pipeline/tests/dataPipeline.test.js   # data pipeline suite
+node data-pipeline/scripts/auditAnalytics.js    # independent re-derivation; exit code 0 when it agrees
+```
+
+Each suite prints its own count; see the latest run and
+[docs/test-report.md](docs/test-report.md). CI (`.github/workflows/tests.yml`)
+runs the two Node suites and checks that regenerating the observations from the
+fixed seed reproduces the committed data byte for byte. Browser acceptance
+checks that drive all eight routes through their own controls are in
+`tests/browserAcceptance.js` (run inside the application; instructions in its
+header), with a Playwright smoke test in `tests/browserSmokeTest.js`; neither
+runs in CI. `.github/workflows/pages.yml` publishes `public/` to GitHub Pages.
+Documents carry generated blocks and the test suite fails if a block, a parsed
+figure or a retired term is out of date.
+
+Rebuild the data (seeded and reproducible):
+
+```bash
+node data-pipeline/scripts/generateObservations.js          # simulated observations + known synthetic anomalies
+node data-pipeline/scripts/deriveMarkets.js                 # segment medians -> markets.json, observations.json
+node data-pipeline/scripts/computeStatistics.js             # statistics.json
+node data-pipeline/scripts/buildObservationDistribution.js  # observation-distribution.json
+node data-pipeline/scripts/buildMeta.js                     # meta.json, CANONICAL_FACTS.md, generated blocks
+```
+
+Rebuild the pre-generated agent commentary (needs the proxy and a key;
+`--dry-run` builds every scenario and calls nothing):
 
 ```bash
 node server/server.js &
 node data-pipeline/scripts/buildAgentCache.js
 ```
 
-Refresh the cache whenever the underlying data changes, or the cached
-commentary will describe a dataset that no longer exists.
+The builder computes each preset's run with the same `analysisRun.js`, checks
+every reply with `AgentOutputCheck.check()`, sends a failing reply back with the
+specific problems (up to two revisions), and writes nothing unless every reply
+for every preset passes.
 
-### A note on secrets
+## Documentation
 
-`server/.env` holds the Gemini API key and is git-ignored, along with any
-`server/.env.*` backup. Only `server/.env.example`, which contains a
-placeholder, is committed. Never commit a real key — if one is ever pushed,
-treat it as compromised and rotate it immediately at
-https://aistudio.google.com/app/apikey
+Code lives in `public/` (the browser application: `js/`, `data/`, `index.html`),
+`server/` (the local proxy), `data-pipeline/` (generator and build scripts) and
+`tests/`. The generated blocks in this README and the documents listed in
+`data-pipeline/scripts/canonicalBlocks.js` are refilled by `buildMeta.js`.
+
+- [docs/CANONICAL_FACTS.md](docs/CANONICAL_FACTS.md) — generated figures, preset results and terminology
+- [docs/architecture.md](docs/architecture.md) — system design, the shared analysis run, the agent layer
+- [docs/data-documentation.md](docs/data-documentation.md) — the synthetic dataset and its schema
+- [docs/SOURCE_VERIFICATION_REPORT.md](docs/SOURCE_VERIFICATION_REPORT.md) — what was checked against external sources, and what was not found
+- [docs/limitations.md](docs/limitations.md) — methodological and practical limitations
+- [docs/prompt-design.md](docs/prompt-design.md) — agent prompts, schemas and the output check
+- [docs/test-report.md](docs/test-report.md) — test suites and results
+- [docs/project-report-draft.md](docs/project-report-draft.md) — the academic report
+- [docs/viva-guide.md](docs/viva-guide.md) — formula reference and anticipated questions
+- [docs/process-log.md](docs/process-log.md) — development decisions
+- [docs/ai-use-declaration.md](docs/ai-use-declaration.md) — how AI tools were used
+- [docs/verification-evidence.md](docs/verification-evidence.md) — record of the reliability pass and institution-name migration
+- [data-pipeline/docs/](data-pipeline/docs/) — data methodology, data dictionary and the analytics audit
+
+## Limitations
+
+The data is synthetic, external calibration is Unverified for every segment, the
+simulation-support screen is a project convention, yields are gross, projections
+use flat rates, and the agents interpret but do not verify. The full list is in
+[docs/limitations.md](docs/limitations.md); the Agent Output page also lists the
+fixed limitations stated by `validator.js`. Built for academic assessment at
+NMIMS; no part of it is investment advice or a regulated financial service.

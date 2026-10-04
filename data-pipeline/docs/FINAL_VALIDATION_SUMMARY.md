@@ -2,7 +2,7 @@
 
 **NMIMS B.Sc. Finance | Business Analytics Project Theme 4 | Academic Demo**  
 **Audit completed:** 20 September 2026  
-**Auditor:** Claude (Cowork) acting on KJ's brief
+**Auditor:** Claude (Cowork) acting on Vishesh Jain's brief
 
 ---
 

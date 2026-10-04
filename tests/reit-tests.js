@@ -3807,6 +3807,196 @@ console.log("\n── T-160–T-166 Shared analysis run: acceptance tests ──
     /AppMeta\.sourceTypeLabel\(m\.sourceType\)/.test(dc));
   assert("T-166m", "the 1,000 sq ft columns are explained as normalised representative amounts",
     /normalised representative amounts/.test(dc));
+  var ec = bal.agentContext.externalCalibration;
+  assert("T-166n", "the agent context's calibration status is derived from every segment's register status",
+    ec.status === "Unverified" && ec.segmentsByStatus.Unverified === markets.length &&
+    ec.selectedTargetStatus === "Unverified" &&
+    /segmentsByStatus/.test(src("agentContext.js")) && !/status: "Unverified",/.test(src("agentContext.js")));
+}());
+
+console.log("\n── T-167–T-171 Documentation synchronisation and repository hygiene ──────");
+/*
+ * Structural drift detection. The earlier T-150 searched for eight exact stale
+ * strings and missed every variant, so documents went stale while the README
+ * said a test prevented it. These tests check, in order:
+ *   T-167  generated blocks: every listed document carries canonical blocks,
+ *          and each block equals what buildMeta.js renders from meta.json now;
+ *          meta.json itself matches a fresh computation by analysisRun.js
+ *   T-168  parsed claims: figures stated in prose (cities, agents, portfolio
+ *          value and rent, observation totals, authorship, clone path, test
+ *          counts) agree with meta.json
+ *   T-169  controlled glossary: retired terms do not appear in current-state
+ *          text (quoted terms and lines tagged [superseded] are exempt)
+ *   T-170  the documented application test count equals this run's count
+ *   T-171  no secret in any tracked file
+ */
+(function () {
+  var fs = require("fs");
+  var repo = path.join(__dirname, "..");
+  var Blocks = require(path.join(repo, "data-pipeline", "scripts", "canonicalBlocks.js"));
+  var AM = require(path.join(repo, "public", "js", "appMeta.js"));
+  var AR = require(path.join(repo, "public", "js", "analysisRun.js"));
+  var meta = JSON.parse(fs.readFileSync(path.join(repo, "public", "data", "meta.json"), "utf8"));
+  var rendered = Blocks.render(meta);
+
+  // ── T-167 ────────────────────────────────────────────────────────────────
+  Blocks.DOCUMENTS.forEach(function (rel, i) {
+    var p = path.join(repo, rel);
+    var text = fs.existsSync(p) ? fs.readFileSync(p, "utf8") : "";
+    var names = Blocks.names(text);
+    assert("T-167a" + (i + 1), rel + " carries at least one generated canonical block",
+      names.length > 0, "blocks: " + names.join(", "));
+    assert("T-167b" + (i + 1), rel + ": every generated block is current (run buildMeta.js if not)",
+      names.length > 0 && Blocks.fill(text, rendered) === text);
+  });
+  var facts = fs.readFileSync(path.join(repo, "docs", "CANONICAL_FACTS.md"), "utf8");
+  assert("T-167c", "CANONICAL_FACTS.md contains every current block",
+    Object.keys(rendered).every(function (k) { return facts.indexOf(rendered[k]) !== -1; }));
+  var D = canonicalRunData();
+  var fresh = AR.PRESET_KEYS.map(function (k) {
+    var r = AR.compute({ preset: k }, D);
+    return k + ":" + r.selectedTargetId + ":" + AR.selected(r).totalScore.toFixed(2) + ":" + r.scenarioKey;
+  }).join("|");
+  var stored = meta.presets.map(function (p) {
+    return p.key + ":" + p.candidate.marketId + ":" + p.candidate.score + ":" + p.scenarioKey;
+  }).join("|");
+  assert("T-167d", "meta.json preset results equal a fresh computation by analysisRun.js", fresh === stored, stored);
+  assert("T-167e", "meta.json counts equal the data files",
+    meta.counts.marketCount === D.marketsDoc.markets.length &&
+    meta.counts.observationCount === D.marketsDoc.markets.reduce(function (t, m) { return t + m.observationCount; }, 0) &&
+    meta.counts.assetCount === D.sampleAssets.length);
+
+  // Document set for T-168/T-169: every current document.
+  function md(dir) {
+    var d = path.join(repo, dir);
+    return fs.existsSync(d) ? fs.readdirSync(d).filter(function (f) { return /\.md$/i.test(f); })
+                                .map(function (f) { return path.join(dir, f); }) : [];
+  }
+  var docs = ["README.md", "HANDOFF.md"].concat(md("docs"), md("data-pipeline/docs"), md("tests/fixtures"))
+    .filter(function (rel) { return fs.existsSync(path.join(repo, rel)); })
+    .filter(function (rel) { return !/verification-evidence\.md$/.test(rel); });   // records the migration verbatim
+
+  function scan(rules) {
+    var hits = [];
+    docs.forEach(function (rel) {
+      var lines = fs.readFileSync(path.join(repo, rel), "utf8").split(/\r?\n/);
+      var inBlock = false;
+      lines.forEach(function (line, i) {
+        if (/<!-- canonical:BEGIN/.test(line)) { inBlock = true; }
+        if (/<!-- canonical:END/.test(line)) { inBlock = false; return; }
+        if (inBlock || line.indexOf("[superseded]") !== -1) { return; }
+        rules.forEach(function (r) {
+          var m = r.test(line);
+          if (m) { hits.push(rel + ":" + (i + 1) + " — " + (typeof m === "string" ? m : r.name)); }
+        });
+      });
+    });
+    return hits;
+  }
+  function pattern(name, re, ok) {
+    return { name: name, test: function (line) {
+      var g = new RegExp(re.source, re.flags.indexOf("g") === -1 ? re.flags + "g" : re.flags), m;
+      while ((m = g.exec(line)) !== null) {
+        if (!ok || !ok(m, line)) { return name + " (\u201C" + m[0] + "\u201D)"; }
+      }
+      return false;
+    } };
+  }
+  var c = meta.counts;
+  var WORDS = { two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
+  function n(x) { return WORDS[String(x).toLowerCase()] || parseInt(String(x).replace(/,/g, ""), 10); }
+
+  // ── T-168 ────────────────────────────────────────────────────────────────
+  var claimRules = [
+    pattern("city count", /\b(\d+|seven|eight|six|nine)\s+(?:target\s+|Indian\s+|portfolio\s+)?cities\b/i,
+      function (m, line) { return n(m[1]) === c.cityCount || /\b(of|in|across)\s+\d+\s+cities/.test(line) && n(m[1]) <= c.cityCount && !/\bdataset\b|\bcovers?\b|\bspans?\b/.test(line) || /portfolio/i.test(line) && n(m[1]) === 4; }),
+    pattern("agent count", /\b(\d+|four|five|six|three)\s+(?:Gemini\s+|AI\s+|language-model\s+)?agents\b/i,
+      function (m) { return n(m[1]) === c.agentCount; }),
+    pattern("segment count", /\b(\d+|eighteen)\s+market\s+segments\b/i,
+      function (m, line) { return n(m[1]) === c.marketCount || /\bof\s+50\b|\bof the 50\b|\bpass|\bfail|\bbelow|\bunder|\bfewer/i.test(line); }),
+    pattern("observation total", /\b(\d{1,2},\d{3}|\d{4})\s+(?:simulated\s+)?(?:market\s+)?observations\b/i,
+      function (m) { return n(m[1]) === c.observationCount; }),
+    pattern("portfolio value", /₹\s?(\d{3}(?:\.\d+)?)\s?Cr\b(?=[^.\n]{0,60}\b(?:portfolio|holdings|value)\b)/i,
+      function (m) { var v = parseFloat(m[1]); return Math.abs(v - c.portfolioValueCr) < 0.01 || v > 550; }),
+    pattern("portfolio rent", /₹\s?(\d{2}\.\d+)\s?Cr\b[^.\n]{0,30}\b(?:annual\s+)?rent/i,
+      function (m) { var v = parseFloat(m[1]); return Math.abs(v - c.portfolioRentCr) < 0.0006 || v > 34; }),
+    pattern("superseded portfolio figure", /₹\s?(450|31\.4)\s?Cr|\b6\.98\s?%/),
+    pattern("superseded author", /Student:\s*KJ|\bAuthor:\s*KJ\b|\bby KJ\b/),
+    pattern("superseded institution", /SPJIMR/),
+    pattern("placeholder clone path", /<repo-url>|cd reit-target-demo\b/),
+    pattern("superseded test count", /\b(374|516|529)\s+(?:assertions|passed|tests)\b/),
+    pattern("superseded page count", /\bfour analytical pages\b/i),
+    pattern("superseded recommendation", /\b(MKT-010|HITEC City)\b[^.\n]{0,40}\b(recommend|rank 1|top pick|winner)/i)
+  ];
+  var claimHits = scan(claimRules);
+  assert("T-168a", "no current document states a figure that contradicts meta.json",
+    claimHits.length === 0, "\n    " + claimHits.join("\n    "));
+  var readme = fs.readFileSync(path.join(repo, "README.md"), "utf8");
+  assert("T-168b", "the README's clone command uses the real repository and directory",
+    readme.indexOf("git clone " + AM.PROJECT.repoUrl + ".git") !== -1 && /cd reit-target-ai\b/.test(readme));
+  var report = fs.readFileSync(path.join(repo, "docs", "project-report-draft.md"), "utf8");
+  assert("T-168c", "the project report names the author from AppMeta and the institution",
+    report.indexOf(AM.PROJECT.author) !== -1 && /NMIMS/.test(report));
+
+  // ── T-169 ────────────────────────────────────────────────────────────────
+  var glossaryRules = AM.RETIRED_TERMS.map(function (rt) {
+    return pattern("retired term \u2192 " + rt.use, rt.pattern, function (m, line) {
+      var at = line.indexOf(m[0]);
+      var before = line.slice(Math.max(0, at - 2), at), after = line.slice(at + m[0].length, at + m[0].length + 2);
+      // A quoted or code-formatted term is being named, not used.
+      return /["“'`]$/.test(before) || /^["”'`]/.test(after) || /\b(retired|replaced|renamed|formerly|was called|no longer|never write|banned|rejects?|flag(s|ged)?)\b/i.test(line);
+    });
+  });
+  var glossaryHits = scan(glossaryRules);
+  assert("T-169a", "no current document uses retired terminology",
+    glossaryHits.length === 0, "\n    " + glossaryHits.join("\n    "));
+  var evidenceHits = scan([pattern("evidence claim", /\b(strong|robust|documented|adequate)\s+evidence\b/i, function (m, line) {
+    return /\b(not|no|never|without|retired|replaced)\b/i.test(line) || /["“'`]/.test(line.slice(Math.max(0, line.indexOf(m[0]) - 1), line.indexOf(m[0])));
+  })]);
+  assert("T-169b", "no current document presents simulation support as evidence",
+    evidenceHits.length === 0, "\n    " + evidenceHits.join("\n    "));
+
+  // ── T-171 ────────────────────────────────────────────────────────────────
+  var tracked = [];
+  try {
+    tracked = require("child_process").execSync("git ls-files", { cwd: repo, encoding: "utf8" })
+      .split("\n").filter(Boolean);
+  } catch (e) { tracked = []; }
+  if (tracked.length) {
+    assert("T-171a", "no .env file is tracked (only .env.example)",
+      !tracked.some(function (f) { return /(^|\/)\.env(\.|$)/.test(f) && !/\.env\.example$/.test(f); }));
+    var leaks = [];
+    tracked.forEach(function (f) {
+      if (/\.(png|jpe?g|gif|ico|pdf|woff2?)$/i.test(f)) { return; }
+      var p = path.join(repo, f);
+      if (!fs.existsSync(p) || fs.statSync(p).size > 5e6) { return; }
+      var t = fs.readFileSync(p, "utf8");
+      if (/AIza[0-9A-Za-z_\-]{30,}/.test(t) || /\bsk-[A-Za-z0-9]{24,}/.test(t) ||
+          /GEMINI_API_KEY\s*=\s*(?!your|<|\.\.\.|$|\s|")[A-Za-z0-9_\-]{16,}/m.test(t)) {
+        leaks.push(f);
+      }
+    });
+    assert("T-171b", "no tracked file contains an API key", leaks.length === 0, leaks.join(", "));
+  } else {
+    assert("T-171a", "git is available to list tracked files", false, "git ls-files failed");
+  }
+}());
+
+/* ── T-170  The documented test count is this run's count ──────────────────
+ * docs/test-report.md and HANDOFF.md state the application suite's result.
+ * This assertion counts itself, so the documented figure must equal the
+ * number of assertions in this file's run, all passing. */
+(function () {
+  var fs = require("fs");
+  var docsWithCount = ["docs/test-report.md", "HANDOFF.md"];
+  var total = passed + failed + docsWithCount.length;   // these assertions count themselves
+  docsWithCount.forEach(function (rel) {
+    var p = path.join(__dirname, "..", rel);
+    var t = fs.existsSync(p) ? fs.readFileSync(p, "utf8") : "";
+    var m = t.match(/node tests\/reit-tests\.js[^\n]*?\b(\d{3,4}) passed, 0 failed/);
+    assert("T-170-" + rel, rel + " states this run's application test count (" + total + " passed, 0 failed)",
+      !!m && parseInt(m[1], 10) === total && failed === 0, m ? m[0] : "no count found");
+  });
 }());
 
 console.log("\n══════════════════════════════════════════════════════════════════════════");

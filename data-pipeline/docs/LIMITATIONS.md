@@ -58,9 +58,9 @@ The demand and risk score formulas (see DATA_METHODOLOGY §6.5) are model constr
 
 ## 4. Pipeline Isolation Limitations
 
-### 4.1 Not Connected to Production Application
+### 4.1 Connection to the Production Application
 
-Generated data in `data-pipeline/generated/` is **not** imported by the Market Screener or any other application component. The 18-market production dataset in `public/data/markets.json` remains unchanged. Discrepancies between pipeline estimates and the production dataset are expected and intentional.
+The production dataset `public/data/markets.json` is now derived from the generator's version-2 observations (`data-pipeline/generated/observations.v2.json`): every statistical field is the median of that segment's simulated observations (`data-pipeline/scripts/deriveMarkets.js`). Current counts are in `docs/CANONICAL_FACTS.md`. The market universe and long-form estimates (`market_universe.csv`, `market_estimates_long.csv`) are inputs to the generator; the application does not read them directly.
 
 ### 4.2 Academic Use Only
 
@@ -80,8 +80,8 @@ Markets with `evidence_ready = False` (24 markets) have no directly reported dat
 
 - Do not compare absolute rent or price figures across property types without accounting for unit differences and local market context.
 - Gross yield derived here is a simple calculation; levered returns, transaction costs, and management fees are excluded.
-- The 2 000 simulated observations are draws from an assumed distribution — they are not historical transaction records. Treating them as empirical data would be methodologically incorrect.
-- Confidence grade E markets should be used only to illustrate data gaps, not to derive conclusions about those markets.
+- The simulated observations (count in `docs/CANONICAL_FACTS.md`) are draws from an assumed distribution — they are not historical transaction records. Treating them as empirical data would be methodologically incorrect.
+- Assumption Support Grade E markets should be used only to illustrate data gaps, not to derive conclusions about those markets.
 
 ---
 
@@ -115,10 +115,10 @@ Five groups of markets (11 markets total) had identical rent and capital value f
 **Remaining limitation:** Several market clusters still share identical scores in ALL five scoring dimensions (yield, growth, demand, risk) because the pipeline itself assigned identical values for these dimensions. Within-cluster tie-breaking uses ascending `marketId`, which has no economic meaning. Future pipeline versions should independently calibrate each market.
 
 ### 8.3 Uniform 12% Retail Yield (Resolved)
-New retail markets MKT-040 to MKT-045 originally had mechanically identical 12.00% gross yield (rent = price/100). Corrected to plausible ranges 7.0–8.2% based on JLL India Retail Outlook 2024. Confidence grade D.
+New retail markets MKT-040 to MKT-045 originally had mechanically identical 12.00% gross yield (rent = price/100). Corrected to plausible ranges 7.0–8.2% based on JLL India Retail Outlook 2024. Assumption Support Grade D.
 
 ### 8.4 Uniform 4.29% Residential Yield (Resolved)
-New residential markets MKT-046 to MKT-050 originally had identical 4.29% gross yield. Corrected to range 2.80–4.82% reflecting city-level residential yield differentials. Confidence grade D.
+New residential markets MKT-046 to MKT-050 originally had identical 4.29% gross yield. Corrected to range 2.80–4.82% reflecting city-level residential yield differentials. Assumption Support Grade D.
 
 ### 8.5 Global Min-Max Normalisation (Acknowledged, Not Changed)
 The scoring engine uses global (all-property-type) min-max normalisation. Residential markets with yields of 2.8–5.3% are penalised relative to commercial markets (8–10.4%) on the yield factor. This is architecturally correct for cross-type comparison but makes residential-vs.-residential rankings unreliable on yield alone. Documented but not changed to preserve backward compatibility.

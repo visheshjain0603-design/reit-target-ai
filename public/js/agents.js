@@ -391,6 +391,8 @@
 
     var tbl = el("table", "reit-context-table");
     tbl.setAttribute("aria-labelledby", h.id);
+    if (t) { tbl.setAttribute("data-target-id", t.marketId); }
+    tbl.setAttribute("data-selection-mode", run.selectionMode);
     var tb = document.createElement("tbody");
     items.forEach(function (item) {
       var tr = document.createElement("tr");
@@ -604,7 +606,8 @@
     if (res.check) {
       if (res.check.ok) {
         card.appendChild(el("p", "reit-check-ok",
-          "✓ Consistency check passed — every market, rank, figure and exclusion reason in this text matches the analysis."));
+          "✓ Consistency check passed — no market, rank, figure or exclusion reason in this text contradicts " +
+          "the analysis. The check finds specific kinds of error; it cannot prove the prose true."));
       } else {
         var warn = el("div", "reit-check-warn");
         warn.setAttribute("role", "note");

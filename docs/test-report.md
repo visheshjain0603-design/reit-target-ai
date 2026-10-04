@@ -1,206 +1,203 @@
 # Test Report — REIT Target AI
 
-> **On the `[superseded]` marker.** Lines in this document tagged
-> `[superseded]` record something that was true of an earlier revision of the
-> project and is not true now. They are kept deliberately: a log or a test
-> record edited to agree with the present is no longer evidence of what
-> happened. The current figures are in
-> [`CANONICAL_FACTS.md`](CANONICAL_FACTS.md), and the test suite fails on any
-> *unmarked* line that contradicts them.
+**REIT Target AI | NMIMS B.Sc. Finance | Business Analytics | Theme 4 — Building Agents/Artifacts Using Generative AI | Vishesh Jain**
 
-
-**NMIMS B.Sc. Finance | Business Analytics Project Theme 4 | Academic Demo**
-**Test run date:** 20 September 2026
-**Node.js version:** v22.23.2
-**Command:** `node tests/reit-tests.js`
-**Result: 373 PASSED, 0 FAILED**
+All data in this project is synthetic. The tests establish that the application
+computes, displays and explains its synthetic figures consistently. They do not,
+and cannot, establish that any figure describes a real market: external
+calibration is Unverified for every segment (`docs/SOURCE_VERIFICATION_REPORT.md`).
 
 ---
 
-## Automated test results
+## 1. The system under test
 
-| Test ID | Use case | Input | Expected | Actual | Result |
-|---------|----------|-------|----------|--------|--------|
-| T01a | Portfolio total value sums correctly | 10 synthetic assets | Sum of all `propertyValue` fields | Correct sum returned | ✅ PASS |
-| T01b | Portfolio total annual rent | 10 synthetic assets | Sum of all `annualRent` fields = ₹31.4 Cr | 314,000,000 | ✅ PASS |
-| T01c | Weighted yield formula | 10-asset portfolio | annualRent ÷ totalValue | Matches exactly | ✅ PASS |
-| T01d | Portfolio asset count | portfolio.json data | 10 assets | 10 | ✅ PASS |
-| T01e | Portfolio city count | portfolio.json data | 7 distinct cities | 7 | ✅ PASS |
-| T02a | HHI — perfect 4-way equality | 4 cities, equal value | 0.25 | 0.25 | ✅ PASS |
-| T02b | HHI — perfect 10-way equality | 10 cities, equal value | 0.10 | 0.10 | ✅ PASS |
-| T03a | HHI — single city (monopoly) | 1 city, 1 asset | 1.0 | 1.0 | ✅ PASS |
-| T03b | HHI — single type (monopoly) | 1 type, 1 asset | 1.0 | 1.0 | ✅ PASS |
-| T04a | simulateInvestment returns `before` | ₹10 Cr in Pune Baner | Object with metrics | Valid object | ✅ PASS |
-| T04b | simulateInvestment returns `after` | ₹10 Cr in Pune Baner | Object with metrics | Valid object | ✅ PASS |
-| T04c | simulateInvestment returns `newAsset` | ₹10 Cr in Pune Baner | Asset object | Valid object | ✅ PASS |
-| T04d | simulateInvestment returns `postAssets` | ₹10 Cr in Pune Baner | Array | Array | ✅ PASS |
-| T04e | postAssets has N+1 assets | 10-asset portfolio + 1 | 11 assets | 11 | ✅ PASS |
-| T04f | newAsset.propertyValue = investmentRs | ₹100,000,000 | 100,000,000 | 100,000,000 | ✅ PASS |
-| T04g | newAsset.assetId starts with "SIM-" | market MKT-004 | "SIM-MKT-004" | "SIM-MKT-004" | ✅ PASS |
-| T05a | New city investment improves HHI | Nagpur (not in portfolio) | `improved = true` | true | ✅ PASS |
-| T06a | Same heavy city does NOT improve HHI | ₹200 Cr into Mumbai | `improved = false` | false | ✅ PASS |
-| T07 | Valid balanced weights | Sum = 1.00 | `valid = true` | true | ✅ PASS |
-| T08 | Weights > 100% rejected | Sum = 1.10 | `valid = false` | false | ✅ PASS |
-| T09 | Weights < 100% rejected | Sum = 0.85 | `valid = false` | false | ✅ PASS |
-| T10 | Missing weight key rejected | No `riskWeight` | `valid = false` | false | ✅ PASS |
-| T11a | Low riskScore → higher total score | riskScore 10 vs 80 | Low-risk ranks first | Low-risk ranked #1 | ✅ PASS |
-| T11b | All market scores in [0, 100] | 2 risk-only markets | ∀ score ∈ [0, 100] | All in range | ✅ PASS |
-| T12 | Full ranking scores in [0, 100] | 9 sample markets | ∀ score ∈ [0, 100] | All in range | ✅ PASS |
-| T13 | normalise(7, 7, 7) = 50 | min=max=7, value=7 | 50 | 50 | ✅ PASS |
-| T14 | grossYield formula | capital=10000, rent=75 | (75×12)/10000 = 0.09 | 0.09 | ✅ PASS |
-| T15a | rankMarkets output is sorted descending | 9 markets, balanced weights | Scores descending | Confirmed sorted | ✅ PASS |
-| T15b | ranked.length ≤ markets.length | 9 valid markets | ≤ 9 | 9 | ✅ PASS |
-| T16a | Scores change between weight presets | Balanced vs Income Focused | At least one score differs > 0.01 | Multiple scores differ | ✅ PASS |
-| T16b | Income preset has higher yieldWeight | PRESETS structure | incomeFocused.yieldWeight > balanced.yieldWeight | 0.45 > 0.30 | ✅ PASS |
-| T17 | Duplicate marketId rejected | MKT-001 appears twice | `valid = false`, `duplicateIds` populated | false, ["MKT-001"] | ✅ PASS |
-| T18a | Market missing required fields rejected | Only marketId + city | `valid = false` | false | ✅ PASS |
-| T18b | Market with negative capital value rejected | `medianCapitalValuePerSqFt = -500` | `valid = false` | false | ✅ PASS |
-| T19a | sensitivityAnalysis returns 3 scenario keys | 9 markets, 10 assets | 3 keys | 3 (incomeFocused, growthFocused, diversFocused) | ✅ PASS |
-| T19b | `incomeFocused` key present | sensitivityAnalysis result | Key exists | Exists | ✅ PASS |
-| T19c | Each scenario has `top3` array | 3 scenarios | Array | Array | ✅ PASS |
-| T19d | Each scenario top3 is populated | 9 valid markets | Length ≥ 1 | 3 markets each | ✅ PASS |
-| T20a | New city scores higher than existing city | Nagpur vs Mumbai | newCity > mumbai | 100 > ~51 | ✅ PASS |
-| T20b | diversificationScore in [0, 100] | Both new and existing city | ∀ score ∈ [0, 100] | Both in range | ✅ PASS |
-| T21a | simulateInvestment(assets, mkt, 0) = null | investmentRs = 0 | null | null | ✅ PASS |
-| T21b | simulateInvestment works for Rs 1 | investmentRs = 1 | Valid result | Valid object | ✅ PASS |
-| T22 | weightedYield = totalRent/totalValue | Two equal-value assets, yields 6% + 8% | 7% | 0.07 | ✅ PASS |
-| T23a | cityAllocation does not throw on XSS | `<script>alert(1)</script>` as city | No exception | No exception | ✅ PASS |
-| T23b | XSS city treated as plain string key | `<script>…</script>` | Key exists, share is number | Confirmed | ✅ PASS |
-| T23c | HHI correct with XSS city name | 2 cities (XSS + legitimate) | 0.5 | 0.5 | ✅ PASS |
-| T24a | Reduced cityHHI → improved = true | before=0.30, after=0.25 | true | true | ✅ PASS |
-| T24b | Increased typeHHI → improved = false | before=0.40, after=0.45 | false | false | ✅ PASS |
-| T24c | Increased yield → improved = true | before=0.062, after=0.065 | true | true | ✅ PASS |
-| T24d | cityHHI delta = after − before | before=0.30, after=0.25 | −0.05 | −0.05 | ✅ PASS |
-| T25a | totalValue([]) = 0 | Empty array | 0 | 0 | ✅ PASS |
-| T25b | totalAnnualRent([]) = 0 | Empty array | 0 | 0 | ✅ PASS |
-| T25c | cityHHI([]) = 0 | Empty array | 0 | 0 | ✅ PASS |
-| T25d | weightedYield([]) = 0 | Empty array | 0 | 0 | ✅ PASS |
-| T26–T35 | (Earlier agent/state tests, now incorporated into T36–T45 below) | — | — | — | ✅ PASS |
-| T36 | AGENT_ORDER correctness | Read agents.js source | marketScreening before validation in array | Confirmed | ✅ PASS |
-| T37 | canRun logic | online=true, gemini=true, running=false | canRun = true | true | ✅ PASS |
-| T38 | TRAIL_STEPS order | agents.js source | portfolio → screening → simulation → validation → recommend | Confirmed | ✅ PASS |
-| T39 | Shared state schema round-trip | All 13 required fields saved and loaded | All 13 fields preserved | All 13 present | ✅ PASS |
-| T40 | markStale / isStale lifecycle | Save → markStale → save again | Stale flag set then cleared on new save | Confirmed | ✅ PASS |
-| T41 | AI error fallback text in agents.js | agents.js source | "AI explanation unavailable", "offline: true", validatedOk gate, orchestrator skip text | All present | ✅ PASS |
-| T42 | GEMINI_API_KEY absent from public JS | All files under public/js/ | No hardcoded key, no googleapis.com hostname | None found | ✅ PASS |
-| T43 | No non-empty innerHTML assignments in public JS | All files under public/js/ | innerHTML never set to non-empty string | None found | ✅ PASS |
-| T44 | server.js validation prompt has all four checks | server.js source | weightCheck, scoreRangeCheck, targetExists, hhiConsistency, validatedOk all present | All present | ✅ PASS |
-| T45 | server.js orchestrator prompt has expanded schema | server.js source | selectedTarget, cityHHIEffect, assetTypeHHIEffect, whyTopRanked, syntheticDisclaimer, validatedOk=true gate | All present | ✅ PASS |
+The figures below are generated from `public/data/meta.json`; the tests check the
+application against the same data.
 
-| T78a | agents.js: AGENT_ORDER contains all 6 agents | agents.js source | dataQuality, statisticalAnalysis, marketScreening, diversification, validation, orchestrator all present | All 6 present | ✅ PASS (recorded against the six-agent design) [superseded] |
-| T78b | agents.js: portfolioAnalysis removed from AGENT_ORDER | agents.js source | String not present | Absent | ✅ PASS |
-| T78c | agents.js: TRAIL_STEPS has 6 step ids | agents.js source | data, stats, screening, simulation, validation, recommend | 6 ids found | ✅ PASS |
-| T78d | agents.js: checkServerStatus uses /api/health | agents.js source | /api/health present, /api/status absent | Confirmed | ✅ PASS |
-| T78e | agents.js: buildContext calls Stats.portfolioStats | agents.js source | Stats.portfolioStats call present | Confirmed | ✅ PASS |
-| T78f | agents.js: runSequence calls dataQuality and statisticalAnalysis | agents.js source | Both callAgent calls present | Confirmed | ✅ PASS |
-| T78g | agents.js: orchCtx includes statisticalAnalysisOutput | agents.js source | Field present in orchCtx | Confirmed | ✅ PASS |
-| T78h | agents.js: validCtx includes dataQualityOutput from state | agents.js source | dataQualityOutput: state.results.dataQuality | Confirmed | ✅ PASS |
----
-
-| T79a | Projection: post-investment value | Existing ₹500 Cr + investment ₹100 Cr | ₹600 Cr (6,000,000,000 Rs) | Correct | ✅ PASS |
-| T79b | Projection: post-investment gross rent | Existing ₹33.275 Cr + new ₹9.14 Cr | ₹42.415 Cr | Correct | ✅ PASS |
-| T79c | Projection: all scenarios share year-0 value | 3 scenarios, same base | Identical v0 across all | Confirmed | ✅ PASS |
-| T79d | Projection: occupancy-adjusted rent < gross rent | Any scenario, year 1 | Adj < Gross | Confirmed | ✅ PASS |
-| T79e | Projection: summarise() returns expected keys | Any valid params | keys: scenarios, params, note | All present | ✅ PASS |
-| T80a | ScoringEngine: contributions sum = totalScore | 9 sample markets | Σ contributions ≈ totalScore (±0.01) | All match | ✅ PASS |
-| T80b | ScoringEngine: weights sum to 100% | balanced preset | Σ weights = 1.0 | 1.0 | ✅ PASS |
-| T80c | ScoringEngine: ranks are sequential 1..N | 9 markets ranked | rank 1 to 9 | Confirmed | ✅ PASS |
-| T80d | ScoringEngine: scores descending | 9 markets ranked | score[i] ≥ score[i+1] | Confirmed | ✅ PASS |
-| T81a | Tie-breaking: AAA-001 before ZZZ-999 when tied | Identical scores | AAA-001 rank < ZZZ-999 rank | Confirmed | ✅ PASS |
-| T81b | Tie-breaking: scores are equal | Same tied markets | totalScore equal | Confirmed | ✅ PASS |
-| T81c | Tie-breaking: stable across input order | Reversed input order | Same winner | AAA-001 wins both | ✅ PASS |
-| T82a | State schema: annualRentCr in stateManager.js | Source scan | Field present in schema comment | Found | ✅ PASS |
-| T82b | State pipeline: annualRentCr in marketScreen.js | Source scan | Written to ReitState.save() | Found | ✅ PASS |
-| T82c | State pipeline: annualRentCr in diversification.js | Source scan | Read from state | Found | ✅ PASS |
-| T82d | State pipeline: annualRentCr in report.js | Source scan | Read from state | Found | ✅ PASS |
-| T83a | Report: NMIMS metadata | report.js source | "NMIMS" present | Found | ✅ PASS |
-| T83b | Report: author attribution | report.js source | "Vishesh Jain" present | Found | ✅ PASS |
-| T83c | Report: descriptive target name | report.js source | rm.locality present (locality+city lookup) | Found | ✅ PASS |
-| T83d | Report: composite score row | report.js source | "Target Composite Score" present | Found | ✅ PASS |
-| T83e | Report: weight preset label | report.js source | "Weight Preset" present | Found | ✅ PASS |
-| T83f | Report: subtitle text | report.js source | "B.Sc. Finance" in subtitle | Found | ✅ PASS |
-| T84a | Scoring: tie-break comment in source | scoringEngine.js | "Tie-break" comment present | Found | ✅ PASS |
-| T84b | Scoring: marketId in sort | scoringEngine.js | marketId referenced in sort comparator | Found | ✅ PASS |
-| T85a | CSV: valid row → status ok | Row with all required fields | status = "ok" | Confirmed | ✅ PASS |
-| T85b | CSV: lakh/crore notation parsed | "50L" and "5Cr" values | Converted to numeric | Confirmed | ✅ PASS |
-| T85c | CSV: sq-m area conversion | area in sq-m, flag sqm=true | Converted to sq-ft | Confirmed | ✅ PASS |
-| T85d | CSV: duplicate detection | MKT-DUP appears twice | Second marked duplicate | Confirmed | ✅ PASS |
-| T85e | CSV: outlier flagged, row retained | Price 100× median | status "outlier", still in output | Confirmed | ✅ PASS |
-| T85f | CSV: zero price → rejected status, row retained | Price = 0 | status "invalid", row in output | Confirmed | ✅ PASS |
-| T85g | CSV: missing required column | No medianCapitalValuePerSqFt | validateColumns fails | Confirmed | ✅ PASS |
-| T85h | CSV: record count invariant | 6 input rows | output.length = 6 (no silent deletion) | 6 | ✅ PASS |
-
-## Manual test checklist
-
-The following tests require a running browser and/or server. Screenshots to be taken for viva preparation.
-
-| Test ID | Test | Steps | Expected | Screenshot |
-|---------|------|-------|----------|------------|
-| M01 | Portfolio page loads | Open http://localhost:3001/#portfolio | 10 holdings table rendered, total ₹450 Cr displayed | screenshot-portfolio.png | [superseded]
-| M02 | Portfolio add asset | Click "Add Asset", fill form, save | New row appears, totals update | screenshot-add-asset.png |
-| M03 | Portfolio delete asset | Click delete on any asset | Confirm dialog; row disappears; totals update | screenshot-delete-asset.png |
-| M04 | Market Screener loads | Navigate to #screener | Rankings table with 18 segments, score breakdown expandable | screenshot-screener.png | [superseded]
-| M05 | Weight slider interaction | Move yield slider to 40% | Rankings update in real-time, other weights adjust | screenshot-weights.png |
-| M06 | CSV import | Import markets.csv | Table refreshes with imported data, "CSV loaded" toast shown | screenshot-csv-import.png |
-| M07 | Market selection | Click "Select" on top market | Navigates to Diversification page, market shown | screenshot-select-market.png |
-| M08 | Diversification before/after | View Diversification page after selecting market | Before and after HHI cards; colour-coded improved/worsened | screenshot-diversification.png |
-| M09 | Diversification print | Click "Print" | Print preview opens | screenshot-print.png |
-| M10 | Download CSV | Click "Download Top-3 CSV" | CSV file downloads with 3 rows | screenshot-download-csv.png |
-| M11 | Agent run with server | Start server, navigate to Agent Output, click "Run" | 5-step trail animates; agent cards appear | screenshot-agents-running.png |
-| M12 | Agent fallback (no server) | Stop server, refresh Agent Output, click "Run" | "AI explanation unavailable" shown; deterministic data still displayed | screenshot-agents-fallback.png |
-| M13 | No-JS mode | Disable JS in browser, reload | All four sections stack vertically, banner shown | screenshot-no-js.png |
-| M14 | XSS safety | In Add Asset form, type `<img src=x onerror=alert(1)>` as asset name | Name appears as plain text in table, no alert fires | screenshot-xss.png |
-| M15 | Mobile layout | Resize browser to 375px width | Sidebar collapses to top; no horizontal scroll | screenshot-mobile.png |
+<!-- canonical:BEGIN key-figures -->
+| Fact | Value |
+|---|---|
+| Market segments | 50 across 8 cities and 3 property types |
+| Simulated market observations | 2,156 (26–76 per segment) |
+| Sample portfolio | 10 holdings, ₹500.00 Cr value, ₹33.275 Cr annual rent, 6.655% weighted gross yield |
+| Default investment | ₹50.00 Cr (10% of the sample portfolio) |
+| Gemini agents | 4 (Data & Statistical Analyst; Market Screening Analyst; Portfolio Risk & Scenario Analyst; Investment Orchestrator) |
+| Weight presets | 4 (Balanced, Income Focused, Growth Focused, Diversification Focused) |
+| Simulation-support screen | at least 30 simulated observations and Assumption Support Grade C or better — 25 of 50 segments pass |
+| External calibration | 0 of 12 cited external sources verified; all 50 segments Unverified |
+| Known synthetic anomalies | 24 (1.113% of observations) |
+| Generator / seed / data as of | 2.0.0 / 20260919 / 2026-09-19 |
+| Institution and author | NMIMS B.Sc. Finance, Business Analytics — Vishesh Jain |
+<!-- canonical:END key-figures -->
 
 ---
 
-## Known limitations covered by tests
+## 2. How to run each suite
 
-- T13: min=max edge case (all markets identical yield) returns neutral score of 50
-- T21a: zero investment guards against division by zero in HHI delta
-- T23: XSS strings in data never reach DOM as markup
+No suite needs `npm install`: every script uses only the Node standard library or
+the browser.
+
+| Suite | Command | Covers | Run by CI |
+|---|---|---|---|
+| Application suite | `node tests/reit-tests.js` | Engines, data files, shared analysis run, agent context, output checker, pre-generated cache, page modules (source assertions), documentation drift | Yes |
+| Data pipeline suite | `node data-pipeline/tests/dataPipeline.test.js` | 22 checks (T-01 to T-22) on the semi-synthetic pipeline: its input registers (sources, evidence, assumptions, market universe, long-form estimates), the first-generation observation files and generation log (seed, PRNG reproducibility, derived-yield formula, value ranges), and the generator's isolation from application code. The version-2 observations from which `markets.json` is derived are covered by T-149b, T-153 and the CI reproducibility step | Yes |
+| Analytics audit | `node data-pipeline/scripts/auditAnalytics.js` | Recomputes every headline financial figure by a separate route — portfolio aggregates, both HHI figures, normalisation ranges, composite scores, contribution sums, every projection point — and compares it with the engines; exits non-zero on any disagreement and rewrites `data-pipeline/docs/ANALYTICS_AUDIT.md` | No (run by hand; the application suite checks that the script and its report exist, T-158k) |
+| Browser acceptance | `tests/browserAcceptance.js`, run inside the application in a browser (§2.2) | Rendered pages of all eight routes, driven through the application's own controls | No (run by hand) |
+| Reproducibility | CI step: regenerate the observations from the fixed seed and compare with the committed file | Byte-identical regeneration of `data-pipeline/generated/observations.v2.json` | Yes |
+
+### 2.1 Application suite
+
+```bash
+node tests/reit-tests.js
+```
+
+The suite prints one `PASS` or `FAIL` line per assertion, prints a results line,
+lists every failure at the end, and exits with status 1 if anything failed.
+
+Latest full run, 4 October 2026: `node tests/reit-tests.js` → "Results: 661 passed, 0 failed" (also recorded in HANDOFF.md). Assertion T-170 fails if this line and the live count ever disagree.
+
+### 2.2 Browser acceptance
+
+1. Serve the **repository root** (not `public/`) with any static server, for
+   example `python3 -m http.server 8778`, and open
+   `http://localhost:8778/public/index.html`. Serving the root lets the script
+   fetch the CSV fixtures in `tests/fixtures/`.
+2. In the browser console:
+   ```js
+   const s = await (await fetch("../tests/browserAcceptance.js")).text();
+   (0, eval)(s);
+   const r = await runAcceptance();   // r.summary, r.results
+   ```
+3. Repeat at about 390 px wide with `runAcceptance({ mobile: true })` for the
+   overflow checks.
+
+The script clears the application's own storage keys before it starts and ends
+with Reset Demo, so it leaves the canonical state behind. Served this way the page
+is in static mode, so the pre-generated-commentary checks (CACHE-1 to CACHE-8) run;
+when the page is served by the live proxy they are replaced by a single CACHE-LIVE
+note. `tests/browserSmokeTest.js` is an older Playwright script with a
+machine-specific Chromium path; it is not part of the acceptance run.
+
+### 2.3 Continuous integration
+
+`.github/workflows/tests.yml` runs on every push to `main`, on pull requests and on
+manual dispatch, on Ubuntu with Node 20. Its steps: the application suite, the data
+pipeline suite, and the reproducibility check (copy the committed
+`observations.v2.json`, rerun `generateObservations.js`, and fail if the regenerated
+file differs). No API key is available in CI, so no live Gemini call is ever tested
+there; the stored replies in `public/data/agent-cache.json` are checked instead.
 
 ---
 
-*Automated suite: `node tests/reit-tests.js` | 373 automated tests | Academic demonstration only*
+## 3. What the application suite covers
+
+Test identifiers are grouped by theme. Each identifier has several lettered
+assertions (for example T-160a to T-160s).
+
+| Identifiers | Theme |
+|---|---|
+| T01–T03 | Portfolio totals and basic HHI (equal shares, single-city monopoly) |
+| T04–T06 | `simulateInvestment`: returned structure, a new city lowers city HHI, a large same-city investment does not |
+| T07–T10 | Weight validation: valid presets, totals above or below 100%, missing factor |
+| T11–T14 | Scoring internals: low risk scores higher, scores within 0–100, normalisation of a constant factor returns 50, gross-yield formula |
+| T15–T16 | Ranking order and preset sensitivity of scores |
+| T17–T19 | Market validation (duplicates, missing fields) and the engine's sensitivity analysis |
+| T20–T22 | Diversification scoring, zero investment, weighted yield |
+| T23 | Engine-level XSS safety of city names |
+| T24–T25 | `compareMetrics` direction flags and empty-portfolio totals |
+| T26–T35 | Preset weights, state save/load/reset, finite HHI deltas and scores |
+| T36–T45 | Agents and server: four agents in the roster, run gating, trail steps, migration of an older saved state, scenario key changes with the investment amount, fallback wording, no API key or Google API host in browser code, no unsafe `innerHTML`, four server prompts and no validation prompt, Orchestrator schema |
+| T46–T65 | Navigation markup; CSV cleaning (Indian number formats, unit conversion, required columns, impossible values, duplicates, IQR outliers, parser, template); projection engine (scenarios, compounding, summaries, zero investment); `markets.json` structure |
+| T66–T77 | Statistics engine: primitives, gross yield, portfolio, city and segment statistics, bootstrap median CI, outlier summary, formatting, seeded PRNG determinism, exported constants |
+| T78–T85 | `agents.js` structure (four agents, trail including the deterministic step, `/api/health`, context from the shared run), projection worked example, contributions sum to the composite score, deterministic tie-breaking, projection rent taken from the run, Decision Report fixes, CSV fixture battery |
+| T-100–T-148 | Data quality of `markets.json`: score ranges, Assumption Support Grade and locality class present and valid, data classification, uncertainty bounds monotone with a stated basis, plausible yields by property type, no template-copied yields, presets valid, source and assumption IDs, register files present |
+| T-149 | Canonical metadata: every headline count derived from the data files, `meta.json` matches a fresh derivation and carries no timestamp, methodology versions agree |
+| T-150 | Documentation drift: no document states a superseded figure except on a line marked `[superseded]`; `CANONICAL_FACTS.md` is marked as generated; no source file names the wrong institution |
+| T-151 | Simulation-support screen: thresholds of 30 simulated observations and grade C, eligibility rules, every failure reason stated, no score or rank changed by the screen, override recorded |
+| T-152 | Screener filters: combinable, reversible, rank-preserving, explain an empty result |
+| T-153 | Observation distribution: per-segment counts and medians match `markets.json`, histograms and quantiles consistent, records named "simulated market observations" |
+| T-154 | Decision Report reads `totalScore`, states commentary provenance, deterministic checks, simulation support and external calibration separately |
+| T-155 | Overview is the default route; Reset Demo uses an explicit confirmation panel and resets through `AnalysisRun.reset()` |
+| T-156 | Evaluator CSV fixtures: the valid file is fully accepted, every row of the invalid file is rejected with a reason |
+| T-157–T-158 | Financial baseline computed the way the application computes it; projection arithmetic (year-0 position, compounding, gross versus occupancy-adjusted yield); analytics audit present |
+| T-159 | Source register honesty: no source marked Verified, statuses recorded, pre-verification register kept, report states its findings, dataset unchanged |
+| T-160 | Agent context vocabulary and precision; pre-generated cache format, keys and per-preset scenarios; every stored reply passes the output checker; the scenario key changes with every relevant input; the checker rejects each defect found in the first cache build |
+| T-161 | System Check: ten checks, all passing on the canonical data, each reporting expected and actual values, no probe key left behind, production field names and entry points, analysis state never written, a broken engine fails visibly |
+| T-162 | Cross-page synchronisation for all four presets: ranking order, automatic selection, HHI, projection rent, agent context, validator and scenario key all describe the same target; each page module renders the shared run and computes no target itself; Diversification tables and sensitivity come from the run |
+| T-163 | Automatic versus manual selection: manual choice honoured even when it fails the screen, flagged when it differs from the candidate, labelled "Manually selected target", kept across a preset change, return to automatic |
+| T-164 | Reset Demo restores Balanced, canonical weights, ₹50 Cr, screen applied, automatic selection, no filters, and recomputes at once |
+| T-165 | Decision Report: separate raw-score and eligible-shortlist tables with raw rank, eligibility, support grade, simulated observations, external calibration and exclusion reason; model candidate and manual target labelled separately; agent commentary printed only for its own run |
+| T-166 | External calibration taken only from the source register; no page or module justifies the 30-observation threshold by a normal approximation or describes grade C as evidence; the screen described as a project convention; Data Centre five levels and the micro-market CI unit; plain labels for source types |
+| T-167 | Generated documentation blocks: every listed document carries canonical blocks and each equals what `buildMeta.js` renders from `meta.json`; `CANONICAL_FACTS.md` contains every block; `meta.json` preset results and counts equal a fresh computation |
+| T-168 | Figures stated in prose (city, agent and segment counts, observation totals, portfolio value and rent, authorship, institution, clone path, test counts, superseded recommendations) agree with `meta.json`; generated blocks and lines marked `[superseded]` are exempt |
+| T-169 | No current document uses retired terminology or presents simulation support as evidence (quoted terms and `[superseded]` lines exempt) |
+| T-170 | This report and `HANDOFF.md` state the application suite's own count for the run |
+| T-171 | No `.env` file is tracked and no tracked file contains an API key |
 
 ---
 
-## Automated tests added in v2.0 (T-100 to T-129)
+## 4. Browser acceptance checks (`tests/browserAcceptance.js`)
 
-*30 new tests added 20 September 2026 as part of Stage 7 of the 12-stage data-quality audit.*
+| Check IDs | What is verified in the rendered pages |
+|---|---|
+| R-*route*, A11Y-hidden-*route* | Each of the eight routes renders content; only the active page is exposed, the others are hidden and inert |
+| MOBILE-*route* | No horizontal page overflow at the mobile width (mobile run only) |
+| RESET-1 to RESET-5 | Reset Demo confirmation panel; Cancel changes nothing; reset restores the defaults; the Overview immediately shows a valid candidate at ₹50.00 Cr; focus lands on the current analysis |
+| SYNC-*preset*-target, -candidate, -projection, -rent, -top3, -report | For each of the four presets, clicked on the Screener: Overview, Screener, Diversification, Agents and Report name the same target; it is the shortlist candidate; Diversification and Report show identical projections; year-0 rent uses the target's own yield; the raw-score table is the active preset's; the Report shows both tables |
+| MANUAL-1 to MANUAL-4 | A manual selection reaches every page labelled manual; the Overview says "Manually selected target"; after a preset change the target is kept and a warning names the new candidate; Return to automatic restores the candidate |
+| CACHE-1 to CACHE-8 (static mode) or CACHE-LIVE | Matching pre-generated analysis offered; four cards labelled as stored text, each passing the consistency check; button reads "Hide Pre-generated Analysis"; Report prints the commentary with provenance; changing the amount rejects the stored analysis and names the reason; the Report drops it; restoring ₹50 Cr makes it available again |
+| SYSCHECK, SYSCHECK-state | All ten System Check results pass; running it does not change the analysis |
+| CSV-1, CSV-2 | The valid fixture is accepted; every row of the invalid fixture is rejected or warned with a stated reason |
+| FOCUS-1, FOCUS-2 | Focus moves into the Add Asset form and returns to its opener on Escape |
+| A11Y-tables | Every principal table has a caption or an accessible name |
 
-| Test ID | Use case | Input | Expected | Actual | Result |
-|---------|----------|-------|----------|--------|--------|
-| T-100 | No market has riskScore=0 | All 50 markets | `zeros.length === 0` | 0 markets with riskScore=0 | ✅ PASS |
-| T-101 | All markets have confidenceGrade | All 50 markets | Every market has the field | Present on all 50 | ✅ PASS |
-| T-102 | confidenceGrade is A–E | All 50 markets | Value in {A,B,C,D,E} | All valid | ✅ PASS |
-| T-103 | All markets have localityClass | All 50 markets | Every market has the field | Present on all 50 | ✅ PASS |
-| T-104 | localityClass is a known value | All 50 markets | Known set of locality types | All valid | ✅ PASS |
-| T-105 | All markets have dataClassification | All 50 markets | Field present and non-empty | Present on all 50 | ✅ PASS |
-| T-106 | All markets have uncertainty object | All 50 markets | `uncertainty` key exists | All 50 | ✅ PASS |
-| T-107 | uncertainty.riskScore.lower ≤ central | All 50 markets | `lower ≤ central` | Confirmed | ✅ PASS |
-| T-108 | uncertainty.riskScore.central ≤ upper | All 50 markets | `central ≤ upper` | Confirmed | ✅ PASS |
-| T-109 | uncertainty.grossYieldPct.lower ≤ upper | All 50 markets | `lower ≤ upper` | Confirmed | ✅ PASS |
-| T-110 | All markets have sourceIds array | All 50 markets | Array, length ≥ 1 | Confirmed | ✅ PASS |
-| T-111 | Retail yield not uniformly 12.00% | MKT-040 to MKT-045 | Not all 12% | Distinct yields | ✅ PASS |
-| T-112 | No riskScore is negative | All 50 markets | `riskScore >= 0` | Confirmed | ✅ PASS |
-| T-113 | No riskScore exceeds 100 | All 50 markets | `riskScore <= 100` | Confirmed | ✅ PASS |
-| T-114 | All 50 markets count | markets.json | 50 markets | 50 | ✅ PASS |
-| T-115 | Market IDs are unique | All 50 markets | No duplicates | 0 duplicates | ✅ PASS |
-| T-116 | Retail market yields are not uniform | MKT-040 to MKT-045 | Yield spread > 0 | Spread > 0 | ✅ PASS |
-| T-117 | Residential market yields are not uniform | MKT-046 to MKT-050 | Yield spread > 0 | Spread > 0 | ✅ PASS |
-| T-118 | All markets have methodologyNote | All 50 markets | String field present | Confirmed | ✅ PASS |
-| T-119 | All markets have assumptionIds array | All 50 markets | Array, length ≥ 1 | Confirmed | ✅ PASS |
-| T-120 | Scoring engine accepts all 50 markets | 50-market input | No validation error | `valid = true` | ✅ PASS |
-| T-121 | rankMarkets returns ranked object | 50 markets, balanced weights | `result.ranked` is array | Array length 50 | ✅ PASS |
-| T-122 | result.ranked exists | 50 markets | Truthy | Confirmed | ✅ PASS |
-| T-122b | result.ranked has 50 items | 50 markets | Length = 50 | 50 | ✅ PASS |
-| T-123 | Top-ranked market has highest score | 50 markets, balanced | result.ranked[0].totalScore ≥ all others | Confirmed | ✅ PASS |
-| T-124 | Scores are descending | 50 markets | Each score ≤ previous | Confirmed | ✅ PASS |
-| T-125 | HITEC City Office is #1 under balanced | 50 markets, balanced | MKT-010 is rank 1 | MKT-010 | ✅ PASS |
-| T-126 | MKT-010 score matches recomputed | MKT-010 factors × balanced weights | Difference < 0.01 | Confirmed | ✅ PASS |
-| T-127 | Income-focused shifts top market | 50 markets, incomeFocused | Top market may differ | Preset effect verified | ✅ PASS |
-| T-128 | Growth-focused shifts top market | 50 markets, growthFocused | Top market may differ | Preset effect verified | ✅ PASS |
-| T-129 | Diversification-focused shifts top market | 50 markets, diversFocused | Top market may differ | Preset effect verified | ✅ PASS |
+---
 
+## 5. Stage-13 acceptance checklist
+
+| # | Requirement | Application suite | Browser acceptance |
+|---|---|---|---|
+| 1 | Balanced: every page shows the same target and figures | T-162a1–g1, T-162h1–h5, T-160h1 | SYNC-balanced-* |
+| 2 | Income Focused: the same | T-162a2–g2, T-162h1–h5, T-160h2 | SYNC-incomeFocused-* |
+| 3 | Growth Focused: the same | T-162a3–g3, T-162h1–h5, T-160h3 | SYNC-growthFocused-* |
+| 4 | Diversification Focused: the same | T-162a4–g4, T-162h1–h5, T-160h4 | SYNC-diversFocused-* |
+| 5 | Automatic versus manual selection | T-163a, T-163c, T-163e, T-163f, T-163g | MANUAL-1, MANUAL-2, MANUAL-4 |
+| 6 | Warning when the manual target differs from the current candidate | T-163b, T-163d, T-163h | MANUAL-3 |
+| 7 | Reset Demo restores the defaults and a valid analysis | T-155f, T-155g, T-164a–e | RESET-1 to RESET-5 |
+| 8 | System Check passes and is meaningful | T-161a, T-161-CHK-01 to T-161-CHK-10, T-161b–f | SYSCHECK, SYSCHECK-state |
+| 9 | Decision Report tables (raw-score and eligible shortlist) | T-165a–f, T-154a–g | SYNC-*preset*-report |
+| 10 | HHI is computed for the selected target | T-162d1–d4, T-163f | SYNC-*preset*-target (Diversification simulation panel) |
+| 11 | Projection rent uses the selected target's own yield | T-162e1–e4, T82, T-158a, T-158b | SYNC-*preset*-rent, SYNC-*preset*-projection |
+| 12 | Agent context describes the selected target | T-160a, T-160e, T-162f1–f4, T-163f | SYNC-*preset*-target (Agents page context table) |
+| 13 | Scenario key changes with every relevant input | T-160j1–j5, T-160k, T-160l, T40 | CACHE-6 |
+| 14 | Stored commentary for a different scenario is rejected | T-160j1–j5, T-165e | CACHE-6, CACHE-7, CACHE-8 |
+| 15 | Stored commentary matches the engine's scenario and passes the output checker | T-160f, T-160g, T-160h1–h4, T-160i1–i4 | CACHE-2, CACHE-3 |
+| 16 | External calibration is not inferred from simulation count or grade | T-166a–d, T-159c | — |
+| 17 | City × property-type CI uses the micro-market as its unit | T-166h, T-166i, T-166j | — |
+| 18 | Documentation matches the canonical metadata | T-149a–j, T-150b, T-167a1–a9, T-167b1–b9, T-167c–e, T-168a–c, T-170 | — |
+| 19 | No stale figures or retired terms in documents or source | T-150a, T-150c, T-168a, T-169a, T-169b | — |
+| 20 | No secrets in browser code or the repository | T42a, T42b, T-171a, T-171b | — |
+
+Item 20 rests on three controls: T42 asserts that no browser script contains an
+API key pattern or calls the Google API host directly; T-171 asserts that no `.env`
+file is tracked and that no tracked file contains an API key; and `.gitignore`
+excludes `server/.env` and every variant of it except the committed template
+`server/.env.example`.
+
+---
+
+## 6. What the tests do not establish
+
+- **Market accuracy.** All figures are synthetic. The tests prove internal
+  consistency — one analysis run, reproduced identically by every page, the cache
+  and the documentation — not that any figure describes a real market.
+- **Truth of model prose.** The output checker proves specific kinds of statement
+  false (wrong rank, wrong figure or precision, wrong exclusion reason, retired
+  term, evidence overclaim). It cannot prove a sentence true. See
+  `docs/prompt-design.md`, §8.
+- **Live Gemini behaviour.** CI has no key, so only stored replies are checked. A
+  live reply is checked in the browser when it is displayed, and shown with its
+  warnings if it fails.
+- **Rendering in every browser.** The browser acceptance script is run by hand; it
+  is not part of CI. Visual layout beyond page overflow and table labelling is
+  checked by inspection.

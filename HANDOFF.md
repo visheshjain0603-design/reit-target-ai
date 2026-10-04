@@ -1,11 +1,15 @@
-# Handoff — REIT Target AI, final-submission pass
+# Handoff — REIT Target AI, final correction pass
 
-**Read this first.** It states what was changed, what is verified, what is
-deliberately NOT changed, and what remains. Written 4 October 2026; §11 records
-a second pass the same evening, which closed the items in §10.
+**REIT Target AI · NMIMS B.Sc. Finance · Business Analytics · Theme 4 — Vishesh Jain**
+Written 4 October 2026. Repository `reit-target-ai`; live site
+https://visheshjain0603-design.github.io/reit-target-ai/
 
-Committed in one commit on `main` after the second pass. The state before
-either pass is the branch `checkpoint-pre-final-20261004-1100`.
+This document is the single handoff for the final correction pass. It supersedes the
+previous handoff; that version is in git history (commit `ddf5f9d`). Recoverable checkpoints:
+branch `checkpoint-pre-correction-20261004-1756` (state before this pass) and
+`checkpoint-pre-final-20261004-1100` (state before the previous pass).
+
+All data is synthetic. Nothing in this project describes a real property, market or transaction.
 
 ---
 
@@ -13,346 +17,335 @@ either pass is the branch `checkpoint-pre-final-20261004-1100`.
 
 | Check | Result |
 |---|---|
-| `node tests/reit-tests.js` | **529 passed, 0 failed** — the earlier "516 passed" included 88 assertions that could not fail; see §11 |
+| `node tests/reit-tests.js` | **661 passed, 0 failed** |
 | `node data-pipeline/tests/dataPipeline.test.js` | **22 passed, 0 failed** |
 | `node data-pipeline/scripts/auditAnalytics.js` | exit 0 — every figure re-derives |
-| Browser smoke test, 8 routes (first pass; Playwright not installed for the second, which was checked by hand — §11) | no page errors, no console errors except the expected `localhost:3001` refusal when the proxy is not running |
-| Mobile 390px | no horizontal overflow, no errors |
-| Financial baseline | portfolio ₹500.00 Cr, rent ₹33.275 Cr, yield 6.655%, city HHI 0.413, type HHI 0.631608 — all unchanged and now locked by tests T-157a–e |
+| Browser acceptance (`tests/browserAcceptance.js`), desktop | **64 / 64 passed** (1024 px) |
+| Browser acceptance, 390 px mobile | **72 / 72 passed** (390 px; 0 px overflow on every route) |
+| System Check (Data Centre) | **10 / 10 passed** in the browser and in the Node suite (T-161) |
+| Console errors, all eight routes, static mode | none (no 404, no refused connection) |
+| Financial baseline | unchanged — see the key figures below |
 
-Rebuild commands, in order:
+<!-- canonical:BEGIN key-figures -->
+| Fact | Value |
+|---|---|
+| Market segments | 50 across 8 cities and 3 property types |
+| Simulated market observations | 2,156 (26–76 per segment) |
+| Sample portfolio | 10 holdings, ₹500.00 Cr value, ₹33.275 Cr annual rent, 6.655% weighted gross yield |
+| Default investment | ₹50.00 Cr (10% of the sample portfolio) |
+| Gemini agents | 4 (Data & Statistical Analyst; Market Screening Analyst; Portfolio Risk & Scenario Analyst; Investment Orchestrator) |
+| Weight presets | 4 (Balanced, Income Focused, Growth Focused, Diversification Focused) |
+| Simulation-support screen | at least 30 simulated observations and Assumption Support Grade C or better — 25 of 50 segments pass |
+| External calibration | 0 of 12 cited external sources verified; all 50 segments Unverified |
+| Known synthetic anomalies | 24 (1.113% of observations) |
+| Generator / seed / data as of | 2.0.0 / 20260919 / 2026-09-19 |
+| Institution and author | NMIMS B.Sc. Finance, Business Analytics — Vishesh Jain |
+<!-- canonical:END key-figures -->
+
+---
+
+## 1. Summary of fixes
+
+| Stage | Defect (reproduced first) | Fix |
+|---|---|---|
+| 2 | Switching Balanced → Income Focused: Overview, Screener, Agents and Report named Aerocity while Diversification still analysed Gurugram — Cyber Hub, with Balanced Top 3 and Cyber Hub projections | One shared analysis run (`public/js/analysisRun.js`) that every page renders and re-renders on change (§2–3) |
+| 2 | No distinction between an automatic pick and a deliberate one; a stored auto pick was read back as explicit | `selectionMode: "auto" \| "manual"`, manual label on every page, differs-warning, "Return to automatic recommendation" |
+| 2 | The custom portfolio never reached the analysis | The run uses the ACTIVE portfolio; any holdings change recomputes every page |
+| 3 | System Check 7/9: CHK-01 `cityHHI returned 0`, CHK-04 `DataCleaner.clean is not a function`, CHK-08 "₹0 Cr → ₹100 Cr" | `public/js/systemCheck.js`: production field names (`propertyValue`, `assetType`), real entry points (`parseCSV` + `cleanRecords`), expected vs actual in every line, a real HHI before/after check; 10/10 |
+| 3 | CHK-05 overwrote the user's saved analysis with a test record every time it ran (one cause of the "none, ₹0" Overview) | Storage probe on a separate key, removed afterwards; T-161e asserts no page writes the analysis key |
+| 4 | Simulation count and grade presented as evidence (labels such as "Strong", a grade-C "documented" claim, a CLT argument for n = 30) while 0 of 12 sources were located | Three separate concepts (§5): attractiveness, simulation support (Assumption Support Grade), external calibration (register-derived, all Unverified); the screen is called a project convention; candidate wording |
+| 5 | Cached commentary: dataset median called the portfolio yield; two different segments each given the same comparison label; a raw-rank-8 candidate said to have "ranked first"; 7.00% written as 7%; grade-only failures blamed on sample size; simulation support treated as evidence | Explicit context vocabulary, strict response schemas, deterministic output checker, revision loop, headline figures from the context; cache rebuilt (§6, §14) |
+| 6 | Reset Demo: silent double click; could leave "none"/₹0 and a retained Income preset | Explicit confirm/cancel panel; app keys only; immediate recompute; Overview focused |
+| 6 | Overview comparison named a higher-scoring segment that failed the screen as the next-best; differences rounded inconsistently; CANONICAL_FACTS not a link; blank while loading | Highest raw-score alternative / next eligible candidate with eligibility rows; differences from unrounded scores to two decimals; real repository link; skeleton loader |
+| 7 | Report showed only a raw Top 3, so the reader had to infer why none was the candidate; printed agent commentary from any earlier run | Raw-score and eligible-shortlist tables with raw rank, eligible rank, screen, support grade, simulated observations, calibration, exclusion reason; model candidate vs manual target; commentary only for its own run |
+| 8 | Diversification Top 3 and sensitivity from the wrong preset; sensitivity showed only raw leaders (segments failing the screen presented as each preset's pick) | Raw-score and eligible tables under the active preset; sensitivity for all four presets with BOTH the raw leader and the candidate; projections from the run |
+| 9 | Data Centre mixed 50 segment rows, 2,156 observations and groupings; "n<10" beside hundreds of observations; internal codes such as `reported_tier1` | Five labelled levels; micro-market CI unit stated with its reason; plain source labels; 1,000 sq ft columns explained; large tables collapsed |
+| 10 | Project report, data documentation and others stale (author, segment and city counts, agent count, rent and yield) despite a drift test | All documents rewritten; generated canonical blocks; structural drift tests T-167–T-170 |
+| 11–12 | Terminology, advanced material, accessibility gaps | "Known Synthetic Anomalies"; detector/Mahalanobis table collapsed; inactive pages `hidden` + `inert`; table names; form focus management; symbols beside colours |
+
+## 2. Root cause of the cross-page synchronisation defect
+
+There was no single analysis object. The Market Screener computed a snapshot and wrote it to
+`localStorage`; every other page read that snapshot **at a moment of its own choosing**.
+Overview re-read it on navigation, the Agents page re-read it only when its timestamp was
+newer, the Report re-read it on each visit — and **Diversification read it once, when the
+application loaded**, then rendered from that copy for the rest of the session. Its Top 3 table
+came from the stale copy and its sensitivity cards were recomputed independently, so after a
+preset change each page held a different copy of "the analysis". A second fault compounded it:
+the System Check overwrote the stored snapshot with a test record lacking a ranking and an
+amount, which is how the Overview could show "none" and ₹0.
+
+The fix is structural rather than a refresh call added to one page: only inputs are stored, the
+analysis is recomputed deterministically, and every page subscribes to the one in-memory result.
+
+## 3. Final state model
+
+**Persisted inputs** (`localStorage` key `reit_analysis_state`, schema 2; schema-1 snapshots
+are migrated on load): `preset`, exact `weights` (custom only), `investmentCr` (null = 10% of
+the active portfolio), `governanceOverride`, `selectionMode` (`auto`/`manual`),
+`manualTargetId`, `filters` (display only). Portfolio mode and custom holdings use
+`reit_portfolio_mode` and `reit_custom_portfolio`.
+
+**The run** (`AnalysisRun.compute(inputs, data)`, pure; identical in Node and the browser):
+
+| Field | Meaning |
+|---|---|
+| `portfolio` | source (sample/custom), holdings, value, rent, weighted yield, city/type HHI, fingerprint |
+| `dataset` | fingerprint (generator, observation total, market count, as-of date) |
+| `preset`, `presetLabel`, `weights`, `investmentCr`, `governanceOverride` | the inputs as applied |
+| `ranked` | all 50 segments: score, raw rank, eligible rank, screen result and reasons, HHI simulation, external calibration |
+| `highestRawScoreMarketId`, `recommendedCandidateId`, `selectedTargetId` | raw leader, shortlist candidate, the target every page analyses |
+| `selectionMode`, `selectionDiffers` | auto/manual and whether a manual pick differs from the candidate |
+| `targetSupport` | screen result, simulated observations, support grade and level, P10–P90, calibration |
+| `hhi`, `projections` | before/after concentration and three-scenario projections for the selected target |
+| `sensitivity` | for each preset: highest raw-score market and shortlist candidate |
+| `scenarioDescriptor`, `scenarioKey` | cache identity (dataset, portfolio, weights, amount, target, mode, override, candidate, top 5, versions) |
+| `agentContext`, `validation` | the deterministic agent context and the eight-check result |
+
+The browser controller adds `ready()`, `current()`, `update(patch)`, `selectManually(id)`,
+`returnToAuto()`, `portfolioChanged()`, `reset()` and `subscribe(fn)`.
+
+## 4. Final recommendation terminology
+
+| Term | Use |
+|---|---|
+| Highest raw-score market | raw rank 1, shown with its screen result and reasons |
+| Shortlist candidate | the highest-ranked candidate passing the simulation-support screen — an exploratory model output |
+| Selected target | what every page analyses: the shortlist candidate in automatic mode |
+| Manually selected target | the user's pick in manual mode, with a warning when it differs |
+| Highest raw-score alternative / next eligible candidate | the comparison segment, named by its role |
+| Fixed caveat | "Exploratory shortlist only. External calibration remains unverified — proceed to further evidence collection and due diligence before any real decision." |
+
+<!-- canonical:BEGIN preset-results -->
+| Preset | Highest raw-score market | Screen | Shortlist candidate (raw rank) | Score | Gross yield | City HHI after | Asset-type HHI after |
+|---|---|---|---|---|---|---|---|
+| Balanced | Ambattur, Chennai (72.45) | fails (simulated observations and support grade) | Gurugram — Cyber Hub, Delhi NCR (5) | 67.71 | 7.03% | 0.3496 | 0.6588 |
+| Income Focused | GIFT City, Ahmedabad (75.40) | fails (simulated observations and support grade) | Aerocity, Delhi NCR (8) | 68.18 | 7.00% | 0.3496 | 0.6588 |
+| Growth Focused | Banjara Hills, Hyderabad (77.36) | passes | Banjara Hills, Hyderabad (1) | 77.36 | 2.66% | 0.3595 | 0.5438 |
+| Diversification Focused | New Town (Rajarhat), Kolkata (73.32) | fails (simulated observations and support grade) | Banjara Hills, Hyderabad (2) | 72.82 | 2.66% | 0.3595 | 0.5438 |
+
+All at the defaults: sample portfolio, ₹50.00 Cr, screen applied, automatic selection. Generated by `data-pipeline/scripts/buildMeta.js` from the same `analysisRun.js` the application uses.
+<!-- canonical:END preset-results -->
+
+## 5. Simulation precision versus external calibration
+
+<!-- canonical:BEGIN screen-and-calibration -->
+- **Composite attractiveness score** — the five weighted factors. Never changed by the screen.
+- **Simulation support** — simulated observations behind a segment's medians, their P10–P90 spread, and the project's own Assumption Support Grade (A–E). A transparent project governance convention for simulation precision, not a regulatory or universal statistical threshold. Thirty draws keeps the P10–P90 spread of a segment's simulated medians reasonably narrow; grade C or better excludes segments whose assumptions the project itself classed as interpolated or placeholder. Passing the screen says nothing about real-market accuracy.
+- **Simulation-support screen** — at least 30 simulated observations and Assumption Support Grade C or better. 25 of 50 segments pass.
+- **External calibration** — from the source register only: 0 of 12 cited external sources verified; 0 partially supported. A segment is Verified only when every external source it cites is verified. Every segment is Unverified.
+- **Wording** — the model output is a *shortlist candidate*: "Exploratory shortlist only. External calibration remains unverified — proceed to further evidence collection and due diligence before any real decision."
+<!-- canonical:END screen-and-calibration -->
+
+More simulated draws narrow a segment's median around the **assumed** distribution. That is
+precision, not accuracy: no number of draws shows that the assumption matches a real market.
+External calibration is a separate status computed only from the source register
+(`AppMeta.calibrationStatus(sourceIds, outcomes)` — it takes no count and no grade; T-166a–d).
+The A–E grade is now the **Assumption Support Grade**: the project's own classification of how a
+segment's assumptions were built, not an evidence grade. The earlier sample-mean normality
+argument for n = 30 was retired: the project ranks medians of synthetic draws, not sample means.
+
+## 6. Final four-agent architecture
+
+Data & Statistical Analyst → Market Screening Analyst → Portfolio Risk & Scenario Analyst →
+**eight deterministic checks** (`validator.js`, the gate) → Investment Orchestrator.
+
+- Context: `AgentContext.fromRun(run)` — explicit vocabulary (`rawRank`, `eligibleRank`,
+  `highestRawScoreMarket`, `recommendedCandidate`, `selectedTarget`, `selectionMode`,
+  `passesSimulationSupportRule`, `externalCalibrationStatus`, `simulationObservationCount`,
+  `supportGrade`, `largestContribution`, exact exclusion reasons, HHI, projections), dataset
+  statistics scoped as NOT the portfolio, figures as fixed-decimal strings.
+- Prompts: `server/server.js` — shared rules A–N plus four role prompts; Gemini receives a strict
+  `responseSchema` (prose fields only) from `public/js/agentOutputCheck.js`.
+- Checking: `AgentOutputCheck.check()` on every reply, live or cached — markets, ranks, figures
+  (precision and percentage type), exclusion reasons, dominant factor, screen counts, selection
+  mode, field-name leakage, retired terms, evidence overclaims, target naming, calibration caveat.
+- Display: headline figures from the context beside each card, never from prose; the check
+  result on every card.
+- Modes: live only when served by the proxy (`http://localhost:3001`); otherwise static, with no
+  proxy probe (no console errors on GitHub Pages).
+
+## 7. Files
+
+**Added**: `public/js/analysisRun.js`, `public/js/agentOutputCheck.js`, `public/js/systemCheck.js`,
+`data-pipeline/scripts/canonicalBlocks.js`, `tests/browserAcceptance.js`,
+`tests/acceptance-results.json`.
+
+**Rewritten**: `public/js/agents.js`, `agentContext.js`, `overview.js`, `dataCentre.js`,
+`stateManager.js`, `data-pipeline/scripts/buildAgentCache.js`, `HANDOFF.md`, and the documents
+in §15.
+
+**Changed**: `public/js/appMeta.js` (glossary, screen, calibration, source labels),
+`governance.js`, `scenarioKey.js` (mode, override, candidate, context version),
+`marketScreen.js`, `diversification.js`, `report.js`, `portfolio.js`, `statsDashboard.js`,
+`stats.js` (CI unit), `validator.js` (limitations), `filters.js`, `uiHelpers.js` (hidden/inert
+pages, focus), `public/index.html`, `public/css/reit-components.css`, `server/server.js`
+(prompts, schema, cache model name), `data-pipeline/scripts/buildMeta.js`, `tests/reit-tests.js`,
+`public/data/meta.json`, `public/data/agent-cache.json`, `docs/CANONICAL_FACTS.md`,
+`docs/screenshots/*`.
+
+**Archived**: earlier screenshots and smoke results → `archive/screenshots-pre-correction-20261004/`;
+the legacy `public/data/markets.csv` (from an earlier dataset revision, read by no code, still
+deploying) → `archive/retired-public-data-20261004/markets.legacy-v1.csv`.
+
+**Also corrected in passing**: one HHI rule everywhere (0.25 is moderate; the Report and Overview
+had called exactly 0.25 concentrated while Diversification called it moderate); the
+generator's comments now say five anomaly mechanisms, as the code has (output unchanged,
+byte-identical); the audit script's wording ("shortlist candidate", raw rank).
+
+**Recorded, not changed** (data or configuration, outside this pass's remit): the publications
+named in each segment's `methodologyNote` never match its `sourceIds` (calibration is computed
+from `sourceIds` only, and the Screener shows the note marked Unverified); the server's default
+model when `GEMINI_MODEL` is unset is `gemini-2.0-flash-001` while `.env.example` and every
+cached reply use `gemini-3.1-flash-lite`; two invalid-fixture rows (blank price, text area) are
+rejected with the generic reasons "askingPriceINR ≤ 0" and "areaSqFt < 10".
+**Removed**: no data. The misleading "Restore Previous Session" button (it only reloaded the
+synthetic snapshot) was dropped from the Data Centre.
+
+**Not changed**: any market or portfolio value, score, ranking or the scoring methodology
+(version 1.0.0); the four-agent roster; the data generator. The project has no Firebase code.
+
+## 8. Canonical figures
+
+The key figures (top of this document) and the per-preset results (§4) are generated blocks,
+re-rendered by `node data-pipeline/scripts/buildMeta.js`. Full list: `docs/CANONICAL_FACTS.md`.
+
+## 9. System Check
+
+Ten checks, each reporting expected and actual values: CHK-01 HHI (city and type 0.5556 for
+₹100/₹50 Cr), CHK-02 scoring (100.0% weights, 50 scores in 0–100), CHK-03 projection (₹600.00 Cr,
+₹42.415 Cr), CHK-04 cleaning (1 OK, 1 rejected with reason), CHK-05 shared-run consistency and a
+safe storage round-trip, CHK-06 dataset counts vs meta.json, CHK-07 portfolio vs meta.json,
+CHK-08 HHI before/after a ₹50 Cr investment (0.5556 → 0.3750, ₹150.00 → ₹200.00 Cr), CHK-09
+presets, CHK-10 pre-generated commentary format. **10/10 pass** in the browser and in Node
+(T-161, which also proves that a broken engine makes the checks fail).
+
+## 10. Tests
 
 ```bash
+node tests/reit-tests.js                        # 661 passed, 0 failed
+node data-pipeline/tests/dataPipeline.test.js   # 22 passed, 0 failed
+node data-pipeline/scripts/auditAnalytics.js    # exit 0
+```
+
+Application suite record for T-170: `node tests/reit-tests.js` → 661 passed, 0 failed.
+
+New blocks: T-160 (agent context, cache, output checker), T-161 (System Check), T-162 (four-preset
+synchronisation), T-163 (auto/manual), T-164 (reset), T-165 (report tables), T-166 (calibration,
+CI unit, Data Centre), T-167–T-170 (documentation synchronisation), T-171 (no secrets). Earlier
+source-string tests that described replaced designs were rewritten, each with a comment saying
+what was replaced and why (T32, T33, T39–T41, T45, T78, T82, T83c, T-151l/n, T-154a/e, T-155f–i).
+
+## 11. Browser acceptance
+
+`tests/browserAcceptance.js` drives the application through its own controls on all eight
+routes. Results are recorded in `tests/acceptance-results.json`:
+desktop **64 / 64**, 390 px **72 / 72**, no console messages in static mode.
+
+## 12. Preset synchronisation (Stage 14)
+
+For each preset the harness clicks the preset on the Screener, then reads the target from the
+Overview, Screener, Diversification, Agent Output and Report DOM, and compares projections and
+year-0 rent between Diversification, Report and the run.
+
+| Preset | Raw-score leader | Shortlist candidate | Same target on all 5 pages | Projections identical | Rent from target yield |
+|---|---|---|---|---|---|
+| Balanced | Ambattur, Chennai (fails both) | Gurugram — Cyber Hub (MKT-016, raw rank 5) | ✓ | ✓ ₹692.84 Cr | ✓ ₹36.789 Cr |
+| Income Focused | GIFT City, Ahmedabad (fails both) | Aerocity (MKT-024, raw rank 8) | ✓ | ✓ ₹692.84 Cr | ✓ ₹36.773 Cr |
+| Growth Focused | Banjara Hills, Hyderabad (passes) | Banjara Hills (MKT-012, raw rank 1) | ✓ | ✓ ₹692.84 Cr | ✓ ₹34.607 Cr |
+| Diversification Focused | New Town (Rajarhat), Kolkata (fails both) | Banjara Hills (MKT-012, raw rank 2) | ✓ | ✓ ₹692.84 Cr | ✓ ₹34.607 Cr |
+
+The 3-year base-case value is the same for every target (it depends only on portfolio value, amount and capital growth); the year-0 rent differs with each target's yield.
+
+Manual selection: Ambattur (MKT-036) selected under Balanced → all five pages show MKT-036 in
+manual mode → switch to Income: kept, with a warning naming Aerocity → "Return to automatic
+recommendation" → Aerocity. All checked (MANUAL-1 to MANUAL-4).
+
+## 13. Reset Demo
+
+Income selected, then Reset Demo: the panel opens with focus on "Reset to defaults"; Cancel
+changes nothing and returns focus; Reset restores Balanced, ₹50.00 Cr, automatic, sample
+portfolio, no filters, and the Overview immediately shows Gurugram — Cyber Hub with focus on the
+current-analysis heading (RESET-1 to RESET-5; T-164).
+
+## 14. Agent cache and live agents
+
+`public/data/agent-cache.json`: format `scenarios-v2`, context version 2, four scenarios (one per
+preset at the defaults), 16 replies. Every reply passed `AgentOutputCheck.check()` before it was
+written; the builder sent failing replies back with the specific problems. During the build the
+checker caught, and the revision loop corrected: a wrong dominant factor (Growth and
+Diversification named demand), "higher raw scores" claimed when the target was raw rank 1
+(Growth), and a count of 10 segments failing the screen instead of 25. Each cached scenario is
+asserted against a fresh engine run (T-160h/i). In the browser: Show → four checked cards →
+Hide; a changed amount rejects the cache and names "investment amount"; restoring ₹50 Cr
+re-enables it.
+
+Live mode was tested on 4 October 2026 through `http://localhost:3001` with the configured key, on a configuration that has no stored commentary (Diversification Focused, ₹75 Cr). The four agents answered live (`gemini-3.1-flash-lite`) in 12 seconds, the deterministic gate ran before the Orchestrator, all four replies passed the consistency check, the Report printed the commentary with live provenance and the ₹75.00 Cr run, and the console stayed empty.
+
+## 15. Documentation synchronisation
+
+Rewritten from the current code and data: `README.md`, `docs/project-report-draft.md`,
+`docs/data-documentation.md`, `docs/architecture.md`, `docs/test-report.md`,
+`docs/prompt-design.md`, `docs/limitations.md`, `docs/ai-use-declaration.md`,
+`docs/viva-guide.md`; `docs/process-log.md` and `docs/SOURCE_VERIFICATION_REPORT.md` updated;
+`data-pipeline/docs/*` swept. Nine documents carry generated blocks. The suite now fails if a
+block is stale (T-167), if prose states a figure that contradicts `meta.json` or a superseded
+identity (T-168), if retired terminology appears (T-169), or if the documented test count is not
+this run's count (T-170). Historical lines are allowed only when tagged `[superseded]`.
+
+## 16. Remaining limitations
+
+- All data is synthetic; external calibration is Unverified for every segment.
+- The simulation-support screen is a project convention; the Assumption Support Grade is internal.
+- Pre-generated commentary exists only for the four presets at their defaults; any other
+  configuration shows deterministic output unless the live proxy is running.
+- The output checker proves specific kinds of statement false; it cannot prove prose true.
+- Gross yield only; book-value HHI with descriptive thresholds; flat-growth projections; the
+  diversification factor is a proxy (data-pipeline/docs/ANALYTICS_AUDIT.md, A2).
+- No city × type confidence interval: groups have 1–6 micro-markets and a CI needs 10.
+- Browser storage is per device; no regulatory review.
+
+## 17. Commands
+
+```bash
+git clone https://github.com/visheshjain0603-design/reit-target-ai.git
+cd reit-target-ai
+# Static mode: open the live site, or serve public/ with any static server.
+# Live mode:
+cp server/.env.example server/.env      # add GEMINI_API_KEY (never commit it)
+node server/server.js                    # open http://localhost:3001
+# Rebuild and verify:
 node data-pipeline/scripts/generateObservations.js
 node data-pipeline/scripts/deriveMarkets.js
 node data-pipeline/scripts/computeStatistics.js
 node data-pipeline/scripts/buildObservationDistribution.js
 node data-pipeline/scripts/buildMeta.js
 node data-pipeline/scripts/auditAnalytics.js
-node data-pipeline/scripts/buildAgentCache.js --dry-run   # full run needs the proxy and a key
 node tests/reit-tests.js
 node data-pipeline/tests/dataPipeline.test.js
+node data-pipeline/scripts/buildAgentCache.js --dry-run   # full rebuild needs the proxy and a key
 ```
 
----
-
-## 1. Canonical metadata — figures are derived, never typed
-
-**New: `public/js/appMeta.js`.** The single source of counts and labels.
-Counts come from `AppMeta.derive(docs)`, computed from the data files. Labels
-(institution NMIMS, author, methodology version, agent roster, governance
-thresholds) are declared once.
-
-**New: `data-pipeline/scripts/buildMeta.js`** → `public/data/meta.json` and
-`docs/CANONICAL_FACTS.md`. Prose documents link to that file instead of
-restating figures. `meta.json` deliberately carries **no build timestamp**, so
-regeneration stays byte-reproducible for CI (asserted by T-149j).
-
-**Documentation drift fixed and now enforced.** Test T-150 scans every `.md`
-and every source comment for figures that were true of an earlier revision —
-₹450 Cr, 18 market segments, 7 cities, six agents, 2,000 observations, SPJIMR —
-and fails on any *unmarked* occurrence. Sixteen were found and fixed across
-README and eight documents.
-
-Two narrow escapes exist, both deliberate: `docs/verification-evidence.md` is
-exempt wholesale because its job is to record the institution-name migration,
-and any single line tagged `[superseded]` is skipped. The tag is used in the
-decision log, the prompt version history and two historical test records,
-because deleting figures from a log to satisfy a test destroys the audit trail.
-
----
-
-## 2. Six agents → four, and validation left the agent chain
-
-| Now | Absorbed |
-|---|---|
-| Data & Statistical Analyst | `dataQuality` + `statisticalAnalysis` |
-| Market Screening Analyst | `marketScreening` |
-| Portfolio Risk & Scenario Analyst | `diversification` + `portfolioAnalysis` |
-| Investment Orchestrator | `orchestrator` |
-
-**`validation` is gone, and this is the substantive change.** Every check it
-made — do the weights total 100%, are scores within 0–100, is the selected
-target in the ranking, do the HHI figures reproduce — has exactly one correct
-answer that arithmetic establishes. A model could get it wrong, and its verdict
-gated the Orchestrator, so a wrong verdict either suppressed a valid
-recommendation or admitted an invalid one.
-
-**New: `public/js/validator.js`** — eight deterministic checks, run in the
-browser before any model call, each reporting the figures it compared. The
-Orchestrator is reached only when they pass. No network, no key, no quota, same
-verdict every time. The fixed limitation list also lives here, so the report and
-the Agent page cannot state different limitations for the same analysis.
-
-`server/server.js` keeps `LEGACY_AGENT_ALIASES` so old names still resolve, and
-`RETIRED_AGENTS` refuses `validation` with an explanation rather than silently
-aliasing it. A run now costs four API calls instead of six.
-
----
-
-## 3. Evidence governance — a second axis, never folded into the score
-
-**New: `public/js/governance.js`.** Floor: at least 30 observations **and**
-confidence grade C or better.
-
-**This changes the default recommendation, and you should know why.** Under
-three of the four presets the highest-scoring segment rests on 26 observations
-at grade D — the dataset's minimum sample size and a below-median grade. Only
-**25 of 50** segments meet the floor (15 fail on grade alone, 2 on sample size
-alone, 8 on both).
-
-| Preset | Highest score | Recommended |
-|---|---|---|
-| Balanced | MKT-036 Chennai/Ambattur, 72.45, 26 obs, D | MKT-016 Delhi NCR/Gurugram — Cyber Hub, rank 5 |
-| Income | MKT-038 Ahmedabad/GIFT City, 75.40, 26 obs, D | MKT-024 Delhi NCR/Aerocity, rank 8 |
-| Growth | MKT-012 Hyderabad/Banjara Hills, 77.36, 47 obs, C | MKT-012 — also meets the floor |
-| Diversification | MKT-049 Kolkata/New Town, 73.32, 26 obs, D | MKT-012, rank 2 |
-
-**No score and no rank was altered** — asserted by T-151g. The highest-scoring
-segment is still displayed with its real score and the reason it was not
-recommended. An explicit override lifts the floor and is recorded in the report.
-An explicit click by the user always wins, floor or not.
-
----
-
-## 4. Screener filters, and the observation panel
-
-**New: `public/js/filters.js`** — city, property type, locality class,
-confidence grade, yield range, growth range, maximum risk, minimum
-observations, evidence-floor-only. Combinable as AND, resettable, with an empty
-result reported in words and naming the filter that excluded the most segments.
-
-Filters decide what is *displayed* only. A rank shown in a filtered view is
-still the rank within all 50, so "rank 12" means the same thing everywhere
-(T-152h).
-
-**New: `data-pipeline/scripts/buildObservationDistribution.js`** →
-`public/data/observation-distribution.json`. Per-segment quantiles and a
-10-bin histogram for six metrics, computed at build time because reducing the
-1.1 MB `observations.json` in the browser is what froze an earlier page. The
-approved noun — *simulated market observation* — is carried in the file so no
-page can choose a different one; T-153i fails if the panel labels the records as
-properties, listings or transactions.
-
----
-
-## 5. Executive Overview, now the landing page
-
-**New: `public/js/overview.js`**, `#overview`, first sidebar link, the section
-marked `page-active`. `uiHelpers.js` now derives the router's default page from
-the first sidebar link instead of hardcoding `portfolio` in three places.
-
-Answers four questions in order: what this is and what the data is; what the
-current run concluded and on what evidence; where to look next; what it must not
-be used for. Computes nothing itself. Says "no analysis has been run" rather
-than showing defaults that read as results. Carries a target-vs-runner-up
-comparison table and **Reset Demo** (two-click confirm, clears only this app's
-own state — never `localStorage.clear()`).
-
----
-
-## 6. Bugs fixed
-
-**Decision Report score column.** `report.js` read `m.score`; ranked markets
-carry `totalScore`. Every row printed an em dash while the screener showed real
-numbers for the same markets. Fixed; T-154a/b lock both directions.
-
-**Agent outputs never reached the report.** `report.js` reads
-`window._reitAgentOutputs`; nothing wrote it, so section 5 always said "no agent
-output available" even after a successful run. `agents.js` now publishes it
-(T-41f).
-
-**HHI before/after described the wrong market.** `marketScreen.js` recorded the
-figures for rank 1 regardless of which target the user had selected, so the
-Diversification page and the report could show the concentration effect of a
-different market from the one named beside it. Now records the selected target.
-
-**Chart title.** "Yield vs Capital Value" → "Gross Yield vs Rental Growth",
-which is what `charts.js` actually plots.
-
----
-
-## 7. Analytics audit — three findings, none silently "fixed"
-
-`data-pipeline/scripts/auditAnalytics.js` recomputes every headline figure by a
-separate route and exits non-zero on disagreement. **Everything re-derives
-exactly**: portfolio aggregates, both HHI figures (and their mathematical
-bounds), all eight normalisation ranges, every composite score, every
-contribution sum, every projection point. Report:
-`data-pipeline/docs/ANALYTICS_AUDIT.md`.
-
-**A2 — the diversification factor is a proxy.** Computed as
-`max(0, 1 − share × 2)`, 60% city / 40% type. The coefficient 2 has no
-derivation. Measured against the realised HHI change the same investment
-causes: correlation **0.93**, but only **15 distinct values** for 50 segments.
-Directionally sound, numerically coarse. **Not changed** — substituting the
-realised ΔHHI would move every score and ranking, which is your call.
-
-**A3 — occupancy was inert, now fixed additively.** Each scenario declares 80 /
-90 / 95% occupancy and the report listed it beside rental and capital growth,
-but no displayed figure used it: the conservative scenario assumed a fifth of
-the space empty and reported the yield as though fully let. `projection.js` now
-also returns `effectiveGrossYield`, shown as a new column. `grossYield` is
-**unchanged**, so no previously published figure moved.
-
-**A4 — `projectHHI` can overstate the effect.** Its optimistic damping factor of
-1.3 projects a concentration improvement 30% larger than the investment
-actually produces. No page calls it. Marked `DO NOT WIRE THIS INTO A PAGE`;
-T-158i fails if any page starts calling it.
-
----
-
-## 8. Source verification — the honest result
-
-`docs/SOURCE_VERIFICATION_REPORT.md`. Twelve external citations checked by
-fetching each URL.
-
-**Eight publishers confirmed. Zero documents located. Zero figures traced.
-Nothing upgraded to Verified** — because a URL that opens proves a website
-exists, which was never the question.
-
-Four cited URLs were wrong (two 404, one 302); corrected in the register.
-Three publishers return 403 to automated requests; recorded as blocked, not as
-absent. Two cited titles are paraphrases of real series and cannot be looked up
-— that one is the project's own error.
-
-**Two factual errors found in the register's own notes:**
-
-- **SRC-001 — Embassy REIT holds no BKC asset.** Its Mumbai assets are Express
-  Towers, First International Finance Center and Embassy 247. BKC is MKT-001,
-  this dataset's most prominent segment, and its evidence basis cited a REIT
-  that owns nothing there.
-- **SRC-004 — Nexus Select Trust has 19 consumption centres, not 17.**
-
-**No market value was changed.** `source_register.pre-verification.csv` is kept
-beside the register. T-159c fails if any row ever claims plain `Verified`.
-
----
-
-## 9. Tests and evidence
-
-(Second pass: this count was overstated — see §11.) 516 assertions, up from 374. Eighteen of the original assertions described the
-six-agent design and were **rewritten, not relaxed** — each rewrite carries a
-comment explaining that it asserted an architecture deliberately replaced, and
-adds assertions that the old one has not crept back. New blocks: T-149
-canonical metadata, T-150 documentation drift, T-151 governance, T-152 filters,
-T-153 observation distribution, T-154 report, T-155 overview, T-156 evaluator
-fixtures, T-157 financial baseline, T-158 projections, T-159 source honesty.
-
-**`tests/fixtures/`** — `markets-valid.csv` (6 rows, all accepted) and
-`markets-invalid.csv` (6 rows, each breaking exactly one rule so the rejection
-reason is unambiguous), plus a README table of what each row breaks.
-
-**`tests/browserSmokeTest.js`** and `docs/screenshots/` — Playwright run over
-all 8 routes plus filter, override, row-expansion and mobile interactions.
-`docs/screenshots/smoke-results.json` holds the captured assertions.
-
-### One thing the test suite caught about itself
-
-The earlier regression baseline called
-`ScoringEngine.rankMarkets(markets, weights)` with no portfolio and no
-diversification function. In that call the diversification factor falls back to
-a flat 50, so the baseline recorded a ranking the application never produces —
-it named MKT-034 as the Balanced leader where the app ranks MKT-036 first. A
-baseline measuring something the app does not compute is worse than none,
-because it passes while the real output changes. T-157 now captures the baseline
-through the same call the screener makes, and T-157h fails if omitting the
-portfolio ever stops changing the ranking.
-
----
-
-## 10. What remains — all closed in the second pass (§11)
-
-1. **Review the governance default.** The recommendation moving from rank 1 to
-   rank 5 (Balanced) is the single biggest behavioural change. It is defensible
-   and documented, but it is your decision to keep.
-2. **`public/data/agent-cache.json` is still the old format** (`.agents`, not
-   `.scenarios`) and names the retired agents. The app therefore serves
-   deterministic-only output when the proxy is down — correct, but it means the
-   published site shows no commentary. Rebuilding it needs a live key:
-   `node server/server.js &` then `node data-pipeline/scripts/buildAgentCache.js`
-   — and that script still targets the six-agent chain, so update its `CHAIN` to
-   the four current keys and its output shape to `.scenarios` keyed by
-   `ScenarioKey.compute()` first. Four presets × 4 agents = 16 calls.
-3. **`buildAgentCache.js` header still says SPJIMR** and it writes the old
-   format. It is excluded from the drift test only because the test strips
-   comments; fix the header when you fix the format.
-4. **Commit and push.** Nothing is committed yet. Suggested message at the
-   bottom of this file.
-5. **`public/data/_to_delete/` and `markets.backup-v1-20260920.json`** are still
-   in `public/data/`, so they deploy to Pages. Move them out of `public/`.
-6. **Live agent run not exercised.** No API key was used in this pass; the agent
-   chain was verified structurally and offline, not against the real API.
-
-### Constraints that were respected and should stay respected
-
-- No API key read, printed or committed; `.env*` remains ignored; the full git
-  history was scanned blob by blob in an earlier pass and contains no secret.
-- No market value altered. No data deleted — superseded files were moved to
-  explicitly named archive paths.
-- Scoring, Firebase and portfolio data untouched. No market removed.
-- Required field names preserved; all new metadata is additive.
-
-### Suggested commit message (as written in the first pass; the commit used it plus §11)
-
-```
-Final-submission pass: canonical metadata, four agents, evidence governance
-
-- appMeta.js + buildMeta.js: counts derived from data, never typed; meta.json
-  and docs/CANONICAL_FACTS.md generated; doc-drift test (T-150) enforces it
-- six agents to four; validation moved out of the agent chain into
-  validator.js as eight deterministic checks that gate the Orchestrator
-- governance.js: evidence floor (30 observations, grade C+) as a second axis;
-  no score or rank altered
-- filters.js + Observation Distribution panel on the screener
-- overview.js: Executive Overview as the landing page, with Reset Demo
-- fix: report read m.score instead of totalScore; agent outputs never reached
-  the report; HHI before/after described rank 1 rather than the selected target
-- auditAnalytics.js: every figure re-derives; three method findings recorded
-- source verification: 8 publishers confirmed, 0 documents located, nothing
-  upgraded to Verified; two factual errors found in the register
-- tests 374 to 516; evaluator fixtures; browser smoke test and screenshots
-```
-
----
-
-## 11. Second pass — 4 October 2026, evening
-
-### §10 closed
-
-| Item | Outcome |
-|---|---|
-| 1. Governance default | **Kept.** The segments it passes over rest on 26 observations at grade D; the cost under Balanced is 72.45 → 67.71 for a grade-B, 73-observation segment. Income (rank 8, ~7 points) is the case to be ready to defend. |
-| 2–3. Agent cache | Rebuilt: 4 presets × 4 agents, 16 live calls, all succeeded, `gemini-3.1-flash-lite`. `.scenarios` keyed by `ScenarioKey.compute()`. Builder rewritten; its header had already said NMIMS — the stale part was "six Gemini agents" and the chain. |
-| 4. Commit and push | Done. |
-| 5. Retired files in `public/` | Moved with `git mv` to `archive/retired-public-data-20261004/`, with a README. The old six-agent cache went there too. Nothing deleted. |
-| 6. Live agent run | Exercised through the cache build — 16 real calls. |
-
-### Defects found, all fixed
-
-1. **88 assertions could not fail.** They called `assert(condition, id, description)`; `assert` takes `(id, description, condition)`, so it tested the description string — always truthy. **11 were false.** `assert` now recognises a non-string first argument and reads the call as intended. The 11 were rewritten, each with a comment: T78a/c/f/g/h and T83b/f asserted designs deliberately replaced; T-106 lacked `Growth` and T-108 lacked `Derived`, both documented classes present in the committed data (the data dictionary contradicted itself and is corrected); T-125/126 pinned MKT-010 as rank 1, true only of the dataset generator v2.0.0 replaced, and T-126 also omitted the flat diversification factor of 50 and so computed NaN.
-2. **The published site could never show cached commentary.** The Run button required a live proxy, which a static host never has — true in the last commit as well. It is now enabled when a cache entry matches the scenario on screen, and reads "Show Pre-generated Analysis" so it cannot be taken for a live call. With no match it stays disabled and says why. (T-160k)
-3. **The models were told the wrong target.** `selectedTarget` was looked up in the top 3 and fell back to rank 1, so under Balanced (recommendation at rank 5) the Orchestrator was told MKT-036 — the segment the floor had just rejected — beside a governance block naming MKT-016. (T-160c, d)
-4. **The Agents page without a screener run chose rank 1**, while the Screener chooses the evidence-floor recommendation — two different targets, and two different cache keys, for identical inputs. (T-160a, b)
-5. **The scenario key fingerprinted no scores.** It read `compositeScore`/`score`; ranked markets carry `totalScore`, so every score in the key was null. (T-160e)
-6. **"Expected Gross Yield" was model-written and inconsistent.** The Orchestrator prompt does not define `expectedYieldPct`; in the cache build the model gave the target's gross yield for Balanced and Growth and the portfolio's post-investment yield for Income and Diversification — the card would have shown 6.29% for a segment whose gross yield is 2.66%. The headline score, yield and amount now come from the deterministic context (`AgentContext.applyDeterministicFigures`); a differing model figure is kept in `_modelFigures`, hidden, not discarded. The server prompt was **not** changed (Gemini integration out of scope); defining the field there is a reasonable follow-up. (T-160l, m)
-
-### New
-
-- **`public/js/agentContext.js`** — the agent context, built once for the Agents page and for `buildAgentCache.js`, so a cache hit is guaranteed to describe the context the page would have sent.
-- **`buildAgentCache.js --dry-run`** — builds every context, key and deterministic check without calling anything.
-- **T-160a–m.** T-160h–j fail whenever `agent-cache.json` is missing, in the old format, or stored under a key its descriptor does not hash to.
-
-### Verified
-
-- Every figure in the four Orchestrator replies checked against the engine: scores, HHI before/after, contributions, exclusion reasons, "6 of 8 cities" — all correct except `expectedYieldPct` (defect 6). No retired figure appears in any of the 16 replies.
-- In the browser, proxy stopped: no-run → Balanced entry; Income and Diversification presets → their own entries; a changed investment amount → no match, button disabled with the reason. Decision Report §5 shows the corrected yield and the cache provenance.
-- A stale, empty `.git/index.lock` from 15:54 (no git process running) was removed.
-
-### Still open
-
-- **Cache regeneration is manual.** Any change to the data, portfolio, presets or methodology changes the keys; the page then correctly shows deterministic output only until `buildAgentCache.js` is re-run.
-- **`expectedYieldPct` is undefined in the Orchestrator prompt** (defect 6, display-side fix only).
-- **A2 diversification proxy** — unchanged, your decision (§7).
-- The 88 swapped calls are read correctly by `assert` but not rewritten at the call sites.
-
+## 18. Five-minute demonstration
+
+1. **Overview** (0:00) — what the system is; the current analysis: Gurugram — Cyber Hub is the
+   shortlist candidate at raw rank 5; Ambattur scores higher but fails the screen; external
+   calibration Unverified; the caveat. Open **Reset demo…**, show the panel, reset.
+2. **Market Screener** (0:45) — click Income Focused: the candidate becomes Aerocity (raw rank 8),
+   GIFT City shown with its failure reasons. Expand a row: score breakdown, simulated spread,
+   the assumption note marked Unverified.
+3. **Manual selection** (1:30) — Select Ambattur: the banner says manually selected; switch
+   preset: warning; Return to automatic recommendation.
+4. **Diversification** (2:15) — same target; raw-score vs eligible tables; sensitivity across
+   all four presets; the year-0 rent formula and projections.
+5. **Agent Output** (3:00) — Analysis Context; Show Pre-generated Analysis: four cards with
+   deterministic figures and "Consistency check passed"; Hide; change the amount → rejected.
+6. **Data Centre** (3:45) — five levels; Run System Check: 10/10 with expected vs actual.
+7. **Decision Report** (4:15) — summary, both screening tables, HHI, projections, commentary for
+   this run, checks, limitations; Print / Save as PDF.
+
+## 19. Secrets
+
+No API key was read, printed or committed. `server/.env` is git-ignored; every commit in this
+pass was scanned for key-shaped strings before committing, and T-171 scans every tracked file on
+each test run. Git history was not rewritten.

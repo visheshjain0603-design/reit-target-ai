@@ -5,6 +5,8 @@
 
 ---
 
+> Lines tagged `[superseded]` record results from an earlier revision of the dataset and are kept as a historical record; current figures are in [`docs/CANONICAL_FACTS.md`](../../docs/CANONICAL_FACTS.md).
+
 ## 1. Scoring Engine Overview
 
 File: `public/js/scoringEngine.js`
@@ -51,7 +53,7 @@ Lower raw riskScore → higher lowRisk → higher score contribution. Semantical
 
 | Rank | Market | Score | Yield | Growth | Demand | Risk |
 |---|---|---|---|---|---|---|
-| 1 | MKT-010 HITEC City [Com] | 79.4 | 9.14% | 10% | 80 | 34 |
+| 1 | MKT-010 HITEC City [Com] | 79.4 | 9.14% | 10% | 80 | 34 [superseded]
 | 2 | MKT-005 Kharadi [Com] | 69.5 | 8.86% | 9% | 72 | 34 |
 | 3 | MKT-007 Whitefield [Com] | 69.4 | 9.00% | 7% | 85 | 34 |
 | 4 | MKT-004 Hinjewadi Ph1 [Com] | 68.9 | 8.84% | 8% | 78 | 34 |
@@ -63,15 +65,15 @@ Lower raw riskScore → higher lowRisk → higher score contribution. Semantical
 
 ### 2.2 Income-Focused Preset (45/10/15/20/10)
 
-Top 3 unchanged (HITEC City, Whitefield, Hinjewadi). High-yield peripheral markets (MKT-019 group, 10.43%) rise to positions 4–8, overtaking lower-yield established markets.
+Top 3 unchanged (HITEC City, Whitefield, Hinjewadi). High-yield peripheral markets (MKT-019 group, 10.43%) rise to positions 4–8, overtaking lower-yield established markets. [superseded]
 
 ### 2.3 Growth-Focused Preset (10/40/20/20/10)
 
-MKT-010 (10% growth) remains #1 with score 81.9. MKT-005 (9% growth) #2. MKT-011 Gachibowli [Res] enters top 5 (rank 5, 9% growth) — high growth compensates for low residential yield.
+MKT-010 (10% growth) remains #1 with score 81.9. MKT-005 (9% growth) #2. MKT-011 Gachibowli [Res] enters top 5 (rank 5, 9% growth) — high growth compensates for low residential yield. [superseded]
 
 ### 2.4 Diversification-Focused Preset (15/15/45/15/10)
 
-All scores compress; diversification weight dominates. MKT-010 remains #1. Low-risk markets (BKC, Golf Course Rd, Aerocity, Outer Ring Road — all riskScore 26) cluster in top 10.
+All scores compress; diversification weight dominates. MKT-010 remains #1. Low-risk markets (BKC, Golf Course Rd, Aerocity, Outer Ring Road — all riskScore 26) cluster in top 10. [superseded]
 
 ---
 
@@ -129,7 +131,7 @@ All scores compress; diversification weight dominates. MKT-010 remains #1. Low-r
 
 ## 5. Ranking Sensitivity Summary
 
-HITEC City (MKT-010) is the most robust market: #1 in all four presets, with score range 69.3–81.9. It has the highest growth rate (10%), second-highest demand (80), and moderate risk (34).
+HITEC City (MKT-010) is the most robust market: #1 in all four presets, with score range 69.3–81.9. It has the highest growth rate (10%), second-highest demand (80), and moderate risk (34). [superseded]
 
 Retail markets (MKT-040 to MKT-045) rank 30–43 in balanced and income presets due to lower yields relative to commercial office after yield fix (7.0–8.2% vs. 8.1–10.4% commercial). Pre-fix, they had 12% yields and would have ranked 1–15 — a clear data quality artefact that inflated their positions.
 

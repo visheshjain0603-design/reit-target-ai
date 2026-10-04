@@ -6,6 +6,8 @@
 
 ---
 
+> Lines tagged `[superseded]` record results from an earlier revision of the dataset and are kept as a historical record; current figures are in [`docs/CANONICAL_FACTS.md`](../../docs/CANONICAL_FACTS.md).
+
 ## Executive Summary
 
 Five critical data-quality issues were found across the 50-market dataset. All affect scoring and rankings materially. Three are pipeline construction defects; two are metadata omissions. No markets need removal; all fixes are additive or corrective with documented reasons.
@@ -17,7 +19,7 @@ Five critical data-quality issues were found across the 50-market dataset. All a
 | **Critical** | Uniform 12.00% gross yield for all 6 retail markets | MKT-040 to MKT-045 | HIGH — retail markets indistinguishable on yield |
 | **Critical** | Uniform 4.29% gross yield for all 5 residential markets | MKT-046 to MKT-050 | HIGH — residential markets indistinguishable on yield |
 | **Moderate** | Metadata fields `dataClassification`, `uncertainty` absent from all 50 | All 50 | MEDIUM — no uncertainty disclosure |
-| **Low** | `confidenceGrade` and `localityClass` absent from original 18 | MKT-001 to MKT-018 | LOW — labelling only |
+| **Low** | `confidenceGrade` and `localityClass` absent from original 18 | MKT-001 to MKT-018 | LOW — labelling only [superseded]
 
 ---
 
@@ -80,7 +82,7 @@ Five critical data-quality issues were found across the 50-market dataset. All a
 |---|---|---|---|---|
 | A | MKT-020, MKT-021 | 98.0 | 12,740 | Thane Wagle and Malad Mindspace have identical values despite 25 km distance |
 | B | MKT-022, MKT-024 | 125.0 | 17,500 | Golf Course Rd and Aerocity have identical values despite different sub-markets |
-| C | MKT-025, MKT-028, MKT-029 | 88.0 | 11,440 | Gurugram Sector 44, Bengaluru Hebbal, Manyata Tech Park — 3 markets, 2 cities |
+| C | MKT-025, MKT-028, MKT-029 | 88.0 | 11,440 | Gurugram Sector 44, Bengaluru Hebbal, Manyata Tech Park — 3 markets in two cities |
 | D | MKT-031, MKT-036 | 45.0 | 5,175 | Hyderabad Pocharam and Chennai Ambattur have identical values |
 | E | MKT-032, MKT-033 | 66.0 | 8,580 | Pune Magarpatta and Viman Nagar — neighbouring localities with same values |
 
@@ -145,10 +147,10 @@ Five critical data-quality issues were found across the 50-market dataset. All a
 
 **Affected fields and scope:**
 
-| Field | Original 18 (MKT-001–018) | New 32 (MKT-019–050) | Action |
+| Field | Original 18 (MKT-001–018) | New 32 (MKT-019–050) | Action [superseded]
 |---|---|---|---|
-| `confidenceGrade` | Missing | Present | Add to original 18 (grade D — synthetic) |
-| `localityClass` | Missing | Present | Add to original 18 (from market_universe.csv) |
+| `confidenceGrade` | Missing | Present | Add to original 18 (grade D — synthetic) [superseded]
+| `localityClass` | Missing | Present | Add to original 18 (from market_universe.csv) [superseded]
 | `dataClassification` | Missing | Missing | Add to all 50 |
 | `uncertainty` | Missing | Missing | Add to all 50 (from pipeline lower/upper bounds) |
 | `isSemiSynthetic` | false/absent | true (set) | Verify / add |
@@ -206,7 +208,7 @@ These are legitimately different (`propertyType` differs), so the `city + locali
 | Differentiate 11 duplicate-value markets | `medianMonthlyRentPerSqFt`, `medianCapitalValuePerSqFt` | Template-copy defect | 4 |
 | Fix 6 retail market yields | `medianMonthlyRentPerSqFt` | Unrealistic 12% uniform yield | 4 |
 | Fix 5 residential market yields | `medianMonthlyRentPerSqFt` | Uniform 4.29% yield | 4 |
-| Add metadata to original 18 | `confidenceGrade`, `localityClass` | Parity with new 32 | 2 |
+| Add metadata to original 18 | `confidenceGrade`, `localityClass` | Parity with new 32 | 2 [superseded]
 | Add metadata to all 50 | `dataClassification`, `uncertainty`, `sourceIds`, `assumptionIds`, `methodologyNote`, `comparabilityWarning` | Stage 2–3 standardisation | 2–3 |
 
 No markets removed. No structural changes. No changes to the scoring engine. All changes are sourced from the pipeline CSV or documented assumptions.

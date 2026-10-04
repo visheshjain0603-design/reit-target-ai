@@ -216,7 +216,7 @@ if (misordered) { disagreements.push("ranking is not in descending score order")
 out("\n4. WEIGHT SENSITIVITY");
 
 /*
- * How much does the recommendation depend on the weights? If one segment won
+ * How much does the shortlist candidate depend on the weights? If one segment won
  * under every plausible weighting, the weights would be decorative; if the
  * winner changed on every small perturbation, the ranking would be noise.
  * Both would be worth knowing, and neither is visible from a single run.
@@ -238,8 +238,8 @@ PRESET_KEYS.forEach(function (k) {
   out("  " + k.padEnd(14) + " highest score: " + winners[k].top +
       " (" + winners[k].topScore.toFixed(2) + ", " + winners[k].topObs +
       " obs, grade " + winners[k].topGrade + ")");
-  out("  " + "".padEnd(14) + " recommended:   " + winners[k].recommended +
-      (winners[k].recommendedRank ? " (rank " + winners[k].recommendedRank + ")" : ""));
+  out("  " + "".padEnd(14) + " shortlist candidate: " + winners[k].recommended +
+      (winners[k].recommendedRank ? " (raw rank " + winners[k].recommendedRank + ")" : ""));
 });
 
 /* One-factor-at-a-time perturbation: move each weight by ±5pp, renormalise the
@@ -275,8 +275,9 @@ if (gap < 1) {
     "A composite built from five min-max normalised factors with hand-chosen weights\n" +
     "does not carry three significant figures of meaning, so a margin this small is\n" +
     "not a ranking — it is a tie. The application should present the two as\n" +
-    "comparable rather than ordered, which is why the Overview page shows the target\n" +
-    "against the runner-up and says in terms that a point or two is not a separation.");
+    "comparable rather than ordered, which is why the Overview page compares the selected\n" +
+    "target with the highest raw-score alternative (or the next eligible candidate) and\n" +
+    "shows the score difference to two decimals from unrounded scores.");
 }
 
 // ─── 5. Diversification factor vs the HHI change it stands for ──────────────

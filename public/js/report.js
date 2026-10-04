@@ -111,7 +111,8 @@
 
   function fmtHHI(v)  {
     if (typeof v !== 'number' || isNaN(v)) return '—';
-    var label = v < 0.15 ? 'Diversified' : (v < 0.25 ? 'Moderate' : 'Concentrated');
+    // One rule everywhere: above 0.25 concentrated, 0.15 to 0.25 moderate, below 0.15 diversified.
+    var label = v < 0.15 ? 'Diversified' : (v <= 0.25 ? 'Moderate' : 'Concentrated');
     return v.toFixed(3) + ' (' + label + ')';
   }
 
@@ -173,6 +174,9 @@
     var s1 = make('section', 'reit-report__section');
     s1.appendChild(sectionHeading(1, 'Analysis Summary'));
     var target = run ? AnalysisRun.selected(run) : null;
+    s1.id = 'rpt-summary';
+    if (target) { s1.setAttribute('data-target-id', target.marketId); }
+    if (run) { s1.setAttribute('data-selection-mode', run.selectionMode); }
     var rec    = run ? AnalysisRun.recommended(run) : null;
     if (run) {
       kvRow('Portfolio', (run.portfolio.source === 'custom' ? 'Custom' : 'Sample') + ' — ' +
@@ -280,6 +284,8 @@
       var projTable = document.createElement('table');
       projTable.className = 'reit-table';
       projTable.id = 'rpt-projections';
+      projTable.setAttribute('data-base3y-value', (summary.base.portfolioValue / 1e7).toFixed(2));
+      projTable.setAttribute('data-base3y-rent', (summary.base.annualRent / 1e7).toFixed(2));
       var pcap = document.createElement('caption');
       pcap.className = 'reit-table-caption';
       pcap.textContent = 'Three-year projections for ' + (target ? AnalysisRun.name(target) : '—');
@@ -323,6 +329,10 @@
       s4.appendChild(assumpHeading);
       var assumpTable = document.createElement('table');
       assumpTable.className = 'reit-table';
+      var acap = document.createElement('caption');
+      acap.className = 'reit-sr-only';
+      acap.textContent = 'Scenario assumptions';
+      assumpTable.appendChild(acap);
       var athead = document.createElement('thead');
       var ahrow  = document.createElement('tr');
       ['Scenario', 'Rental Growth', 'Capital Growth', 'Occupancy', 'Description'].forEach(function (h) {
@@ -414,10 +424,12 @@
       var v = run.validation;
       var vh = make('h4', 'reit-report__sub-heading');
       vh.textContent = 'Deterministic Input Checks (performed in code, not by a model)';
+      vh.id = 'rpt-checks-h';
       s5.appendChild(vh);
       kvRow('Result', v.summary, s5);
       var vTable = document.createElement('table');
       vTable.className = 'reit-table';
+      vTable.setAttribute('aria-labelledby', 'rpt-checks-h');
       var vThead = document.createElement('thead');
       var vHr = document.createElement('tr');
       ['Check', 'Result', 'What was compared'].forEach(function (h) {

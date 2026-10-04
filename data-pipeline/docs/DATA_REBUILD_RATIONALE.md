@@ -93,9 +93,9 @@ yield = ( base(property type)
         × exp( z × relative_sd(city tier) )
 ```
 
-Base rates are calibrated to published Indian yield ranges. The adjustments
+Base rates were chosen to follow published Indian yield ranges as the project understood them; the cited documents were not located, so this calibration is Unverified. The adjustments
 encode cap-rate compression: Premium −0.95pp, Established 0.00, Growth +0.55,
-Peripheral +1.15; tier-1 cities −0.45, tier-3 +0.65.
+Peripheral +1.15; city tier 1 −0.45, city tier 3 +0.65.
 
 **On the multiplicative noise.** An earlier revision used additive dispersion in
 percentage points. A standard deviation of 0.42pp is reasonable around an 8.4%
@@ -135,14 +135,14 @@ specified relationships are mutually contradictory.
 
 ### 2.4 Deliberate heteroscedasticity
 
-Relative dispersion is 0.055 for tier-1 cities, 0.080 for tier-2, 0.110 for
-tier-3. Deep, liquid markets price tightly; thin markets disperse.
+Relative dispersion is 0.055 for cities in tier 1, 0.080 for tier 2, 0.110 for
+tier 3. Deep, liquid markets price tightly; thin markets disperse.
 
 This is realistic, and it is also the mechanism that makes homogeneity-of-variance
 tests genuinely reject — so the project's parametric/non-parametric reasoning has
 something real to act on rather than always taking one branch.
 
-### 2.5 Planted anomalies with separated ground truth
+### 2.5 Known synthetic anomalies with separated ground truth
 
 24 anomalies (**1.11% contamination**) are injected by five mechanisms at graded
 severities, from roughly 1.8 to 39 standard deviations from their market mean.
@@ -170,7 +170,7 @@ again.
 
 ## 3. Measured outcome
 
-Within asset class, on v2 output excluding planted anomalies:
+Within asset class, on v2 output excluding the known synthetic anomalies:
 
 | Relationship | v1 | v2 (within asset class) |
 |---|---|---|
@@ -232,13 +232,14 @@ node data-pipeline/scripts/computeStatistics.js
 
 ## 6. Honest limitations
 
-- **The data is synthetic.** It is calibrated to published benchmarks, but no
+- **The data is synthetic.** It was written to follow published benchmarks (unverified), but no
   observation corresponds to a real transaction. It must not be used for any
   real investment decision.
-- **Calibration is partly unverified.** The source register records tier-1 REIT
-  filings and tier-2 brokerage research, but several entries remain
+- **Calibration is unverified.** The source register cites tier-1 REIT filings
+  and tier-2 brokerage research, but none of the cited documents has been located
+  and no figure has been traced, so every segment's external calibration is
   `Unverified`. See `docs/SOURCE_VERIFICATION_REPORT.md` for the current state.
-- **Anomaly detection results depend on the planted anomalies.** Precision and
+- **Anomaly detection results depend on the known synthetic anomalies.** Precision and
   recall are measured against anomalies this generator created. They demonstrate
   that the methods work on data with known structure; they are not evidence of
   performance on real market data.

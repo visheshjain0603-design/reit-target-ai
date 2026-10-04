@@ -112,13 +112,13 @@ Recomputing every headline figure independently of the engines.
 
 4. WEIGHT SENSITIVITY
   balanced       highest score: MKT-036 Chennai/Ambattur (72.45, 26 obs, grade D)
-                 recommended:   MKT-016 Delhi NCR/Gurugram — Cyber Hub (rank 5)
+                 shortlist candidate: MKT-016 Delhi NCR/Gurugram — Cyber Hub (raw rank 5)
   incomeFocused  highest score: MKT-038 Ahmedabad/GIFT City (75.40, 26 obs, grade D)
-                 recommended:   MKT-024 Delhi NCR/Aerocity (rank 8)
+                 shortlist candidate: MKT-024 Delhi NCR/Aerocity (raw rank 8)
   growthFocused  highest score: MKT-012 Hyderabad/Banjara Hills (77.36, 47 obs, grade C)
-                 recommended:   MKT-012 Hyderabad/Banjara Hills (rank 1)
+                 shortlist candidate: MKT-012 Hyderabad/Banjara Hills (raw rank 1)
   diversFocused  highest score: MKT-049 Kolkata/New Town (Rajarhat) (73.32, 26 obs, grade D)
-                 recommended:   MKT-012 Hyderabad/Banjara Hills (rank 2)
+                 shortlist candidate: MKT-012 Hyderabad/Banjara Hills (raw rank 2)
   leader under balanced weights: MKT-036
   perturbations (±5pp, renormalised) that change the leader: 0 of 10
   margin between rank 1 and rank 2: 1.382 points on a 0-100 scale

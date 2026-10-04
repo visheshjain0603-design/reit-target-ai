@@ -8,5 +8,6 @@ Nothing in the application reads any file in this folder. Nothing was deleted.
 | `markets.backup-v1-20260920.json` | `public/data/` | `markets.json` from the v1 dataset, before generator v2.0.0 regenerated the observations (20 September 2026). |
 | `markets.prerun-20260930-185608.json` | `public/data/_to_delete/` | Snapshot taken before the 30 September pipeline run. Byte-identical to `public/data/markets.json` on the day it was archived. |
 | `agent-cache.six-agent-20261001.json` | `public/data/agent-cache.json` | Pre-generated commentary in the retired six-agent format (`.agents`, not `.scenarios`), from agents `dataQuality`, `statisticalAnalysis`, `marketScreening`, `diversification`, `validation`, `orchestrator`. The application cannot read this format. Kept as the record of what the old chain said; replaced by a rebuild with `data-pipeline/scripts/buildAgentCache.js`. |
+| `markets.legacy-v1.csv` | `public/data/markets.csv` | A CSV of segments from an earlier dataset revision. No code read it and it no longer matched `markets.json`. Archived during the final correction pass (4 October 2026) so it stops deploying. |
 
 Use `git log --follow <file>` for history.

@@ -73,12 +73,12 @@ Bengaluru is confirmed. The note has been corrected to say what the publisher
 says.
 
 This matters because BKC is MKT-001 in this project — the first market segment,
-Mumbai's premier office location — and its evidence basis cited a REIT that does
-not own anything there. The segment's values are unchanged, and its evidence
-basis is now recorded honestly as unsupported.
+Mumbai's premier office location — and its source basis cited a REIT that does
+not own anything there. The segment's values are unchanged, and its external
+calibration is now recorded honestly as Unverified.
 
 **SRC-004 — Nexus Select Trust has 19 consumption centres, not 17.** The
-register said 17. The publisher's own site states 19 across 15 cities as of 30
+register said 17. The publisher's own site states 19 across fifteen cities as of 30
 June 2026. Corrected.
 
 ---
@@ -167,6 +167,41 @@ document, and no observation corresponds to a real transaction.
 
 For an academic project on synthetic data this is a limitation, not a failure.
 It would be a failure to present it as anything else.
+
+---
+
+## How this report is used by the application
+
+The application keeps three things apart: the composite attractiveness score,
+simulation support (simulated observations, their P10–P90 spread and the
+project's own Assumption Support Grade), and **external calibration**. External
+calibration is derived only from the register this report describes:
+
+1. `data-pipeline/scripts/buildMeta.js` reads the `verification_status` of every
+   row in `data-pipeline/source_register.csv`, classifies it with
+   `AppMeta.sourceOutcome()` as Verified, Partially supported, Unverified or
+   Internal (SRC-013, the project's own assumption set), and writes the outcomes
+   and a summary to `public/data/meta.json` under `sourceVerification`.
+2. The application loads `meta.json` and gives each market segment the status
+   `AppMeta.calibrationStatus(sourceIds, outcomes)` computes from the external
+   sources that segment cites: Verified only when every one of them is Verified,
+   Partially supported when at least one is Verified or Partially supported,
+   otherwise Unverified. A segment whose outcomes cannot be loaded is Unverified.
+3. No row is Verified or Partially supported, so **every segment is Unverified**.
+   The pages, the agent context and the Decision Report show that status, and the
+   shortlist candidate always carries the caveat that external calibration remains
+   unverified and that further evidence collection and due diligence are required.
+
+`AppMeta.calibrationStatus()` takes no observation count and no grade. The number
+of simulated observations and the Assumption Support Grade describe how the
+project's own simulation was built and how tightly it pins down a segment's
+medians; they are never used to infer calibration. The segment with the most
+simulated observations is Unverified like every other (T-166a–d).
+
+A segment can change status only through this register: a figure traced to a
+located document, recorded in `source_register.csv`, followed by a rerun of
+`buildMeta.js`. T-159c fails if any row claims Verified, so such a change has to be
+made together with an update to this report.
 
 ---
 

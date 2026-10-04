@@ -1029,6 +1029,10 @@
 
     var table = document.createElement("table");
     table.className = "reit-table";
+    var tcap = document.createElement("caption");
+    tcap.className = "reit-sr-only";
+    tcap.textContent = (isCustom ? "Custom" : "Sample") + " portfolio holdings";
+    table.appendChild(tcap);
 
     // thead
     var thead = document.createElement("thead");

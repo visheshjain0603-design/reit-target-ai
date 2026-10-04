@@ -1,260 +1,336 @@
 # Limitations — REIT Target AI
 
-**NMIMS B.Sc. Finance | Business Analytics Project Theme 4 | Academic Demo**
+**NMIMS B.Sc. Finance | Business Analytics | Theme 4 — Building Agents/Artifacts Using Generative AI**
+**Author: Vishesh Jain. All data in this project is synthetic.**
+
+This document states what the project cannot establish, and why. It is meant to
+be read alongside every result the application shows.
+
+The application carries a fixed list of ten limitations in
+`public/js/validator.js` (`LIMITATIONS`). The list is shown on the Agent Output
+page under "Stated limitations of this analysis", passed to the Investment
+Orchestrator, and does not depend on any model or network call. Each item is
+expanded below, together with limitations the list does not cover. Headline
+figures are carried by the generated block and by `docs/CANONICAL_FACTS.md`
+rather than typed here.
 
 ---
 
-## 1. Data limitations
+## The application's fixed list
 
-### 1.1 Entirely synthetic data
-Every portfolio holding and market segment is synthetic (counts: [CANONICAL_FACTS.md](CANONICAL_FACTS.md)). They carry no relationship to actual REIT portfolios, market transactions, or publicly reported data.
+| # | Statement in the application (`validator.js`) | Section |
+|---|---|---|
+| 1 | All data is synthetic. No observation corresponds to a real property, tenant or transaction. | 1.1 |
+| 2 | Gross yield only — no management fees, vacancy allowance, tax, leverage or transaction costs. | 4.1 |
+| 3 | HHI is computed on book value, not on a mark-to-market valuation. | 4.2 |
+| 4 | Scenario projections apply flat growth rates; no correlation structure or Monte Carlo simulation. | 4.5 |
+| 5 | Market estimates are medians of a seeded simulation, not observed transaction prices. | 1.1, 2.1 |
+| 6 | No regulatory review against the SEBI (Real Estate Investment Trusts) Regulations, 2014. | 8.1 |
+| 7 | Language-model commentary interprets figures computed elsewhere; it neither verifies nor recalculates them. | 6 |
+| 8 | External calibration is Unverified: none of the cited source documents was located and no figure was traced to a source (docs/SOURCE_VERIFICATION_REPORT.md). | 3 |
+| 9 | More simulated observations narrow a segment's estimate around the project's assumed distribution; they are not market evidence. The simulation-support screen is a project convention, not a statistical or regulatory threshold. | 2 |
+| 10 | The shortlist candidate is an exploratory model output, not an investment recommendation; further evidence collection and due diligence would be required. | 2.3, 8.3 |
 
-The market segments are no longer hand-crafted. They are medians of observation-level records produced by a seeded generator whose yield model is built from a cap-rate structure, with dependence between metrics imposed through a Gaussian copula that preserves each metric's documented range. That makes the dataset internally consistent and reproducible, and it does not make it real: no record corresponds to a transaction, and the calibration targets published benchmark ranges rather than observed prices. See `data-pipeline/docs/DATA_REBUILD_RATIONALE.md`.
+## Simulation support and external calibration at a glance
 
-### 1.2 Static snapshot
-`portfolio.json` and `markets.json` are static files loaded at page start. There is no live data feed, no websocket, and no database. All figures reflect a single point in time (19 September 2026).
-
-### 1.3 Limited market coverage
-The 18 synthetic segments cover 7 Indian cities and 3 asset types (Commercial Office, Retail, Residential). A real market screener would draw from hundreds of micro-markets, transaction databases, and RERA disclosures.
-
-### 1.4 Single-metric observation count
-Each segment carries an `observationCount` field (ranging 30–110) to suggest sample size, but no confidence intervals are computed. All point estimates are treated as precise regardless of sample size.
-
-### 1.5 No time-series data
-There is no historical price data, no trend analysis, and no seasonality adjustment. The `annualRentalGrowthRatio` is a static assumption per segment.
-
----
-
-## 2. Financial model limitations
-
-### 2.1 Gross yield only
-The model uses gross yield (annual rent ÷ capital value). It does not account for:
-- Property management fees (typically 8–12% of rent)
-- Vacancy periods and lease-up costs
-- Capital expenditure and maintenance reserves
-- Tax obligations (GST, stamp duty, TDS on rent)
-- Debt servicing (leverage effects)
-- Transaction costs (registration, legal fees)
-- Insurance
-
-A full underwriting model would need these to derive net operating income (NOI) and an accurate cap rate.
-
-### 2.2 HHI applied to property value, not NAV
-The Herfindahl-Hirschman Index is computed on `propertyValue` (acquisition cost or book value). A more rigorous diversification measure would use current market value (mark-to-market NAV) and adjust for leverage.
-
-The HHI thresholds used in this project (<0.15 = diversified, 0.15–0.25 = moderate, >0.25 = concentrated) are descriptive benchmarks for academic illustration only, not regulatory thresholds. This project tracks two separate HHI dimensions — city concentration and asset-type concentration — to provide a more complete picture of portfolio diversity than a single aggregate index would. HHI labelling throughout the application carries an explicit disclaimer: "Descriptive portfolio concentration indicator only; not a regulatory classification."
-
-### 2.3 No correlation matrix
-The diversification score treats city and asset-type concentration as proxies for correlation. A proper portfolio optimisation would use a return-correlation matrix (e.g., from MSCI India Real Estate Index data) to compute efficient frontier allocations.
-
-### 2.4 Portfolio rent propagation
-Annual rent from the existing portfolio () is now correctly propagated through the shared state pipeline (marketScreen → stateManager → diversification and report pages). The year-0 base rent used in projection scenarios reflects the actual weighted sum of existing asset rents, not a hardcoded zero.
-
-### 2.5 Simple rental growth assumption
-`annualRentalGrowthRatio` is a flat, perpetual rate. Real rental growth is cyclical, micro-market specific, and subject to contractual escalation clauses, market reversion at lease expiry, and macro conditions.
-
-### 2.6 No liquidity or exit premium
-REITs are illiquid compared to equities. No illiquidity premium, exit cap-rate expansion, or holding-period optimisation is modelled.
+<!-- canonical:BEGIN screen-and-calibration -->
+- **Composite attractiveness score** — the five weighted factors. Never changed by the screen.
+- **Simulation support** — simulated observations behind a segment's medians, their P10–P90 spread, and the project's own Assumption Support Grade (A–E). A transparent project governance convention for simulation precision, not a regulatory or universal statistical threshold. Thirty draws keeps the P10–P90 spread of a segment's simulated medians reasonably narrow; grade C or better excludes segments whose assumptions the project itself classed as interpolated or placeholder. Passing the screen says nothing about real-market accuracy.
+- **Simulation-support screen** — at least 30 simulated observations and Assumption Support Grade C or better. 25 of 50 segments pass.
+- **External calibration** — from the source register only: 0 of 12 cited external sources verified; 0 partially supported. A segment is Verified only when every external source it cites is verified. Every segment is Unverified.
+- **Wording** — the model output is a *shortlist candidate*: "Exploratory shortlist only. External calibration remains unverified — proceed to further evidence collection and due diligence before any real decision."
+<!-- canonical:END screen-and-calibration -->
 
 ---
 
-## 3. AI (Gemini) limitations
+## 1. Data
 
-### 3.1 Gemini does not calculate — it interprets
-The system prompt for every agent explicitly instructs Gemini not to recalculate or invent values, and the agents that are left do nothing but interpret figures computed elsewhere. However, Gemini is a large language model and can occasionally:
-- Paraphrase numerical context inaccurately
-- Generate plausible-sounding but incorrect reasoning
-- Produce inconsistent outputs across runs (temperature = 0.2 mitigates but does not eliminate this)
+### 1.1 The data is synthetic
 
-### 3.2 Gemini is not a financial advisor
-Outputs from the Gemini agents are generated by a general-purpose language model with no domain licensing, fiduciary duty, or access to current market data. They should not be mistaken for professional investment advice.
+Every portfolio holding, market segment and simulated market observation in the
+project is synthetic. Nothing describes a real property, tenant, listing or
+transaction, and nothing may be used for an investment decision.
 
-### 3.3 No hallucination guard
-While the Validation Agent checks for weight consistency and data quality, there is no automated mechanism to verify that Gemini's narrative is factually consistent with the numerical inputs it received.
+The market segments are not hand-typed. Each is the median of seeded simulated
+observations produced by `data-pipeline/scripts/generateObservations.js`. Gross
+yield is modelled from a cap-rate structure (property type, locality class, city
+tier and noise); rent is sampled and capital value derived from rent and yield;
+the remaining metrics are drawn through a Gaussian copula over triangular ranges
+taken from `data-pipeline/market_estimates_long.csv`. This makes the dataset
+internally consistent and exactly reproducible from its seed. It does not make
+it real: the relationships are design decisions, and the levels are assumptions
+(Section 3). The sample portfolio (`public/data/portfolio.json`) is a fixed
+synthetic file.
 
-### 3.4 API key and cost
-The Gemini API key is the user's own (obtained from Google AI Studio). Running the 6-agent chain once consumes approximately 4,000–7,000 tokens. There is no rate-limit or cost guardrail in the current implementation.
+### 1.2 A single snapshot, with no history
 
-### 3.5 Latency
-Sequential agent calls mean the Agent Output page can take 10–30 seconds to fully load when the Gemini API is slow. There is no streaming/partial rendering.
+The data describes one date. There is no time series, no seasonality and no
+market cycle; each segment's rental growth is a single assumed rate.
 
----
+### 1.3 Limited coverage
 
-## 4. Application limitations
-
-### 4.1 No authentication
-The application has no login, session management, or role-based access. It is intended to run on a developer's local machine only.
-
-### 4.2 No persistence
-Custom portfolio edits (added/deleted assets via the Portfolio CRUD) are stored in the browser's in-memory state and lost on page refresh. There is no server-side storage, no IndexedDB persistence, and no export-then-reimport flow for the modified portfolio.
-
-### 4.3 CSV import without server-side validation
-CSV files imported on the Market Screener page are parsed entirely in the browser. There is no server-side schema validation. The client-side cleaning pipeline (`dataCleaner.js`) validates each row and flags invalids with a status field — rows are never silently deleted; all records are returned with their validation status so the UI can report them. However, a CSV missing a required column header entirely will fail the schema check and return an error rather than partial data.
-
-### 4.4 No offline/PWA support
-Although `manifest.json` is present, there is no service worker and no asset caching. The application requires a network connection (for the Gemini proxy) and a running Node.js server.
-
-### 4.5 Print layout is basic
-The "Print" button on the Diversification page triggers `window.print()`. Print styles are minimal; the layout is not optimised for A4 paper.
+The segment universe is small beside a real investable market and covers three
+property types only. A real screen would draw on transaction databases,
+regulatory and REIT disclosures and far more micro-markets.
 
 ---
 
-## 5. Academic scope limitations
+## 2. Simulation precision is not real-world accuracy
 
-### 5.1 Not a regulated financial tool
-REIT analysis in India falls under SEBI regulations (SEBI (Real Estate Investment Trusts) Regulations, 2014). This tool was not designed for or reviewed against those regulations.
+### 2.1 More simulated draws are not evidence
 
-### 5.2 No peer validation
-The synthetic data and model assumptions have not been reviewed by domain experts, licensed valuers, or SEBI-registered investment advisors.
+The simulated observations are draws from distributions the project specified.
+More draws make a segment's median converge on the median of its assumed
+distribution, and narrow the P10–P90 spread around it. That reduces simulation
+noise; it does nothing about whether the assumption is right. If an assumed
+level is wrong, more draws estimate the wrong level more precisely. Simulation
+support is therefore reported separately from external calibration on every
+page, and the two are never combined into one quality figure.
 
-### 5.3 Evaluator reproducibility
-Because Gemini responses have non-zero temperature (0.2) and can change between API versions, the exact text on the Agent Output page may differ between evaluator runs. The deterministic numerical outputs are fully reproducible.
+### 2.2 The Assumption Support Grade is internal
 
----
+The A–E grade is the project's own classification of how each segment's
+assumption set was constructed — which kind of benchmark it was meant to follow
+and how wide a band was assumed around it (`AppMeta.SUPPORT_GRADES`). None of
+the benchmarks it refers to has been located, so it is not an evidence grade
+and says nothing about real-market accuracy. For compatibility, the data field
+that holds it is still named `confidenceGrade` in `markets.json`; the
+application, the agent context and the report all use the label Assumption
+Support Grade.
 
-*These limitations are acknowledged and documented as part of the academic assessment. The project demonstrates methodology, not a production-ready financial tool.*
+### 2.3 The simulation-support screen is a convention
 
-*NMIMS B.Sc. Finance | Business Analytics Project Theme 4 | September 2026*
+The screen requires at least 30 simulated observations and Assumption Support
+Grade C or better. Both thresholds were chosen, not derived. They are a
+transparent project governance convention for simulation precision, not a
+regulatory or universal statistical threshold, and the sampling-theory rule of
+thumb about samples of thirty does not apply to medians of assumed
+distributions. The screen has a hard edge: under the Income Focused preset, a
+segment graded C is excluded for being one simulated observation short. Moving
+either threshold would change the shortlist candidate under some presets.
 
----
-
-## 6. Data quality limitations (v2.0 audit findings)
-
-*These limitations were identified in the Stage 1–4 audit conducted 20 September 2026 as part of the 12-stage data quality and methodology review. Issues that could be corrected were fixed; the remainder are documented below.*
-
-### 6.1 riskScore was zero for 32 markets (resolved)
-
-The conversion script that translated pipeline CSV data to `markets.json` used the key `"risk_score"` instead of the correct pipeline metric name `"market_risk_score"`. Consequently all 32 markets added in v1.5 had `riskScore: 0`, giving them a perfect inverted risk score of 100 regardless of actual pipeline values.
-
-**Resolution:** All 32 riskScores were corrected using the `central_estimate` column of the `market_risk_score` metric in the pipeline CSV. Values now range from 25 to 65 as intended.
-
-### 6.2 Duplicate rent/price pairs across sibling markets (resolved)
-
-Several market pairs shared identical `medianMonthlyRentPerSqFt` and `medianCapitalValuePerSqFt` values because they were template-copied from a common seed row. Five sibling groups were affected.
-
-**Resolution:** Each market in a sibling group was assigned a distinctive rent and capital-value pair drawn from plausible micro-market dispersion data (±10–20% from the group mean). Gross yields are now differentiated within each group.
-
-### 6.3 Uniform retail yield across six markets (resolved)
-
-Markets MKT-040 to MKT-045 all produced a gross yield of exactly 12.00% because all six shared the same rent-to-capital ratio from a template seed.
-
-**Resolution:** Capital values were retained; rents were adjusted per market to produce plausible retail yields between 7.0% and 8.3%.
-
-### 6.4 Uniform residential yield across five markets (resolved)
-
-Markets MKT-046 to MKT-050 all produced a gross yield of exactly 4.29% from the same residential seed template.
-
-**Resolution:** Capital values were retained; rents were adjusted per market to produce yields between 2.8% and 4.8%, consistent with Indian residential REIT cap-rate ranges.
-
-### 6.5 Global min-max normalisation conflates property types (acknowledged)
-
-The scoring engine normalises all five factors across all 50 markets simultaneously. This means a residential market with a 3% gross yield is normalised against commercial markets with 8–9% yields, producing artificially low yield scores for residential. A property-type-stratified normalisation would be more accurate.
-
-**Reason not resolved:** Correcting this would change rankings materially and require architectural changes to the scoring engine. The limitation is documented and visible to evaluators via methodology tooltips added in v2.0.
-
-### 6.6 Uncertainty ranges are semi-synthetic (acknowledged)
-
-The `uncertainty` object added to each market in v2.0 (lower/central/upper bounds for each scoring factor) was derived from pipeline confidence intervals for yield and risk, and from assumed ±15–25% ranges for demand and growth. They are illustrative of the methodology, not independently validated.
-
+The screen changes no score and no rank. The highest raw-score market is always
+shown with the reason it failed; the user can ignore the screen or select any
+segment manually, and both choices are labelled on every page and recorded in
+the Decision Report. The resulting **shortlist candidate** is an exploratory
+model output, not an investment recommendation.
 
 ---
 
-## Limitations identified in the final review (October 2026)
+## 3. External calibration is Unverified
 
-The five below were found by auditing this project against itself rather than by
-reading its code, and each is recorded here because it affects how a result
-should be read. None has been hidden, and none has been silently "fixed" where
-fixing it would change a financial output.
+External calibration asks whether the levels in the data match the sources the
+project cites. A citation is verified only when the publisher exists, the cited
+document is located, and the figure is found in it. The status is derived only
+from `data-pipeline/source_register.csv`, through `buildMeta.js`, into
+`public/data/meta.json`; it takes no account of simulated observations or grade,
+so it cannot be inferred from simulation precision.
 
-### The external evidence base is unverified, and now demonstrably so
+The verification pass located none of the cited documents (0 of 12) and traced
+no figure (`docs/SOURCE_VERIFICATION_REPORT.md`). Some publishers were
+confirmed, some sites blocked access, some cited titles do not exist as cited,
+and two register notes were found to contain factual errors. Every segment is
+therefore Unverified. No data value was changed to make a source appear to
+support it.
 
-Twelve external sources are cited. After a verification pass, **eight publishers
-were confirmed as real organisations, zero cited documents were located, and
-zero figures were traced to a document.** Four of the twelve cited a URL that
-does not resolve. Two cited titles appear to be paraphrases of real report
-series rather than real report titles, and so cannot be looked up at all.
+What remains defensible without any document is the structure of the data —
+for example, that yields are set by property type, locality class and city
+tier. What is not established is that the levels resemble Indian market levels.
 
-Two factual errors were found in the register's own notes. The note for SRC-001
-claimed Embassy REIT covers a Bandra Kurla Complex asset; Embassy's own
-disclosures list Express Towers, First International Finance Center and Embassy
-247 in Mumbai, and no BKC asset. This matters specifically: BKC is MKT-001, the
-dataset's first and most prominent segment, and its evidence basis cited a REIT
-that owns nothing there. The note for SRC-004 understated Nexus Select Trust's
-portfolio as 17 consumption centres where the publisher states 19.
+---
 
-**No market value was changed in response.** Adjusting a figure until a source
-appears to support it would convert an unsupported number into one that looks
-supported, which is worse than leaving it unsupported and saying so.
+## 4. Financial model
 
-The consequence is a distinction worth stating precisely. The dataset's
-*structure* is defensible without any external document — cap rates rise
-monotonically from Premium to Peripheral, yield correlates positively with risk
-within each asset class, thin markets disperse more than deep ones, and the test
-suite checks all of it. The dataset's *calibration* — that the levels resemble
-Indian market levels, not merely the relationships — is what the citations were
-meant to establish, and it remains unestablished. Full detail is in
-[`SOURCE_VERIFICATION_REPORT.md`](SOURCE_VERIFICATION_REPORT.md).
+### 4.1 Gross yield only
 
-### The diversification factor is a proxy for the effect it stands for
+Gross yield is monthly rent × 12 divided by capital value. It ignores management
+fees, vacancy, capital expenditure, insurance, taxes (GST, stamp duty, TDS on
+rent), leverage and transaction costs. Net operating income and a true
+capitalisation rate cannot be computed from the data, so every yield in the
+project overstates what an investor would receive.
 
-One of the five scoring factors rewards diversification benefit. It is computed
-from the portfolio's existing share in a city and property type, through
-`max(0, 1 − share × 2)`, weighted 60% city and 40% type. The coefficient of 2
-has no derivation: it is the reason a city holding half the portfolio scores
-zero benefit, and that threshold was chosen rather than computed.
+### 4.2 HHI on book value, with descriptive bands
 
-Measured against the realised change in HHI that the same investment actually
-causes, the factor correlates at **0.93** across all segments, and it takes only
-**15 distinct values** for 50 segments, because it depends on the city and
-property type alone and not on the segment. It is therefore directionally sound
-and numerically coarse.
+The Herfindahl-Hirschman Index is computed on property (book) value, not on a
+mark-to-market valuation, and is unadjusted for leverage. It measures two
+dimensions only — city and asset type — and not tenant-sector or lease-expiry
+concentration, although the portfolio file carries both fields. The bands used
+in the interface (below 0.15 diversified, 0.15–0.25 moderate, above 0.25
+concentrated) are descriptive benchmarks for illustration, not regulatory
+classifications, and the interface says so wherever they appear.
 
-It has not been replaced with the realised HHI change, even though that figure
-is computed immediately beside it, because doing so would alter every composite
-score and every ranking in the project. The realised before-and-after HHI
-figures are displayed for every segment in the screener, so a reader can compare
-the proxy with the effect. See
-[`../data-pipeline/docs/ANALYTICS_AUDIT.md`](../data-pipeline/docs/ANALYTICS_AUDIT.md),
-finding A2.
+### 4.3 The diversification factor is a proxy
 
-### The occupancy assumption did not reach any displayed figure
+One of the five scoring factors is a diversification benefit computed from the
+portfolio's existing share in the segment's city and property type:
+`max(0, 1 − 2 × share)` for each, weighted 60% city and 40% type, with full
+benefit for a city or type not yet held. The coefficient of 2 was chosen, not
+derived. Measured against the realised HHI change the same investment causes,
+the factor is directionally sound but coarse, taking few distinct values
+because it depends on city and type alone
+(`data-pipeline/docs/ANALYTICS_AUDIT.md`, finding A2). It has not been replaced
+with the realised change because that would alter every score and ranking; the
+realised before-and-after HHI is displayed beside it so a reader can compare.
 
-Each projection scenario declares an occupancy rate — 80%, 90%, 95% — and the
-report lists it beside rental and capital growth, which reads as though all
-three drive the projection. Two did. Occupancy did not: portfolio value, annual
-rent and gross yield were all computed from unadjusted rent, so the conservative
-scenario assumed a fifth of the space empty and reported a yield as though the
-portfolio were fully let.
+### 4.4 Scoring design choices
 
-The arithmetic was never wrong — a *gross* yield correctly ignores vacancy — but
-displaying an assumption that changes nothing invites the reader to believe it
-was applied. An occupancy-adjusted **Effective Yield** is now reported alongside
-the gross figure, and the two are labelled distinctly. The gross figure itself is
-unchanged, so no previously published number has moved. Finding A3.
+Factors are min–max normalised across all segments at once, not within property
+type, so a residential segment's yield is scored against commercial yields. Low
+market risk is normalised on a fixed 0–100 scale rather than the observed range.
+The preset weights are judgements, not estimates, and the scoring has not been
+tested against any outcome; there is no backtest or out-of-sample validation.
 
-### Scenario growth is not derived from the selected segment
+### 4.5 Flat-growth projections
 
-The projections apply flat portfolio-wide growth rates (3%, 6%, 10% rental)
-regardless of the selected segment's own modelled rental growth, which the
-dataset carries per segment and which ranges from roughly 4.7% to 8.7%. A
-segment chosen partly *for* its growth is therefore projected at the same rate as
-one chosen despite its growth. This is a simplification, not an error, but it
-means the projections compare scenarios rather than segments.
+The three scenarios (`public/js/projection.js`) apply fixed rental-growth,
+capital-growth and occupancy assumptions to the whole portfolio. They are not
+derived from the selected segment's own modelled growth, so the projections
+compare scenarios rather than segments. There is no correlation structure, no
+Monte Carlo simulation, no leverage, tax, fees or transaction costs.
 
-### The highest-scoring segment is frequently not well evidenced
+Each scenario's occupancy rate affects only the occupancy-adjusted figures.
+Gross yield is rent over value by definition and ignores vacancy; Effective
+Yield applies the scenario's occupancy and is labelled separately. Earlier, the
+occupancy assumption was listed beside the growth rates while changing no
+displayed figure; the separate Effective Yield was added rather than redefining
+gross yield, so no previously reported figure moved (finding A3).
 
-Under three of the four weight presets, the highest-scoring segment rests on 26
-simulated observations at confidence grade D — the dataset's minimum sample size
-and a below-median evidence grade. Only **25 of 50 segments** meet the floor this
-project now applies (at least 30 observations and grade C or better): 15 fail on
-grade alone, 2 on sample size alone, and 8 on both.
+### 4.6 No liquidity, exit or holding-period modelling
 
-This is a property of the data, not a defect introduced by the scoring: a small,
-thinly-evidenced market can be genuinely attractive, and the composite score
-measures attractiveness, which is all it claims to measure. The response was to
-make evidence a second, independent axis rather than to adjust any score. The
-recommendation defaults to the highest-scoring segment that meets the floor; the
-highest-scoring segment overall is still displayed, with its real score and the
-reason it was not recommended; and the floor can be lifted by an explicit
-override that is recorded in the report. No score and no rank is altered by any
-of this.
+No illiquidity premium, exit capitalisation rate, holding-period choice or
+financing structure is modelled.
+
+---
+
+## 5. Statistics
+
+### 5.1 No group confidence intervals
+
+In the Data Centre's city × property-type table the unit is the micro-market
+(one segment median), not the simulated observation, because treating each draw
+as independent evidence would overstate precision. A bootstrap interval needs
+at least ten micro-markets (`Stats.MIN_OBS_CI` in `public/js/stats.js`), and no
+group has that many, so no group interval is computed and the table states why
+for each group. Spread within a segment is reported separately as the P10–P90 of
+its simulated observations.
+
+### 5.2 Association, not cause
+
+The dependence between metrics was specified when the data was generated.
+Correlations, the Simpson's paradox illustration and the limited regression on
+the Statistical Analysis page therefore describe the generator's design; none is
+evidence of cause or of real-market behaviour. With samples of this size, weak
+associations become statistically visible while explaining very little.
+
+### 5.3 Known-anomaly detection is measured only on generated anomalies
+
+The known synthetic anomalies were inserted by the generator, and their
+identities were written to a separate file the detectors never read, so
+precision and recall are measured rather than asserted. They describe how the
+detectors perform on anomalies of the kinds this generator creates, not on real
+market data. The Mahalanobis methods' χ² cutoff assumes multivariate normality,
+which this mixture of markets does not meet, so their nominal false-positive
+rate is not achieved.
+
+---
+
+## 6. Language models
+
+### 6.1 Interpretation only
+
+The four Gemini agents interpret figures computed deterministically elsewhere.
+They do not calculate, rank or validate, and they do not choose the target. The
+eight input checks that gate the Investment Orchestrator are code
+(`validator.js`), not a model. The commentary is not investment advice.
+
+### 6.2 Checked, but not proven true
+
+Every reply is held to a prose-only JSON schema and checked by
+`AgentOutputCheck.check()` against the context it was given: markets, ranks,
+figures at their stated precision, exclusion reasons, the dominant factor,
+retired terminology and claims of evidence or verification. The check can prove
+certain kinds of statement false; it cannot prove prose true. It skips small
+whole numbers and ambiguous names, and a sentence with correct figures and
+faulty reasoning passes. A live reply that fails is still displayed, with its
+problems listed and a note that the deterministic figures are authoritative.
+Headline figures on the agent cards and in the report are always taken from the
+deterministic analysis, never from the prose.
+
+### 6.3 Live output varies and is not kept
+
+Live calls use temperature 0.2, so wording can differ between runs and between
+model versions. Live commentary is not saved: the page holds it in memory and
+discards it when the analysis changes or the page reloads, the proxy keeps an
+in-memory copy only until it restarts, and the Decision Report prints it only
+for the exact run it describes.
+
+### 6.4 Free-tier quota
+
+A free-tier key allows a small number of requests per model per day. The proxy
+falls back through a configured list of models when one model's quota is
+exhausted; when all are exhausted, live commentary is unavailable until the
+quota resets. The deterministic analysis is unaffected. The four calls in a live
+run are sequential, so a run can be slow.
+
+### 6.5 Pre-generated commentary only at the four preset defaults
+
+On a static host there is no proxy and no key. Stored commentary
+(`public/data/agent-cache.json`) exists for the four presets at the canonical
+defaults only — sample portfolio, default amount, screen applied, automatic
+selection — and is shown only when the run's scenario key matches exactly. Any
+other configuration gets no commentary, and the page names the inputs that
+differ. Stored commentary passed the output check when it was built, but it is
+stored text and does not reflect any later change to the model.
+
+---
+
+## 7. Application and environment
+
+### 7.1 Browser storage scope
+
+Only the analysis inputs, the portfolio mode and a custom portfolio are stored,
+in the browser's `localStorage` under the application's own keys
+(`public/js/stateManager.js`). They belong to one browser and one origin: the
+public site and `http://localhost:3001` keep separate states, nothing is
+synchronised, and clearing site data deletes a custom portfolio. There are no
+accounts, no server-side storage and no export or import of a custom portfolio.
+Reset Demo touches only the application's keys and keeps a custom portfolio,
+inactive.
+
+### 7.2 The local proxy is not a hosted service
+
+`server/server.js` is a development proxy. It has no authentication and no rate
+limiting, answers requests from any origin, and listens on Node's default
+interfaces, so anyone who can reach its port can spend the key's quota. It
+should be run only on a trusted machine and network. The key lives in
+`server/.env`, which is git-ignored and never sent to the browser.
+
+### 7.3 Other application limits
+
+There is no offline support (no service worker). The CSV import on the Data
+Centre demonstrates the cleaning pipeline only; imported files never change the
+market segments or the analysis.
+
+---
+
+## 8. Scope and regulation
+
+### 8.1 No regulatory review
+
+The project was not designed for, or reviewed against, the SEBI (Real Estate
+Investment Trusts) Regulations, 2014, or any other regulation.
+
+### 8.2 No expert review
+
+The data, the assumptions and the scoring method have not been reviewed by
+licensed valuers, REIT managers or SEBI-registered investment advisers.
+
+### 8.3 The output is a shortlist for further work
+
+Every result is an exploratory shortlist. External calibration remains
+unverified; further evidence collection and due diligence would be required
+before any real decision.
+
+---
+
+*NMIMS B.Sc. Finance | Business Analytics | Theme 4 — Building Agents/Artifacts Using Generative AI | Vishesh Jain | Academic demonstration only; not investment advice.*

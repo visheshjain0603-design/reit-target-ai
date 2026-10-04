@@ -179,6 +179,8 @@
      * would hide exactly the distinction the reader needs. */
     var gov = target.governance;
     var u = target.uncertainty && target.uncertainty.grossYieldPct;
+    wrap.setAttribute("data-target-id", target.marketId);
+    wrap.setAttribute("data-selection-mode", run.selectionMode);
     var grid = document.createElement("div");
     grid.className = "reit-rec-grid";
 

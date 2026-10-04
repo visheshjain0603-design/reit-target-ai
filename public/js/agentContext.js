@@ -295,11 +295,23 @@
         segmentsPassing:             eligible.length,
         segmentsTotal:               run.ranked.length
       },
-      externalCalibration: {
-        status: "Unverified",
-        basis:  AppMeta.EXTERNAL_CALIBRATION.basis,
-        consequence: AppMeta.CANDIDATE_CAVEAT
-      },
+      /* Derived from every segment's register-based status — never typed.
+       * With the register as it stands, every segment is Unverified. */
+      externalCalibration: (function () {
+        var counts = {};
+        run.ranked.forEach(function (m) {
+          var st = m.externalCalibrationStatus || "Unverified";
+          counts[st] = (counts[st] || 0) + 1;
+        });
+        var kinds = Object.keys(counts);
+        return {
+          status: kinds.length === 1 ? kinds[0] : "Mixed",
+          segmentsByStatus: counts,
+          selectedTargetStatus: selected ? (selected.externalCalibrationStatus || "Unverified") : null,
+          basis:  AppMeta.EXTERNAL_CALIBRATION.basis,
+          consequence: AppMeta.CANDIDATE_CAVEAT
+        };
+      }()),
 
       highestRawScoreMarket: marketSummary(rawLeader),
       recommendedCandidate:  marketSummary(recommended),

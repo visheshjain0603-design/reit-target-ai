@@ -55,7 +55,7 @@
  *      always taking one path.
  *
  *   5. Planted outliers with ground truth.  A known, documented set of
- *      outliers is injected by four distinct mechanisms.  Ground truth is
+ *      outliers is injected by five distinct mechanisms.  Ground truth is
  *      written to a SEPARATE file (outlier_truth.json) so detection code
  *      cannot read it by accident; validation joins on obs_id.  This makes
  *      precision/recall of the outlier detectors measurable.
@@ -461,7 +461,7 @@ console.log("Generated " + observations.length + " observations.");
 // ─── PLANT OUTLIERS ─────────────────────────────────────────────────────────
 
 /*
- * Four mechanisms, each mimicking a real data-quality or market phenomenon.
+ * Five mechanisms, each mimicking a real data-quality or market phenomenon.
  * The fourth is deliberately invisible to any single-variable rule: each
  * value sits inside its own normal range, but the COMBINATION is impossible.
  * Only a multivariate method (Mahalanobis) can recover those, which is the

@@ -192,10 +192,13 @@
 
     if (target) {
       var gov = target.governance;
-      grid.appendChild(card(AnalysisRun.targetLabel(run),
+      var tc = card(AnalysisRun.targetLabel(run),
         AnalysisRun.name(target),
         target.propertyType + " · raw rank " + target.rank + " of " + run.ranked.length +
-        (target.eligibleRank ? " · eligible rank " + target.eligibleRank : "")));
+        (target.eligibleRank ? " · eligible rank " + target.eligibleRank : ""));
+      tc.setAttribute("data-target-id", target.marketId);
+      tc.setAttribute("data-selection-mode", run.selectionMode);
+      grid.appendChild(tc);
       grid.appendChild(card("Composite attractiveness score",
         target.totalScore.toFixed(2) + " / 100",
         "Five weighted factors — " + run.presetLabel));
@@ -356,7 +359,7 @@
 
   function hhiVerdict(before, after) {
     var d = after - before;
-    var level = after < 0.15 ? "diversified" : (after < 0.25 ? "moderate" : "concentrated");
+    var level = after < 0.15 ? "diversified" : (after <= 0.25 ? "moderate" : "concentrated");
     if (d < -0.0001) { return "improves by " + Math.abs(d).toFixed(4) + ", still " + level; }
     if (d >  0.0001) { return "worsens by " + d.toFixed(4) + ", " + level; }
     return "unchanged, " + level;

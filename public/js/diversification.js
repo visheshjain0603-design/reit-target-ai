@@ -276,6 +276,7 @@
     var info = document.createElement("p");
     info.className = "reit-sim-info";
     info.setAttribute("data-target-id", target.marketId);
+    info.setAttribute("data-selection-mode", run.selectionMode);
     info.textContent = AnalysisRun.targetLabel(run) + ": " + AnalysisRun.name(target) +
       " (" + target.propertyType + ", raw rank " + target.rank +
       (target.eligibleRank ? ", eligible rank " + target.eligibleRank : "") + ") — Investment: " +
@@ -686,6 +687,10 @@
 
     var assumpTable = document.createElement("table");
     assumpTable.className = "reit-table";
+    var acap = document.createElement("caption");
+    acap.className = "reit-sr-only";
+    acap.textContent = "Scenario assumptions: rental growth, capital growth and occupancy";
+    assumpTable.appendChild(acap);
     var aThead = document.createElement("thead");
     var aHRow  = document.createElement("tr");
     ["Scenario", "Rental Growth p.a.", "Capital Growth p.a.", "Occupancy", "Description"].forEach(function (h) {
@@ -723,6 +728,13 @@
 
     var projTable = document.createElement("table");
     projTable.className = "reit-table";
+    projTable.id = "div-projections";
+    projTable.setAttribute("data-base3y-value", (run.projections.summary3y.base.portfolioValue / 1e7).toFixed(2));
+    projTable.setAttribute("data-base3y-rent", (run.projections.summary3y.base.annualRent / 1e7).toFixed(2));
+    var pcap = document.createElement("caption");
+    pcap.className = "reit-table-caption";
+    pcap.textContent = "Projected portfolio value for " + AnalysisRun.name(projTarget) + " by scenario and year";
+    projTable.appendChild(pcap);
     var pThead = document.createElement("thead");
     var pHRow  = document.createElement("tr");
     var pHeaders = ["Scenario", "Year 0 (current)"].concat(horizons.map(function (y) { return "Year " + y; }));
@@ -760,6 +772,10 @@
 
     var rentTable = document.createElement("table");
     rentTable.className = "reit-table";
+    var rcap = document.createElement("caption");
+    rcap.className = "reit-sr-only";
+    rcap.textContent = "Projected annual rent, gross and occupancy-adjusted, by scenario and year";
+    rentTable.appendChild(rcap);
     var rThead = document.createElement("thead");
     var rHRow  = document.createElement("tr");
     ["Scenario", "Year 0 (Gross)", "Year 0 (Occ-Adj)"].concat(horizons.reduce(function (acc, y) {
