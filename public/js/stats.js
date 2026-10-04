@@ -19,7 +19,14 @@
 
   /* ── Constants ────────────────────────────────────────────────── */
   var MIN_OBS_WARNING = 30;      // sample-size warning threshold
-  var MIN_OBS_CI      = 10;      // minimum obs needed to compute CI
+  var MIN_OBS_CI      = 10;      // minimum UNITS needed to compute a CI
+
+  /* The unit of the city × property-type bootstrap is the MICRO-MARKET: each
+   * group's confidence interval is bootstrapped across its segments' medians,
+   * not across simulated observations. A group with 300 observations spread
+   * over 3 micro-markets therefore has 3 units, not 300 — which is why the
+   * table previously showed hundreds of observations beside "n<10". */
+  var CI_UNIT = "micro-market (segment median)";
   var BOOTSTRAP_N     = 500;     // bootstrap iterations
   var BOOTSTRAP_SEED  = 20260919; // fixed seed for reproducibility
   var CI_LEVEL        = 0.95;    // 95% confidence interval
@@ -190,6 +197,11 @@
           ? bootstrapMedianCI(vals, ciSeedBase)
           : null;
         return {
+          ciUnit: CI_UNIT,
+          ciUnits: vals.length,
+          ciUnavailableReason: ci ? null
+            : (includeCI ? "only " + vals.length + " micro-market" + (vals.length === 1 ? "" : "s") +
+               "; a bootstrap of segment medians needs at least " + MIN_OBS_CI : "not requested"),
           min:    minVal(vals),
           q1:     q1(vals),
           median: median(vals),
@@ -444,6 +456,7 @@
     // Constants (readable by tests)
     MIN_OBS_WARNING: MIN_OBS_WARNING,
     MIN_OBS_CI:      MIN_OBS_CI,
+    CI_UNIT:         CI_UNIT,
     BOOTSTRAP_N:     BOOTSTRAP_N,
     BOOTSTRAP_SEED:  BOOTSTRAP_SEED
   };

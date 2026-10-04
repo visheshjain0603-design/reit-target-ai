@@ -5,7 +5,7 @@
  * Fifty market segments is more than fits comfortably on one screen and more
  * than a reader can hold in mind. The screener previously offered only "show
  * top 10" or "show all 50", which meant the only way to answer a question such
- * as "which retail segments in tier-2 cities clear the evidence floor" was to
+ * as "which retail segments in tier-2 cities pass the simulation-support screen" was to
  * read every row.
  *
  * This module holds the filter LOGIC, separately from the controls that drive
@@ -52,7 +52,7 @@
       growthMin:     null, growthMax: null,   // percent
       riskMax:       null,                    // 0–100, lower is better
       minObservations: null,                  // count
-      eligibleOnly:  false                    // meets the evidence floor
+      eligibleOnly:  false                    // passes the simulation-support screen
     };
   }
 
@@ -120,7 +120,7 @@
     }
     if (f.grades && f.grades.length &&
         f.grades.indexOf(market.confidenceGrade) === -1) {
-      out.push("confidence grade");
+      out.push("Assumption Support Grade");
     }
 
     var y = grossYieldPct(market);
@@ -135,14 +135,14 @@
 
     if (isSet(f.minObservations) &&
         (market.observationCount || 0) < f.minObservations) {
-      out.push("minimum observations");
+      out.push("minimum simulated observations");
     }
 
     if (f.eligibleOnly) {
       var gov = market.governance ||
                 (typeof root !== "undefined" && root.Governance
                   ? root.Governance.evaluate(market) : null);
-      if (gov && !gov.eligible) { out.push("evidence floor"); }
+      if (gov && !gov.eligible) { out.push("simulation-support screen"); }
     }
 
     return out;
@@ -187,12 +187,12 @@
     if (f.cities && f.cities.length)                 { out.push("city"); }
     if (f.propertyTypes && f.propertyTypes.length)   { out.push("property type"); }
     if (f.localityClasses && f.localityClasses.length) { out.push("locality class"); }
-    if (f.grades && f.grades.length)                 { out.push("confidence grade"); }
+    if (f.grades && f.grades.length)                 { out.push("Assumption Support Grade"); }
     if (isSet(f.yieldMin) || isSet(f.yieldMax))      { out.push("yield range"); }
     if (isSet(f.growthMin) || isSet(f.growthMax))    { out.push("growth range"); }
     if (isSet(f.riskMax))                            { out.push("maximum risk"); }
-    if (isSet(f.minObservations))                    { out.push("minimum observations"); }
-    if (f.eligibleOnly)                              { out.push("evidence floor"); }
+    if (isSet(f.minObservations))                    { out.push("minimum simulated observations"); }
+    if (f.eligibleOnly)                              { out.push("simulation-support screen"); }
     return out;
   }
 

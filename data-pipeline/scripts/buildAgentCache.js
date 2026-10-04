@@ -4,46 +4,42 @@
  *
  * PURPOSE
  * -------
- * The four Gemini agents are reached through a local Node proxy on port 3001.
- * That proxy cannot exist on a static host, and free-tier Gemini quota is
- * small enough that a live demo can fail through no fault of the project.
- *
- * This script runs the chain against the real API once per weight preset and
- * writes the replies to public/data/agent-cache.json. When the proxy is
- * unreachable the application serves a cached reply — but only for a scenario
- * whose ScenarioKey matches the one on screen exactly.
+ * The four Gemini agents are reached through a local Node proxy on port 3001,
+ * which cannot exist on a static host. This script runs the chain against the
+ * real API once per weight preset and writes the replies to
+ * public/data/agent-cache.json. When the page is not served by the proxy, the
+ * Agents page offers that stored commentary — but only for a run whose
+ * ScenarioKey matches exactly.
  *
  * WHAT A SCENARIO IS
  * ------------------
- * One entry per preset, as the Market Screener produces it when the user
- * clicks that preset and changes nothing else: the screener's default
- * investment (10% of portfolio value), the evidence-floor recommendation as
- * the selected target, no override. The context and the ranking come from
- * public/js/agentContext.js — the same module the Agents page uses — so the
- * stored commentary describes exactly the context the page would send.
+ * One entry per preset at the application's canonical defaults: sample
+ * portfolio, the default investment (10% of portfolio value, ₹50 Cr), the
+ * simulation-support screen applied, automatic selection. Each scenario is the
+ * SAME analysis object every page renders — public/js/analysisRun.js computes
+ * it here exactly as it does in the browser — so stored commentary describes
+ * exactly the context the page would send.
  *
- * Any other configuration (custom weights, a different amount, a manually
- * chosen target, the floor overridden) has no cache entry, and the page says
- * so rather than showing commentary written for something else.
+ * VALIDATED BEFORE IT IS WRITTEN
+ * ------------------------------
+ * Every reply is checked by public/js/agentOutputCheck.js against the context
+ * it was given: market IDs exist and are in the context, ranks match, figures
+ * match the context at the stated precision, exclusion reasons match the
+ * screen, retired terms and evidence overclaims are absent, the Orchestrator
+ * names the selected target and states that calibration is unverified. A reply
+ * that fails is sent back once or twice with the specific problems listed
+ * (context.revisionNotes). If any reply still fails, NOTHING is written: a
+ * partial or inconsistent cache would be worse than none.
  *
- * THE CHAIN, as in agents.js runSequence():
- *   dataStatistical → marketScreening → portfolioRisk
- *   → Validator.validate()  (deterministic; the Orchestrator runs only if it passes)
- *   → orchestrator
+ * The scenario's target, preset, weights and fingerprints are also asserted
+ * against the descriptor before writing.
  *
- * HONESTY REQUIREMENT
- * -------------------
- * Cached replies are labelled as pre-generated in the interface, with the
- * timestamp and model they came from. They are never presented as a live
- * call. Regenerate whenever the data, the portfolio or the methodology changes;
- * the scenario key changes with them, so stale entries stop matching anyway.
- *
- * Run (the proxy must be running on :3001 with its key in server/.env):
+ * Run (proxy running with its key in server/.env — the key is never read here):
  *   node server/server.js &
  *   node data-pipeline/scripts/buildAgentCache.js
  *
- *   --dry-run   build every context, key and deterministic check; call nothing
- *               and write nothing. Needs no proxy and no key.
+ *   --dry-run   build every scenario, context, key and deterministic check;
+ *               call nothing and write nothing. Needs no proxy and no key.
  */
 
 "use strict";
@@ -55,84 +51,54 @@ var http = require("http");
 var PROJECT = path.join(__dirname, "..", "..");
 var OUT     = path.join(PROJECT, "public", "data", "agent-cache.json");
 var JS      = path.join(PROJECT, "public", "js");
+var DATA    = path.join(PROJECT, "public", "data");
 
 var API_HOST = "localhost";
 var API_PORT = parseInt(process.env.PORT || "3001", 10);
 var DRY_RUN  = process.argv.indexOf("--dry-run") !== -1;
+var MAX_REVISIONS = 2;
 
-var ScoringEngine = require(path.join(JS, "scoringEngine.js"));
-var HHIEngine     = require(path.join(JS, "hhi.js"));
-var Governance    = require(path.join(JS, "governance.js"));
-var Validator     = require(path.join(JS, "validator.js"));
-var ScenarioKey   = require(path.join(JS, "scenarioKey.js"));
-var AgentContext  = require(path.join(JS, "agentContext.js"));
-var AppMeta       = require(path.join(JS, "appMeta.js"));
+var AnalysisRun      = require(path.join(JS, "analysisRun.js"));
+var AgentOutputCheck = require(path.join(JS, "agentOutputCheck.js"));
+var ScenarioKey      = require(path.join(JS, "scenarioKey.js"));
+var AppMeta          = require(path.join(JS, "appMeta.js"));
 
-var marketsDoc = JSON.parse(fs.readFileSync(path.join(PROJECT, "public", "data", "markets.json"), "utf8"));
-var portfolio  = JSON.parse(fs.readFileSync(path.join(PROJECT, "public", "data", "portfolio.json"), "utf8"));
-var markets = marketsDoc.markets;
-var assets  = portfolio.assets;
+function readJson(p) { return JSON.parse(fs.readFileSync(p, "utf8")); }
 
-/* The four agent keys, in chain order, from the single roster declaration. */
+var marketsDoc    = readJson(path.join(DATA, "markets.json"));
+var portfolioDoc  = readJson(path.join(DATA, "portfolio.json"));
+var statisticsDoc = readJson(path.join(DATA, "statistics.json"));
+var metaDoc       = readJson(path.join(DATA, "meta.json"));
+
+var DATA_IN = {
+  marketsDoc:     marketsDoc,
+  sampleAssets:   portfolioDoc.assets,
+  portfolioMode:  "sample",
+  customAssets:   [],
+  statisticsDoc:  statisticsDoc,
+  sourceOutcomes: (metaDoc.sourceVerification && metaDoc.sourceVerification.outcomes) || {}
+};
+
 var CHAIN = AppMeta.AGENTS.map(function (a) { return a.key; });
 
-// ─── Scenario construction ──────────────────────────────────────────────────
-
-/**
- * The run the Market Screener saves (ReitState) after the user picks a preset
- * and changes nothing else. Mirrors marketScreen.js runScoring(), then passes
- * through JSON exactly as localStorage would.
- */
-function screenerRun(presetKey) {
-  var weights = Object.assign({}, ScoringEngine.PRESETS[presetKey]);
-  var investmentCr = AgentContext.defaultInvestmentCr(assets);
-  var ranked = AgentContext.rankForScreener(markets, assets, weights, investmentCr);
-  var chosen = Governance.chooseTarget(ranked, { override: false });
-  var target = chosen.target || chosen.topOverall || null;
-  return JSON.parse(JSON.stringify({
-    stale:              false,
-    weights:            weights,
-    weightPreset:       presetKey,
-    investmentCr:       investmentCr,
-    selectedTargetId:   target ? target.marketId : null,
-    ranked:             ranked,
-    governanceOverride: false
-  }));
-}
+// ─── Scenarios ──────────────────────────────────────────────────────────────
 
 function buildScenario(presetKey) {
-  var label = ScoringEngine.PRESETS[presetKey].label || presetKey;
-  var run = screenerRun(presetKey);
-  var built = AgentContext.build({
-    markets: markets,
-    assets:  assets,
-    run:     run,
-    runNote: "Pre-generated agent cache — " + label + " preset, Market Screener defaults"
-  });
-
-  // Exactly the inputs agents.js currentScenario() hashes.
-  var descriptor = ScenarioKey.describe({
-    marketsDoc:       marketsDoc,
-    assets:           assets,
-    weights:          built.ctx.weights,
-    investmentCr:     built.ctx.investmentCr,
-    selectedTargetId: built.ctx.selectedTarget ? built.ctx.selectedTarget.marketId : null,
-    ranked:           built.ranked
-  });
-
-  return {
-    presetKey:  presetKey,
-    label:      label,
-    ctx:        built.ctx,
-    ranked:     built.ranked,
-    descriptor: descriptor,
-    key:        ScenarioKey.compute(descriptor)
-  };
+  var run = AnalysisRun.compute({ preset: presetKey }, DATA_IN);
+  /* The scenario must be exactly what the application computes for this
+   * preset at its defaults. */
+  var d = run.scenarioDescriptor;
+  if (d.selectedTargetId !== run.recommendedCandidateId || d.selectionMode !== "auto" ||
+      d.governanceOverride !== false || d.contextVersion !== ScenarioKey.CONTEXT_VERSION) {
+    throw new Error("Scenario " + presetKey + " is not at the canonical defaults.");
+  }
+  return { presetKey: presetKey, label: run.presetLabel, run: run, ctx: run.agentContext,
+           descriptor: d, key: run.scenarioKey };
 }
 
-// ─── Call the proxy ─────────────────────────────────────────────────────────
+// ─── Proxy ──────────────────────────────────────────────────────────────────
 
-function callAgent(agentType, context) {
+function post(agentType, context) {
   return new Promise(function (resolve) {
     var body = JSON.stringify({ agentType: agentType, context: context });
     var req = http.request({
@@ -155,133 +121,142 @@ function callAgent(agentType, context) {
   });
 }
 
-function healthCheck() {
+function health() {
   return new Promise(function (resolve) {
     http.get({ hostname: API_HOST, port: API_PORT, path: "/api/health" }, function (res) {
       var buf = "";
       res.on("data", function (c) { buf += c; });
-      res.on("end", function () {
-        try { resolve(JSON.parse(buf)); } catch (e) { resolve(null); }
-      });
+      res.on("end", function () { try { resolve(JSON.parse(buf)); } catch (e) { resolve(null); } });
     }).on("error", function () { resolve(null); });
   });
 }
 
-// ─── Run one scenario's chain, mirroring agents.js runSequence() ─────────────
-
-async function runChain(sc, failures) {
-  var agents = {};
-  function record(agent, r) {
-    if (r.ok) {
-      agents[agent] = { output: r.output, model: r.model, cachedAt: new Date().toISOString(), isCached: true };
-      console.log("OK   (" + Object.keys(r.output || {}).length + " fields, " + r.model + ")");
-    } else {
-      failures.push(sc.label + " / " + agent + ": " + r.error);
-      console.log("FAIL " + String(r.error).slice(0, 80));
-    }
-    return r.ok ? r.output : null;
+/**
+ * Call one agent, check the reply, and send it back with the specific
+ * problems listed until it passes or the revision budget is spent.
+ */
+async function callChecked(agentKey, ctx, log) {
+  var notes = null, last = null;
+  for (var attempt = 0; attempt <= MAX_REVISIONS; attempt++) {
+    var sendCtx = notes ? Object.assign({}, ctx, { revisionNotes: notes }) : ctx;
+    var r = await post(agentKey, sendCtx);
+    if (!r.ok) { return { ok: false, error: r.error, calls: attempt + 1 }; }
+    var check = AgentOutputCheck.check(agentKey, r.output, ctx, marketsDoc.markets);
+    last = { output: r.output, model: r.model, check: check, calls: attempt + 1 };
+    if (check.ok) { last.ok = true; return last; }
+    log("      revision " + (attempt + 1) + ": " + check.issues.length + " issue(s) — " +
+        check.issues.slice(0, 3).map(function (i) { return i.message; }).join(" | "));
+    notes = check.issues.map(function (i) {
+      return (i.field ? i.field + ": " : "") + i.message + (i.text ? " (in: “" + i.text.slice(0, 160) + "”)" : "");
+    });
   }
-  function line(agent) { process.stdout.write("    " + agent.padEnd(18)); }
+  last.ok = false;
+  return last;
+}
+
+async function runChain(sc, log) {
+  var out = {}, outputs = {}, calls = 0;
+  function line(k) { process.stdout.write("    " + k.padEnd(18)); }
+  function record(k, r) {
+    calls += r.calls || 1;
+    if (r.ok) {
+      out[k] = { output: r.output, model: r.model, cachedAt: new Date().toISOString(), isCached: true,
+                 checkedBy: "agentOutputCheck.js", checkPassed: true };
+      outputs[k] = r.output;
+      console.log("OK   (" + r.model + (r.calls > 1 ? ", " + r.calls + " calls" : "") + ")");
+    } else {
+      console.log("FAIL " + (r.error || (r.check ? r.check.issues.length + " issue(s) remain" : "unknown")));
+      if (r.check) { r.check.issues.forEach(function (i) { console.log("        - " + i.field + ": " + i.message); }); }
+    }
+    return r.ok;
+  }
 
   line("dataStatistical");
-  var ds = record("dataStatistical", await callAgent("dataStatistical", sc.ctx));
-
+  if (!record("dataStatistical", await callChecked("dataStatistical", sc.ctx, log))) { return { ok: false, calls: calls }; }
   line("marketScreening");
-  var mk = record("marketScreening", await callAgent("marketScreening",
-    Object.assign({}, sc.ctx, { dataStatisticalOutput: ds })));
-
+  if (!record("marketScreening", await callChecked("marketScreening",
+      Object.assign({}, sc.ctx, { dataStatisticalOutput: outputs.dataStatistical }), log))) { return { ok: false, calls: calls }; }
   line("portfolioRisk");
-  var rk = record("portfolioRisk", await callAgent("portfolioRisk",
-    Object.assign({}, sc.ctx, { dataStatisticalOutput: ds, marketScreeningOutput: mk })));
+  if (!record("portfolioRisk", await callChecked("portfolioRisk",
+      Object.assign({}, sc.ctx, { dataStatisticalOutput: outputs.dataStatistical,
+                                  marketScreeningOutput: outputs.marketScreening }), log))) { return { ok: false, calls: calls }; }
 
-  var v = sc.validation;
-  if (!v.passed) {
-    console.log("    orchestrator      SKIPPED — deterministic checks failed: " + v.summary);
-    failures.push(sc.label + " / orchestrator: not called, " + v.summary);
-    return agents;
-  }
-
+  var v = sc.run.validation;
+  if (!v.passed) { console.log("    orchestrator      SKIPPED — " + v.summary); return { ok: false, calls: calls }; }
   line("orchestrator");
-  record("orchestrator", await callAgent("orchestrator", Object.assign({}, sc.ctx, {
-    dataStatisticalOutput: ds,
-    marketScreeningOutput: mk,
-    portfolioRiskOutput:   rk,
-    deterministicValidation: {
-      passed:  v.passed,
-      summary: v.summary,
-      checks:  v.checks.map(function (c) { return { label: c.label, passed: c.passed, detail: c.detail }; }),
-      limitations: v.limitations
-    }
-  })));
-  return agents;
+  if (!record("orchestrator", await callChecked("orchestrator", Object.assign({}, sc.ctx, {
+      dataStatisticalOutput: outputs.dataStatistical,
+      marketScreeningOutput: outputs.marketScreening,
+      portfolioRiskOutput:   outputs.portfolioRisk,
+      deterministicValidation: {
+        passed: v.passed, summary: v.summary,
+        checks: v.checks.map(function (c) { return { label: c.label, passed: c.passed, detail: c.detail }; }),
+        limitations: v.limitations
+      }
+    }), log))) { return { ok: false, calls: calls }; }
+
+  return { ok: true, agents: out, calls: calls };
 }
 
 // ─── Main ───────────────────────────────────────────────────────────────────
 
 (async function main() {
-  var presetKeys = Object.keys(ScoringEngine.PRESETS);
-  var scenarios = presetKeys.map(buildScenario);
+  var scenarios = AnalysisRun.PRESET_KEYS.map(buildScenario);
 
   console.log((DRY_RUN ? "DRY RUN — no calls, nothing written\n" : "") +
-              "Portfolio: " + assets.length + " assets   Agents: " + CHAIN.join(", ") + "\n");
+              "Portfolio: " + portfolioDoc.assets.length + " holdings   Agents: " + CHAIN.join(", ") +
+              "   Context version " + ScenarioKey.CONTEXT_VERSION + "\n");
 
-  var keys = {};
+  var seen = {};
   scenarios.forEach(function (sc) {
-    sc.validation = Validator.validate({ context: sc.ctx, ranked: sc.ranked, assets: assets, hhiEngine: HHIEngine });
     var t = sc.ctx.selectedTarget;
-    console.log("  " + sc.label.padEnd(24) + " key " + sc.key +
-                "   target " + (t ? t.marketId + " (rank " + t.rank + ")" : "—") +
-                "   checks " + (sc.validation.passed ? "pass" : "FAIL"));
-    if (keys[sc.key]) { throw new Error("Two presets produced the same scenario key: " + keys[sc.key] + ", " + sc.label); }
-    keys[sc.key] = sc.label;
+    console.log("  " + sc.label.padEnd(24) + " key " + sc.key + "   target " + t.marketId +
+                " (raw rank " + t.rawRank + ", eligible rank " + t.eligibleRank + ")" +
+                "   checks " + (sc.run.validation.passed ? "pass" : "FAIL"));
+    if (seen[sc.key]) { throw new Error("Two presets produced the same scenario key."); }
+    seen[sc.key] = true;
   });
-
   if (DRY_RUN) { return; }
 
-  var health = await healthCheck();
-  if (!health) {
+  if (!(await health())) {
     console.error("\nProxy not reachable on :" + API_PORT + " — start it with: node server/server.js");
     process.exit(1);
   }
 
-  var out = {};
-  var failures = [];
+  var out = {}, totalCalls = 0;
   for (var i = 0; i < scenarios.length; i++) {
     var sc = scenarios[i];
     console.log("\n  " + sc.label);
-    var agents = await runChain(sc, failures);
-    if (Object.keys(agents).length) {
-      out[sc.key] = {
-        label:      sc.label + " preset",
-        preset:     sc.presetKey,
-        descriptor: sc.descriptor,
-        agents:     agents
-      };
+    var res = await runChain(sc, function (m) { console.log(m); });
+    totalCalls += res.calls;
+    if (!res.ok) {
+      console.error("\n" + sc.label + " did not produce four checked replies — cache NOT written (" +
+                    totalCalls + " API calls made).");
+      process.exit(1);
     }
-  }
-
-  var expected = scenarios.length * CHAIN.length;
-  if (failures.length) {
-    /* A partial cache is not written. It would leave some cards with
-     * commentary and others without for the same scenario, and the existing
-     * file — whatever it is — stays in place to be rebuilt on the next run. */
-    console.error("\n" + failures.length + " of " + expected + " calls failed — cache NOT written:");
-    failures.forEach(function (f) { console.error("  " + f); });
-    process.exit(1);
+    out[sc.key] = {
+      label:      sc.label + " preset",
+      preset:     sc.presetKey,
+      targetId:   sc.descriptor.selectedTargetId,
+      descriptor: sc.descriptor,
+      agents:     res.agents
+    };
   }
 
   fs.writeFileSync(OUT, JSON.stringify({
-    note: "Pre-generated Gemini agent responses, one scenario per weight preset at the " +
-          "Market Screener's defaults. Served only when the local proxy is unreachable " +
-          "AND the on-screen scenario key matches exactly. Labelled as cached in the " +
-          "interface — these are NOT live calls.",
+    note: "Pre-generated Gemini agent responses, one scenario per weight preset at the application's " +
+          "canonical defaults. Served only when the page is not using the live proxy AND the scenario key " +
+          "matches exactly. Every reply passed agentOutputCheck.js before it was written. Labelled as " +
+          "stored text in the interface — these are NOT live calls.",
     builtAt:            new Date().toISOString(),
-    format:             "scenarios-v1",
+    format:             "scenarios-v2",
     methodologyVersion: ScenarioKey.METHODOLOGY_VERSION,
+    contextVersion:     ScenarioKey.CONTEXT_VERSION,
     agentKeys:          CHAIN,
+    apiCalls:           totalCalls,
     scenarios:          out
   }, null, 1) + "\n", "utf8");
 
-  console.log("\nWrote public/data/agent-cache.json — " + Object.keys(out).length +
-              " scenarios, " + expected + " agent replies");
+  console.log("\nWrote public/data/agent-cache.json — " + Object.keys(out).length + " scenarios, " +
+              (Object.keys(out).length * CHAIN.length) + " checked replies, " + totalCalls + " API calls.");
 }());

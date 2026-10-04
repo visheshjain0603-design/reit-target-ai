@@ -315,30 +315,35 @@
        aria-atomic="false"></div>
 
   <!-- ── Scripts (no inline JS anywhere in this file) ───────── -->
-  <!-- Load order: analytics engines first, then page controllers -->
+  <!-- Load order: utilities, deterministic engines, the shared analysis run,
+       then page controllers. Every page renders the one run analysisRun.js
+       computes, so it must load after the engines and before any page. -->
   <script src="js/istTime.js"></script>
   <script src="js/appMeta.js"></script>
   <script src="js/uiHelpers.js"></script>
-  <!-- Analytics engines (CommonJS + browser global dual export) -->
   <script src="js/stateManager.js"></script>
+  <!-- Deterministic engines (CommonJS + browser global dual export) -->
   <script src="js/hhi.js"></script>
   <script src="js/scoringEngine.js"></script>
   <script src="js/governance.js"></script>
   <script src="js/filters.js"></script>
   <script src="js/validator.js"></script>
-  <!-- Page controllers (depend on engines above) -->
+  <script src="js/projection.js"></script>
+  <script src="js/stats.js"></script>
+  <script src="js/scenarioKey.js"></script>
+  <script src="js/agentContext.js"></script>
+  <script src="js/agentOutputCheck.js"></script>
+  <!-- The one shared analysis -->
+  <script src="js/analysisRun.js"></script>
+  <script src="js/dataCleaner.js"></script>
+  <script src="js/charts.js"></script>
+  <!-- Page controllers -->
   <script src="js/overview.js"></script>
   <script src="js/portfolio.js"></script>
   <script src="js/marketScreen.js"></script>
   <script src="js/diversification.js"></script>
-  <script src="js/agentContext.js"></script>
-  <script src="js/scenarioKey.js"></script>
   <script src="js/agents.js"></script>
-  <!-- New modules: data pipeline, charts, projections, new pages -->
-  <script src="js/stats.js"></script>
-  <script src="js/dataCleaner.js"></script>
-  <script src="js/charts.js"></script>
-  <script src="js/projection.js"></script>
+  <script src="js/systemCheck.js"></script>
   <script src="js/dataCentre.js"></script>
   <script src="js/statsDashboard.js"></script>
   <script src="js/report.js"></script>

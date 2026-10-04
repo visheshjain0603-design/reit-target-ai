@@ -225,10 +225,6 @@ function showToast(message, type) {
   function showPage(pageId) {
     var safeId = String(pageId).replace(/[^a-z0-9-_]/gi, "");
     var pages = document.querySelectorAll(".page");
-    pages.forEach(function (section) {
-      section.classList.remove("page-active");
-    });
-
     var target = document.getElementById("page-" + safeId);
 
     // ── Fallback: invalid or missing hash → the first sidebar page ──
@@ -237,9 +233,23 @@ function showToast(message, type) {
       target = document.getElementById("page-" + DEFAULT_PAGE);
     }
 
-    if (target) {
-      target.classList.add("page-active");
-    }
+    /* Inactive pages are hidden from assistive technology as well as from
+     * sight: `hidden` removes them from the accessibility tree and `inert`
+     * keeps their controls out of the tab order, so a screen reader never
+     * reads seven pages the user cannot see. */
+    pages.forEach(function (section) {
+      var active = section === target;
+      section.classList.toggle("page-active", active);
+      if (active) {
+        section.removeAttribute("hidden");
+        section.removeAttribute("inert");
+        section.removeAttribute("aria-hidden");
+      } else {
+        section.setAttribute("hidden", "");
+        section.setAttribute("inert", "");
+        section.setAttribute("aria-hidden", "true");
+      }
+    });
 
     NAV_LINKS.forEach(function (link) {
       var isActive = link.getAttribute("data-page") === safeId;
@@ -252,9 +262,21 @@ function showToast(message, type) {
     });
   }
 
+  var focusOnNavigate = false;
+
   function handleHashChange() {
     var hash = window.location.hash.replace("#", "") || DEFAULT_PAGE;
     showPage(hash);
+    /* After a sidebar click, move focus to the new page's heading so keyboard
+     * and screen-reader users land at the top of what they asked for. */
+    if (focusOnNavigate) {
+      focusOnNavigate = false;
+      var active = document.querySelector(".page.page-active h1");
+      if (active) {
+        active.setAttribute("tabindex", "-1");
+        active.focus();
+      }
+    }
   }
 
   // Intercept clicks — prevent full navigation, update hash instead.
@@ -262,7 +284,9 @@ function showToast(message, type) {
     link.addEventListener("click", function (e) {
       e.preventDefault();
       var page = link.getAttribute("data-page");
-      window.location.hash = page;
+      focusOnNavigate = true;
+      if (window.location.hash === "#" + page) { handleHashChange(); }
+      else { window.location.hash = page; }
     });
   });
 

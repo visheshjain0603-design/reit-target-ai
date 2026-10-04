@@ -2,29 +2,20 @@
  * overview.js — Executive Overview, the application's landing page
  * REIT Target AI | NMIMS B.Sc. Finance — BA Theme 4 (Academic Demo)
  *
- * WHY THIS PAGE EXISTS
- * --------------------
- * The application opened on Portfolio Analysis, which is a detail page. A
- * reader arriving for the first time was shown ten synthetic holdings with no
- * statement of what the system is for, what the dataset is, what it had
- * concluded, or what it is not allowed to be used for. The analysis existed
- * but nothing presented it.
- *
- * This page answers four questions in order, before any detail:
+ * Answers four questions in order, before any detail:
  *
  *   1. What is this, and what is the data?        (canonical facts)
- *   2. What has it concluded, on what evidence?   (the current run)
+ *   2. What does the current analysis show?       (the shared run)
  *   3. Where do I look next?                      (the route map)
  *   4. What must I not do with it?                (the limits)
  *
- * It computes nothing of its own. Every figure is read from the shared run
- * written by the Market Screener, or derived through AppMeta from the data
- * files, so this page cannot state a number that disagrees with the page the
- * number came from. When the screener has not run, it says so rather than
- * quietly showing defaults that look like results.
+ * It computes nothing of its own. The current analysis is the shared run from
+ * analysisRun.js — the same object every other page renders — so this page
+ * cannot name a different target from the Screener, Diversification, the
+ * Agents page or the Report. The run is computed as soon as the data loads,
+ * so the Overview no longer depends on the Screener having been opened first.
  *
- * Depends on: appMeta.js, stateManager.js, governance.js, scoringEngine.js,
- *             hhi.js, uiHelpers.js
+ * Depends on: appMeta.js, analysisRun.js, governance.js, validator.js, uiHelpers.js
  */
 
 (function () {
@@ -32,13 +23,12 @@
 
   var ROOT_ID = "overview-content";
 
-  var data = {
-    marketsDoc:    null,
-    portfolioDoc:  null,
-    statisticsDoc: null,
-    counts:        null,
-    loaded:        false,
-    error:         null
+  var view = {
+    counts:     null,
+    loaded:     false,
+    error:      null,
+    confirming: false,      // Reset Demo confirmation panel open
+    resetDone:  false       // show the post-reset status once
   };
 
   // ─── Small builders ────────────────────────────────────────────────────────
@@ -58,11 +48,42 @@
     return c;
   }
 
-  function section(title, introText) {
+  function section(title, introText, id) {
     var s = el("section", "reit-section reit-ov-section");
-    s.appendChild(el("h2", null, title));
+    var h = el("h2", null, title);
+    if (id) { h.id = id; h.setAttribute("tabindex", "-1"); }
+    s.appendChild(h);
     if (introText) { s.appendChild(el("p", "reit-ov-intro", introText)); }
     return s;
+  }
+
+  function link(text, href, external) {
+    var a = el("a", null, text);
+    a.href = href;
+    if (external) { a.target = "_blank"; a.rel = "noopener"; }
+    return a;
+  }
+
+  // ─── Loading state ─────────────────────────────────────────────────────────
+
+  /* A visible skeleton rather than a blank area while the data loads, so the
+   * page never looks empty or finished before it is. */
+  function skeleton(root) {
+    root.innerHTML = "";
+    var wrap = el("div", "reit-skeleton-wrap");
+    wrap.setAttribute("role", "status");
+    wrap.setAttribute("aria-live", "polite");
+    wrap.appendChild(el("span", "reit-sr-only", "Loading the overview…"));
+    for (var i = 0; i < 3; i++) {
+      var block = el("div", "reit-skeleton-block");
+      block.setAttribute("aria-hidden", "true");
+      block.appendChild(el("div", "reit-skeleton-line reit-skeleton-title"));
+      var grid = el("div", "reit-skeleton-grid");
+      for (var j = 0; j < 4; j++) { grid.appendChild(el("div", "reit-skeleton-card")); }
+      block.appendChild(grid);
+      wrap.appendChild(block);
+    }
+    root.appendChild(wrap);
   }
 
   // ─── Init ──────────────────────────────────────────────────────────────────
@@ -70,29 +91,23 @@
   function init() {
     var root = document.getElementById(ROOT_ID);
     if (!root) { return; }
-    root.innerHTML = "";
-    root.appendChild(el("p", "loading-msg", "Loading overview…"));
+    skeleton(root);
 
-    Promise.all([
-      fetch("data/markets.json").then(function (r) { return r.json(); }),
-      fetch("data/portfolio.json").then(function (r) { return r.json(); }),
-      fetch("data/statistics.json").then(function (r) { return r.ok ? r.json() : null; })
-        .catch(function () { return null; })
-    ]).then(function (res) {
-      data.marketsDoc    = res[0];
-      data.portfolioDoc  = res[1];
-      data.statisticsDoc = res[2];
-      data.counts = AppMeta.derive({
-        marketsDoc:    data.marketsDoc,
-        portfolioDoc:  data.portfolioDoc,
-        statisticsDoc: data.statisticsDoc
+    AnalysisRun.ready().then(function () {
+      var d = AnalysisRun.data();
+      view.counts = AppMeta.derive({
+        marketsDoc:    d.marketsDoc,
+        portfolioDoc:  d.portfolioDoc,
+        statisticsDoc: d.statisticsDoc
       });
-      data.loaded = true;
+      view.loaded = true;
       render();
     }).catch(function (err) {
-      data.error = "Could not load the dataset: " + err.message;
+      view.error = "Could not load the dataset: " + err.message + ". Reload the page to try again.";
       render();
     });
+
+    AnalysisRun.subscribe(function () { if (view.loaded) { render(); } });
   }
 
   // ─── Render ────────────────────────────────────────────────────────────────
@@ -100,19 +115,19 @@
   function render() {
     var root = document.getElementById(ROOT_ID);
     if (!root) { return; }
+
+    if (view.error) {
+      root.innerHTML = "";
+      var e = el("p", "error-msg", view.error);
+      e.setAttribute("role", "alert");
+      root.appendChild(e);
+      return;
+    }
+    if (!view.loaded) { skeleton(root); return; }
+
     root.innerHTML = "";
-
-    if (data.error) {
-      root.appendChild(el("p", "error-msg", data.error));
-      return;
-    }
-    if (!data.loaded) {
-      root.appendChild(el("p", "loading-msg", "Loading overview…"));
-      return;
-    }
-
     root.appendChild(buildWhatThisIs());
-    root.appendChild(buildCurrentRun());
+    root.appendChild(buildCurrentRun(AnalysisRun.current()));
     root.appendChild(buildRouteMap());
     root.appendChild(buildLimits());
     root.appendChild(buildResetBar());
@@ -121,201 +136,191 @@
   // ─── 1. What this is ───────────────────────────────────────────────────────
 
   function buildWhatThisIs() {
-    var c = data.counts;
+    var c = view.counts;
     var s = section("What this is",
       AppMeta.PROJECT.appName + " ranks synthetic REIT target market segments against a " +
       "synthetic portfolio, using a deterministic scoring engine. " + c.agentCount +
-      " Gemini agents explain the results; they do not compute them, and the checks that " +
-      "gate the recommendation are performed in code rather than by a model. " +
+      " Gemini agents explain the results; they do not compute, rank or validate them. " +
       AppMeta.attribution() + ".");
 
     var grid = el("div", "reit-ov-grid");
     grid.appendChild(card("Market segments", AppMeta.num(c.marketCount),
       c.cityCount + " cities · " + c.propertyTypeCount + " property types"));
-    grid.appendChild(card("Simulated observations", AppMeta.num(c.observationCount),
+    grid.appendChild(card("Simulated market observations", AppMeta.num(c.observationCount),
       c.observationsPerMarketMin + "–" + c.observationsPerMarketMax + " per segment"));
     grid.appendChild(card("Portfolio", AppMeta.cr(c.portfolioValueRs, 0),
       c.assetCount + " holdings · " + (c.portfolioWeightedYield * 100).toFixed(2) +
       "% weighted gross yield"));
-    grid.appendChild(card("Planted anomalies",
+    grid.appendChild(card("Known synthetic anomalies",
       c.plantedAnomalies === null ? "—" : AppMeta.num(c.plantedAnomalies),
-      c.contaminationPct === null ? "ground truth held separately"
-        : c.contaminationPct + "% contamination, ground truth held separately"));
+      c.contaminationPct === null ? "inserted by the generator; ground truth held separately"
+        : c.contaminationPct + "% of observations, inserted by the generator; ground truth held separately"));
     s.appendChild(grid);
 
     var prov = el("p", "reit-ov-provenance");
-    prov.textContent = "Dataset: generator " + c.generatorVersion + ", seed " + c.seed +
-      ", as of " + c.dataAsOf + ". Scoring methodology " + c.methodologyVersion +
-      ". Every figure on this page is derived from the data files, not written by hand " +
-      "— see docs/CANONICAL_FACTS.md.";
+    prov.appendChild(document.createTextNode(
+      "Dataset: generator " + c.generatorVersion + ", seed " + c.seed + ", as of " + c.dataAsOf +
+      ". Scoring methodology " + c.methodologyVersion + ". Every figure on this page is derived " +
+      "from the data files, not written by hand — see "));
+    prov.appendChild(link("docs/CANONICAL_FACTS.md", AppMeta.docUrl("docs/CANONICAL_FACTS.md"), true));
+    prov.appendChild(document.createTextNode(" in the repository."));
     s.appendChild(prov);
-
     return s;
   }
 
-  // ─── 2. The current run ────────────────────────────────────────────────────
+  // ─── 2. The current analysis ───────────────────────────────────────────────
 
-  function buildCurrentRun() {
-    var run = (typeof ReitState !== "undefined") ? ReitState.load() : null;
-
-    if (!run) {
-      var s0 = section("Current analysis",
-        "No analysis has been run in this browser yet.");
-      var p = el("p", "reit-ov-empty",
-        "Open the Market Screener to score the " + data.counts.marketCount +
-        " segments against the portfolio. Nothing is shown here until you do, because " +
-        "default figures presented on this page would read as results.");
-      s0.appendChild(p);
-      s0.appendChild(linkButton("Go to Market Screener", "screener"));
-      return s0;
-    }
-
+  function buildCurrentRun(run) {
     var s = section("Current analysis",
-      run.stale
-        ? "This run is marked out of date because an input changed after it was computed. " +
-          "Re-run the Market Screener before relying on it."
-        : "Computed by the Market Screener. Every page in this application reads these " +
-          "same figures.");
+      "The shared analysis every page renders: " + run.presetLabel + ", " +
+      AppMeta.cr(run.investmentRs, 2) + ", " + run.portfolio.source + " portfolio, " +
+      (run.selectionMode === "manual" ? "manual selection" : "automatic selection") + ".",
+      "ov-current-analysis");
 
-    if (run.stale) {
-      s.appendChild(el("p", "reit-stale-banner",
-        "⚠ Out of date — re-run the Market Screener."));
+    if (view.resetDone) {
+      var done = el("p", "reit-ov-reset-status",
+        "✓ Demo reset — sample portfolio, Balanced preset, " + AppMeta.cr(run.investmentRs, 2) +
+        ", simulation-support screen applied, automatic selection, no filters.");
+      done.setAttribute("role", "status");
+      s.appendChild(done);
     }
 
-    var ranked = run.ranked || [];
-    var target = null;
-    for (var i = 0; i < ranked.length; i++) {
-      if (ranked[i].marketId === run.selectedTargetId) { target = ranked[i]; break; }
-    }
+    if (run.portfolio.note) { s.appendChild(el("p", "reit-ov-gov-note", run.portfolio.note)); }
 
+    var target = AnalysisRun.selected(run);
     var grid = el("div", "reit-ov-grid");
 
     if (target) {
-      var gov = (typeof Governance !== "undefined") ? Governance.evaluate(target) : null;
-      grid.appendChild(card("Recommended target",
-        (target.locality || target.marketId) + ", " + target.city,
-        target.propertyType + " · rank " + target.rank + " of " + ranked.length));
-      grid.appendChild(card("Composite score",
-        (typeof target.totalScore === "number" ? target.totalScore.toFixed(1) : "—") + " / 100",
-        "Attractiveness on the five weighted factors"));
-      grid.appendChild(card("Evidence",
-        gov ? gov.tier : "—",
-        gov ? ("grade " + (gov.grade || "?") + ", " + gov.observations + " observations" +
-               (gov.eligible ? " — meets the floor" : " — below the floor")) : "",
-        gov && !gov.eligible ? "reit-ov-card-warn" : "reit-ov-card-ok"));
+      var gov = target.governance;
+      grid.appendChild(card(AnalysisRun.targetLabel(run),
+        AnalysisRun.name(target),
+        target.propertyType + " · raw rank " + target.rank + " of " + run.ranked.length +
+        (target.eligibleRank ? " · eligible rank " + target.eligibleRank : "")));
+      grid.appendChild(card("Composite attractiveness score",
+        target.totalScore.toFixed(2) + " / 100",
+        "Five weighted factors — " + run.presetLabel));
+      grid.appendChild(card("Simulation support",
+        (gov.eligible ? "✓ Passes screen" : "✗ Fails screen") + " · " + gov.tier,
+        target.observationCount + " simulated observations · Assumption Support Grade " + (gov.grade || "—"),
+        gov.eligible ? "reit-ov-card-ok" : "reit-ov-card-warn"));
+      grid.appendChild(card("External calibration", target.externalCalibrationStatus,
+        "No cited source located or traced", "reit-ov-card-warn"));
     } else {
-      grid.appendChild(card("Recommended target", "none",
-        run.governanceNote || "No segment met the evidence floor."));
+      grid.appendChild(card("Shortlist candidate", "None", run.governanceNote));
     }
 
-    grid.appendChild(card("Investment", AppMeta.cr((run.investmentCr || 0) * 1e7, 2),
-      presetLabel(run.weightPreset) + " weights"));
+    grid.appendChild(card("Investment", AppMeta.cr(run.investmentRs, 2),
+      run.presetLabel + (run.preset === "custom" ? "" : " weights")));
 
-    if (typeof run.cityHHIBefore === "number" && typeof run.cityHHIAfter === "number") {
+    if (run.hhi) {
       grid.appendChild(card("City concentration",
-        run.cityHHIBefore.toFixed(4) + " → " + run.cityHHIAfter.toFixed(4),
-        hhiVerdict(run.cityHHIBefore, run.cityHHIAfter)));
-    }
-    if (typeof run.typeHHIBefore === "number" && typeof run.typeHHIAfter === "number") {
+        run.hhi.cityBefore.toFixed(4) + " → " + run.hhi.cityAfter.toFixed(4),
+        hhiVerdict(run.hhi.cityBefore, run.hhi.cityAfter)));
       grid.appendChild(card("Asset-type concentration",
-        run.typeHHIBefore.toFixed(4) + " → " + run.typeHHIAfter.toFixed(4),
-        hhiVerdict(run.typeHHIBefore, run.typeHHIAfter)));
+        run.hhi.typeBefore.toFixed(4) + " → " + run.hhi.typeAfter.toFixed(4),
+        hhiVerdict(run.hhi.typeBefore, run.hhi.typeAfter)));
     }
-
     s.appendChild(grid);
 
-    /* The governance outcome in words. This is the part a reader is most
-     * likely to misread — a recommendation that is not rank 1 looks like a
-     * mistake until the reason is stated — so it is stated here, on the
-     * landing page, not only on the screener. */
-    if (run.governanceNote) {
-      var note = el("p", "reit-ov-gov-note" +
-        (run.targetMeetsFloor === false ? " reit-ov-gov-warn" : ""));
-      note.textContent = run.governanceNote;
-      s.appendChild(note);
+    if (run.selectionMode === "manual") {
+      var rec = AnalysisRun.recommended(run);
+      var mn = el("p", "reit-ov-gov-warn",
+        "Manually selected target. " + (rec
+          ? "The current shortlist candidate is " + AnalysisRun.name(rec) + " (raw rank " + rec.rank + ")" +
+            (run.selectionDiffers ? " — ⚠ different from the manual selection." : " — the same segment.")
+          : "No segment passes the simulation-support screen under these settings."));
+      s.appendChild(mn);
+      var back = el("button", "reit-btn reit-btn--secondary reit-return-auto", "Return to automatic recommendation");
+      back.type = "button";
+      back.addEventListener("click", function () { AnalysisRun.returnToAuto(); });
+      s.appendChild(back);
+    } else if (run.governanceNote) {
+      s.appendChild(el("p", "reit-ov-gov-note", run.governanceNote));
     }
     if (run.governanceOverride) {
       s.appendChild(el("p", "reit-ov-gov-warn",
-        "The evidence floor is currently overridden, so the recommendation is the " +
-        "highest-scoring segment regardless of how well it is evidenced."));
+        "The simulation-support screen is currently ignored, so the candidate is the highest " +
+        "raw-score market regardless of simulation support."));
     }
-    if (run.userOverrodeTarget) {
-      s.appendChild(el("p", "reit-ov-gov-note",
-        "The target was chosen manually and differs from the segment the evidence " +
-        "floor would have recommended."));
-    }
+    s.appendChild(el("p", "reit-ov-caveat", AppMeta.CANDIDATE_CAVEAT));
 
-    s.appendChild(buildRunnerUp(ranked, target));
+    s.appendChild(buildComparison(run, target));
     s.appendChild(linkButton("Open the Decision Report", "report"));
     return s;
   }
 
   /**
-   * Target against runner-up.
+   * The selected target against the most relevant alternative.
    *
-   * A single recommendation invites the question "compared with what?", and the
-   * screener's fifty-row table does not answer it: the reader has to hold two
-   * rows in mind and subtract. This puts the two side by side and names the
-   * factors on which each is stronger, which is the comparison an examiner is
-   * most likely to ask for.
+   * When the highest raw-score market is a different segment, that is the
+   * comparison a reader asks for ("why not the top scorer?"), and it usually
+   * fails the screen — so it is called the "highest raw-score alternative",
+   * never the "next-best segment". When the target IS the top scorer, the
+   * comparison is the next eligible candidate.
    */
-  function buildRunnerUp(ranked, target) {
+  function buildComparison(run, target) {
     var wrap = el("div", "reit-ov-compare");
-    if (!target || ranked.length < 2) { return wrap; }
+    var cmp = AnalysisRun.comparison(run);
+    if (!target || !cmp) { return wrap; }
+    var other = cmp.market;
+    var role = cmp.role;
 
-    var runnerUp = null;
-    for (var i = 0; i < ranked.length; i++) {
-      if (ranked[i].marketId !== target.marketId) { runnerUp = ranked[i]; break; }
-    }
-    if (!runnerUp) { return wrap; }
-
-    wrap.appendChild(el("h3", null, "Target against the next-best segment"));
+    var hid = "ov-compare-heading";
+    var h = el("h3", null, "Selected target against the " + role.toLowerCase());
+    h.id = hid;
+    wrap.appendChild(h);
     wrap.appendChild(el("p", "reit-note",
-      "The runner-up is the highest-scoring segment other than the target. " +
-      "A difference of a point or two on a 0–100 composite is not a meaningful " +
-      "separation; the factor rows below show where the two actually differ."));
+      role === "Highest raw-score alternative"
+        ? "The highest raw-score alternative scores above the selected target on attractiveness" +
+          (other.governance.eligible ? "." : " but fails the simulation-support screen, so it is not the shortlist candidate.") +
+          " Score differences are computed from unrounded scores and shown to two decimals."
+        : "The next eligible candidate is the second-highest segment passing the simulation-support " +
+          "screen. Score differences are computed from unrounded scores and shown to two decimals."));
 
     var tbl = document.createElement("table");
     tbl.className = "reit-compare-table";
+    tbl.setAttribute("aria-labelledby", hid);
 
     var thead = document.createElement("thead");
     var hr = document.createElement("tr");
     ["Measure",
-     (target.locality || target.marketId) + " (target)",
-     (runnerUp.locality || runnerUp.marketId) + " (runner-up)",
-     "Difference"].forEach(function (h) {
+     AnalysisRun.name(target) + " (selected target)",
+     AnalysisRun.name(other) + " (" + role.toLowerCase() + ")",
+     "Difference"].forEach(function (text) {
       var th = document.createElement("th");
       th.setAttribute("scope", "col");
-      th.textContent = h;
+      th.textContent = text;
       hr.appendChild(th);
     });
     thead.appendChild(hr);
     tbl.appendChild(thead);
 
-    function govOf(m) {
-      return (typeof Governance !== "undefined") ? Governance.evaluate(m) : null;
-    }
-    var tg = govOf(target), rg = govOf(runnerUp);
-
+    var tg = target.governance, og = other.governance;
     var rows = [
-      ["Composite score", num(target.totalScore, 1), num(runnerUp.totalScore, 1),
-       delta(target.totalScore, runnerUp.totalScore, 1)],
-      ["Gross yield", pct(target.grossYield), pct(runnerUp.grossYield),
-       delta(target.grossYield * 100, runnerUp.grossYield * 100, 2) + "pp"],
-      ["Rental growth", pct(target.annualRentalGrowthRatio), pct(runnerUp.annualRentalGrowthRatio),
-       delta(target.annualRentalGrowthRatio * 100, runnerUp.annualRentalGrowthRatio * 100, 2) + "pp"],
-      ["Demand score", num(target.demandScore, 0), num(runnerUp.demandScore, 0),
-       delta(target.demandScore, runnerUp.demandScore, 0)],
-      ["Risk score (lower is better)", num(target.riskScore, 1), num(runnerUp.riskScore, 1),
-       delta(target.riskScore, runnerUp.riskScore, 1)],
-      ["Observations", String(target.observationCount || "—"), String(runnerUp.observationCount || "—"),
-       delta(target.observationCount, runnerUp.observationCount, 0)],
-      ["Confidence grade", target.confidenceGrade || "—", runnerUp.confidenceGrade || "—", "—"],
-      ["Evidence tier", tg ? tg.tier : "—", rg ? rg.tier : "—", "—"],
-      ["City", target.city || "—", runnerUp.city || "—",
-       target.city === runnerUp.city ? "same city" : "different cities"],
-      ["Property type", target.propertyType || "—", runnerUp.propertyType || "—",
-       target.propertyType === runnerUp.propertyType ? "same type" : "different types"]
+      ["Composite attractiveness score", num(target.totalScore, 2), num(other.totalScore, 2),
+       delta(target.totalScore, other.totalScore, 2)],
+      ["Raw rank", String(target.rank), String(other.rank), "—"],
+      ["Simulation-support screen",
+       tg.eligible ? "✓ Passes" : "✗ Fails — " + tg.reasons.join("; "),
+       og.eligible ? "✓ Passes" : "✗ Fails — " + og.reasons.join("; "), "—"],
+      ["Eligible rank", target.eligibleRank ? String(target.eligibleRank) : "— (fails screen)",
+       other.eligibleRank ? String(other.eligibleRank) : "— (fails screen)", "—"],
+      ["Simulated observations", String(target.observationCount), String(other.observationCount),
+       delta(target.observationCount, other.observationCount, 0)],
+      ["Assumption Support Grade", target.confidenceGrade || "—", other.confidenceGrade || "—", "—"],
+      ["Simulation support level", tg.tier, og.tier, "—"],
+      ["External calibration", target.externalCalibrationStatus, other.externalCalibrationStatus, "—"],
+      ["Gross yield", pct(target.grossYield), pct(other.grossYield),
+       delta(target.grossYield * 100, other.grossYield * 100, 2) + "pp"],
+      ["Rental growth", pct(target.annualRentalGrowthRatio), pct(other.annualRentalGrowthRatio),
+       delta(target.annualRentalGrowthRatio * 100, other.annualRentalGrowthRatio * 100, 2) + "pp"],
+      ["Demand score", num(target.demandScore, 1), num(other.demandScore, 1),
+       delta(target.demandScore, other.demandScore, 1)],
+      ["Risk score (lower is better)", num(target.riskScore, 1), num(other.riskScore, 1),
+       delta(target.riskScore, other.riskScore, 1)],
+      ["City", target.city, other.city, target.city === other.city ? "same city" : "different cities"],
+      ["Property type", target.propertyType, other.propertyType,
+       target.propertyType === other.propertyType ? "same type" : "different types"]
     ];
 
     var tbody = document.createElement("tbody");
@@ -325,27 +330,13 @@
       th.setAttribute("scope", "row");
       th.textContent = r[0];
       tr.appendChild(th);
-      r.slice(1).forEach(function (v) {
-        var td = document.createElement("td");
-        td.textContent = v;
-        tr.appendChild(td);
-      });
+      r.slice(1).forEach(function (v) { tr.appendChild(el("td", null, v)); });
       tbody.appendChild(tr);
     });
     tbl.appendChild(tbody);
-    wrap.appendChild(tbl);
-
-    /* Diversification is the one factor on which "different city" and
-     * "different type" are the whole story, so it is called out rather than
-     * left for the reader to infer from the two rows above. */
-    if (target.city !== runnerUp.city || target.propertyType !== runnerUp.propertyType) {
-      wrap.appendChild(el("p", "reit-note",
-        "Because the two sit in different " +
-        (target.city !== runnerUp.city ? "cities" : "property types") +
-        ", they affect portfolio concentration differently — see the Diversification page " +
-        "for the before-and-after figures for each."));
-    }
-
+    var scroll = el("div", "reit-table-scroll");
+    scroll.appendChild(tbl);
+    wrap.appendChild(scroll);
     return wrap;
   }
 
@@ -371,54 +362,41 @@
     return "unchanged, " + level;
   }
 
-  function presetLabel(key) {
-    if (typeof ScoringEngine !== "undefined" && ScoringEngine.PRESETS &&
-        ScoringEngine.PRESETS[key]) {
-      return ScoringEngine.PRESETS[key].label;
-    }
-    return key === "custom" ? "Custom" : (key || "Balanced");
-  }
-
   // ─── 3. Route map ──────────────────────────────────────────────────────────
 
   function linkButton(text, page) {
-    var a = document.createElement("a");
-    a.className = "reit-ov-link-btn";
+    var a = el("a", "reit-ov-link-btn", text);
     a.href = "#" + page;
-    a.textContent = text;
     return a;
   }
 
   function buildRouteMap() {
     var s = section("Where to look",
-      "The pages below follow the order the analysis runs in.");
+      "The pages below follow the order the analysis runs in. All of them render the same analysis.");
     var list = el("ol", "reit-ov-routes");
 
     [
       ["portfolio", "Portfolio Analysis",
-       "The " + data.counts.assetCount + " synthetic holdings the analysis starts from."],
+       "The " + view.counts.assetCount + " synthetic holdings the analysis starts from, or your own custom portfolio."],
       ["screener", "Market Screener",
-       "Scores and ranks all " + data.counts.marketCount + " segments. Filters, the " +
-       "evidence floor, and the per-segment observation distributions live here."],
+       "Scores and ranks all " + view.counts.marketCount + " segments. Presets, weights, the " +
+       "simulation-support screen, manual selection, filters and the per-segment simulated distributions live here."],
       ["diversification", "Diversification",
-       "What the investment does to geographic and asset-class concentration."],
+       "What the investment in the selected target does to geographic and asset-class concentration, and the projections."],
       ["statsdash", "Statistical Analysis",
-       "The whole " + AppMeta.num(data.counts.observationCount) + "-record dataset: " +
-       "distributions, correlation structure, regression, and anomaly-detection " +
-       "performance measured against known ground truth."],
+       "The " + AppMeta.num(view.counts.observationCount) + " simulated market observations: " +
+       "distributions, stratified correlation, regression and known-anomaly detection."],
       ["agents", "Agent Output",
-       data.counts.agentCount + " Gemini agents interpreting the figures, plus the " +
-       "deterministic checks that gate the recommendation."],
+       view.counts.agentCount + " Gemini agents interpreting the selected target's figures, plus the " +
+       "deterministic checks that gate the Orchestrator."],
       ["datacentre", "Data Centre",
-       "Provenance, the cleaning pipeline, and the evidence behind each segment."],
+       "Holdings, segment aggregates, the simulated observations, the source register and data quality."],
       ["report", "Decision Report",
        "The whole chain in one printable document."]
     ].forEach(function (r) {
       var li = document.createElement("li");
-      var a = document.createElement("a");
+      var a = el("a", "reit-ov-route-link", r[1]);
       a.href = "#" + r[0];
-      a.textContent = r[1];
-      a.className = "reit-ov-route-link";
       li.appendChild(a);
       li.appendChild(el("span", "reit-ov-route-desc", " — " + r[2]));
       list.appendChild(li);
@@ -432,16 +410,12 @@
 
   function buildLimits() {
     var s = section("What this cannot be used for", AppMeta.PROJECT.syntheticNotice);
-
     var list = el("ul", "reit-ov-limits");
-    var limits = (typeof Validator !== "undefined" && Validator.LIMITATIONS)
-      ? Validator.LIMITATIONS
-      : ["All data is synthetic."];
-    limits.forEach(function (l) {
+    (typeof Validator !== "undefined" && Validator.LIMITATIONS
+      ? Validator.LIMITATIONS : ["All data is synthetic."]).forEach(function (l) {
       list.appendChild(el("li", null, l));
     });
     s.appendChild(list);
-
     s.appendChild(el("p", "reit-ov-limits-note",
       "This list is fixed in code (validator.js), not generated by a model, so it cannot " +
       "vary between runs or disappear when the API is unreachable."));
@@ -451,82 +425,103 @@
   // ─── Reset ─────────────────────────────────────────────────────────────────
 
   /*
-   * Reset Demo exists because the application remembers deliberately: weights,
-   * investment amount, selected target and the evidence-floor override all
-   * persist in localStorage so a reload does not discard the user's work. That
-   * is right for a working session and wrong for a demonstration, where the
-   * previous viewer's settings would silently shape what the next one sees.
+   * Reset Demo restores the canonical analysis without a reload: sample
+   * portfolio, Balanced preset and weights, the default ₹50 Cr, the screen
+   * applied, automatic selection, no filters. It touches only this
+   * application's storage keys. A custom portfolio is user work, so it is
+   * kept (inactive) rather than deleted.
    *
-   * It clears only this application's own state, and it asks first, because the
-   * action discards work and cannot be undone.
+   * The confirmation is an explicit panel stating what will happen, with a
+   * Reset and a Cancel button — not a button that silently changes its label
+   * and waits for a second click.
    */
   function buildResetBar() {
     var wrap = el("div", "reit-ov-reset");
 
-    var btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "reit-ov-reset-btn";
-    btn.textContent = "Reset demo";
-    btn.addEventListener("click", function () {
-      if (btn.getAttribute("data-confirming") === "yes") {
-        doReset();
-        return;
-      }
-      btn.setAttribute("data-confirming", "yes");
-      btn.textContent = "Click again to confirm reset";
-      btn.className = "reit-ov-reset-btn reit-ov-reset-confirm";
-    });
-    wrap.appendChild(btn);
+    if (!view.confirming) {
+      var btn = el("button", "reit-ov-reset-btn", "Reset demo…");
+      btn.type = "button";
+      btn.id = "ov-reset-open";
+      btn.setAttribute("aria-haspopup", "dialog");
+      btn.addEventListener("click", function () {
+        view.confirming = true;
+        render();
+        var c = document.getElementById("ov-reset-confirm");
+        if (c) { c.focus(); }
+      });
+      wrap.appendChild(btn);
+      wrap.appendChild(el("p", "reit-ov-reset-note",
+        "Restores the default analysis for this browser. The dataset and documents are untouched."));
+      return wrap;
+    }
 
-    wrap.appendChild(el("p", "reit-ov-reset-note",
-      "Clears the saved weights, investment amount, selected target and evidence-floor " +
-      "override, then reloads with the defaults. Affects only this browser; the dataset " +
-      "and the documents are untouched."));
+    var panel = el("div", "reit-ov-reset-panel");
+    panel.setAttribute("role", "alertdialog");
+    panel.setAttribute("aria-labelledby", "ov-reset-title");
+    panel.setAttribute("aria-describedby", "ov-reset-desc");
+    var title = el("h3", null, "Reset the demo to its defaults?");
+    title.id = "ov-reset-title";
+    panel.appendChild(title);
+    var desc = el("div");
+    desc.id = "ov-reset-desc";
+    desc.appendChild(el("p", null, "This will immediately restore:"));
+    var ul = el("ul");
+    ["the sample portfolio (a custom portfolio, if you made one, is kept but no longer used)",
+     "the Balanced preset and its canonical weights",
+     "the default investment of ₹50.00 Cr (10% of the sample portfolio)",
+     "the simulation-support screen, applied",
+     "automatic selection of the shortlist candidate (any manual selection is cleared)",
+     "no screener filters, and no agent commentary from the previous run"].forEach(function (t) {
+      ul.appendChild(el("li", null, t));
+    });
+    desc.appendChild(ul);
+    panel.appendChild(desc);
+
+    var row = el("div", "reit-ov-reset-actions");
+    var yes = el("button", "reit-ov-reset-btn reit-ov-reset-confirm", "Reset to defaults");
+    yes.type = "button";
+    yes.id = "ov-reset-confirm";
+    yes.addEventListener("click", doReset);
+    var no = el("button", "reit-btn reit-btn--outline", "Cancel");
+    no.type = "button";
+    no.id = "ov-reset-cancel";
+    no.addEventListener("click", cancelReset);
+    row.appendChild(yes);
+    row.appendChild(no);
+    panel.appendChild(row);
+    panel.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { e.preventDefault(); cancelReset(); }
+    });
+    wrap.appendChild(panel);
     return wrap;
   }
 
-  function doReset() {
-    try {
-      if (typeof ReitState !== "undefined") { ReitState.clear(); }
-    } catch (e) { /* storage may be unavailable; the reload still helps */ }
-    try {
-      delete window._reitAgentOutputs;
-    } catch (e) { window._reitAgentOutputs = undefined; }
+  function cancelReset() {
+    view.confirming = false;
+    render();
+    var b = document.getElementById("ov-reset-open");
+    if (b) { b.focus(); }
+  }
 
-    if (typeof showToast === "function") {
-      showToast("Demo reset — reloading with default settings.");
-    }
-    window.location.hash = "overview";
-    window.location.reload();
+  function doReset() {
+    view.confirming = false;
+    view.resetDone = true;
+    try { delete window._reitAgentOutputs; } catch (e) { window._reitAgentOutputs = undefined; }
+    AnalysisRun.reset();          // recomputes and re-renders every page
+    if (window.location.hash !== "#overview") { window.location.hash = "overview"; }
+    render();
+    var h = document.getElementById("ov-current-analysis");
+    if (h) { h.focus(); }
+    if (typeof showToast === "function") { showToast("Demo reset to the default analysis.", "success"); }
+    setTimeout(function () { view.resetDone = false; }, 0);
   }
 
   // ─── Boot ──────────────────────────────────────────────────────────────────
 
-  function refreshIfVisible() {
-    var page = document.getElementById("page-overview");
-    if (page && page.classList.contains("page-active") && data.loaded) { render(); }
-  }
-
-  function boot() {
-    init();
-    /* Re-render on navigation back to this page: the run summary is read from
-     * shared state, which the screener may have rewritten in the meantime. */
-    window.addEventListener("hashchange", function () {
-      if (window.location.hash === "#overview" || window.location.hash === "") {
-        refreshIfVisible();
-      }
-    });
-    var observer = new MutationObserver(refreshIfVisible);
-    var main = document.getElementById("main-content");
-    if (main) {
-      observer.observe(main, { subtree: true, attributes: true, attributeFilter: ["class"] });
-    }
-  }
-
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot);
+    document.addEventListener("DOMContentLoaded", init);
   } else {
-    boot();
+    init();
   }
 
 }());

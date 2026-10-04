@@ -25,9 +25,14 @@
  *   portfolioF         asset count, total value, sorted asset identities
  *   weights            every factor weight, canonically ordered and rounded
  *   investmentCr       the amount being deployed
- *   selectedTarget     the market the user chose
+ *   selectedTarget     the market every page analyses
+ *   selectionMode      "auto" (the screen's candidate) or "manual" (the user's pick)
+ *   governanceOverride whether the simulation-support screen was ignored
+ *   recommendedCandidate  the screen's shortlist candidate, even when a manual
+ *                      target is selected — commentary compares the two
  *   topRanked          the leading markets and their scores
  *   methodologyVersion bumped by hand when scoring logic changes
+ *   contextVersion     bumped by hand when the agent context or prompts change
  *
  * All functions are pure. No DOM access, no network, no clock reads — the same
  * inputs always produce the same key, in the browser and in Node alike.
@@ -43,6 +48,14 @@
    * no longer describes what the engine now produces.
    */
   var METHODOLOGY_VERSION = "1.0.0";
+
+  /*
+   * Bump when the CONTEXT sent to the agents, or their prompts, change shape.
+   * Scores do not move when this changes, but commentary written against the
+   * old vocabulary ("evidence floor", "runner-up") no longer describes what the
+   * application displays, so it must stop matching.
+   */
+  var CONTEXT_VERSION = "2";
 
   /* Rounding applied before hashing, so floating-point noise cannot cause a
    * spurious cache miss. Weights and scores are compared at these precisions. */
@@ -124,11 +137,15 @@
     };
   }
 
-  /** Weight identity, rounded and canonically ordered. */
+  var FACTOR_KEYS = ["demandWeight", "diversWeight", "growthWeight", "riskWeight", "yieldWeight"];
+
+  /** Weight identity: the five factor weights only, rounded and ordered.
+   * Preset objects also carry a display label; it is not a weight and must not
+   * make two identical weightings hash differently. */
   function weightsFingerprint(weights) {
     var w = weights || {};
     var out = {};
-    Object.keys(w).sort().forEach(function (k) { out[k] = round(w[k], WEIGHT_DP); });
+    FACTOR_KEYS.forEach(function (k) { out[k] = round(w[k], WEIGHT_DP); });
     return out;
   }
 
@@ -164,18 +181,25 @@
    *   assets         portfolio assets array
    *   weights        factor weights in use
    *   investmentCr   investment amount in crore
-   *   selectedTargetId  marketId of the chosen target
+   *   selectedTargetId  marketId of the target every page analyses
+   *   selectionMode     "auto" | "manual"
+   *   governanceOverride  true when the simulation-support screen was ignored
+   *   recommendedCandidateId  the screen's candidate (may differ from the target)
    *   ranked         ranked market array
    */
   function describe(input) {
     input = input || {};
     return {
       methodologyVersion: METHODOLOGY_VERSION,
+      contextVersion:     CONTEXT_VERSION,
       dataset:            datasetFingerprint(input.marketsDoc),
       portfolio:          portfolioFingerprint(input.assets),
       weights:            weightsFingerprint(input.weights),
       investmentCr:       round(input.investmentCr, MONEY_DP),
       selectedTargetId:   input.selectedTargetId || null,
+      selectionMode:      input.selectionMode === "manual" ? "manual" : "auto",
+      governanceOverride: !!input.governanceOverride,
+      recommendedCandidateId: input.recommendedCandidateId || null,
       topRanked:          rankingFingerprint(input.ranked)
     };
   }
@@ -193,15 +217,20 @@
    */
   function diff(a, b) {
     if (!a || !b) { return ["scenario descriptor missing"]; }
-    var fields = ["methodologyVersion", "dataset", "portfolio", "weights",
-                  "investmentCr", "selectedTargetId", "topRanked"];
+    var fields = ["methodologyVersion", "contextVersion", "dataset", "portfolio", "weights",
+                  "investmentCr", "selectedTargetId", "selectionMode", "governanceOverride",
+                  "recommendedCandidateId", "topRanked"];
     var LABEL = {
       methodologyVersion: "scoring methodology",
+      contextVersion:     "agent context version",
       dataset:            "dataset version",
       portfolio:          "portfolio",
       weights:            "factor weights",
       investmentCr:       "investment amount",
       selectedTargetId:   "selected target market",
+      selectionMode:      "selection mode (automatic or manual)",
+      governanceOverride: "simulation-support screen setting",
+      recommendedCandidateId: "shortlist candidate",
       topRanked:          "market ranking"
     };
     var out = [];
@@ -218,6 +247,7 @@
 
   var ScenarioKey = {
     METHODOLOGY_VERSION: METHODOLOGY_VERSION,
+    CONTEXT_VERSION:     CONTEXT_VERSION,
     TOP_N:               TOP_N,
     describe:            describe,
     compute:             compute,

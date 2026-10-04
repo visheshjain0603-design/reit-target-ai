@@ -2,11 +2,17 @@
  * diversification.js — Diversification (HHI) page controller
  * REIT Target AI | NMIMS B.Sc. Finance — BA Theme 4 (Academic Demo)
  *
- * READS from shared analysis state (ReitState) written by marketScreen.js.
- * If state is stale or absent, prompts user to run the Market Screener first.
+ * Renders the shared analysis run (analysisRun.js) and nothing else. The
+ * target named at the top, every HHI figure, the two candidate tables and
+ * every projection come from the same run object the Overview, Screener,
+ * Agents page and Report render, and the page re-renders whenever that run
+ * changes.
  *
- * Depends on: hhi.js (HHIEngine), scoringEngine.js (ScoringEngine),
- *             stateManager.js (ReitState), uiHelpers.js
+ * It previously read a stored snapshot ONCE, when the application loaded. After
+ * a preset change the other pages moved to the new target while this page went
+ * on analysing the old one, and its Top 3 still showed Balanced results.
+ *
+ * Depends on: analysisRun.js, hhi.js, projection.js, appMeta.js, charts.js
  */
 
 (function () {
@@ -14,16 +20,7 @@
 
   var ROOT_ID = "hhi-content";
 
-  // ─── State ────────────────────────────────────────────────────────────────
-
-  var state = {
-    markets:       [],
-    assets:        [],
-    portfolioValue: 0,
-    sharedRun:     null,   // loaded from ReitState
-    loading:       true,
-    error:         null
-  };
+  var view = { run: null, loading: true, error: null };
 
   // ─── Init ─────────────────────────────────────────────────────────────────
 
@@ -32,19 +29,18 @@
     if (!root) { return; }
     showLoading(root);
 
-    Promise.all([
-      fetch("data/markets.json").then(function (r) { return r.json(); }),
-      fetch("data/portfolio.json").then(function (r) { return r.json(); })
-    ]).then(function (results) {
-      state.markets       = results[0].markets || [];
-      state.assets        = results[1].assets  || [];
-      state.portfolioValue = HHIEngine.totalValue(state.assets);
-      state.sharedRun      = ReitState.load();
-      state.loading        = false;
+    AnalysisRun.ready().then(function (run) {
+      view.loading = false;
+      view.run = run;
       render(root);
     }).catch(function (err) {
-      state.loading = false;
-      state.error = "Could not load data: " + err.message;
+      view.loading = false;
+      view.error = "Could not load the dataset: " + err.message + ". Reload the page to try again.";
+      render(root);
+    });
+
+    AnalysisRun.subscribe(function (run) {
+      view.run = run;
       render(root);
     });
   }
@@ -55,7 +51,8 @@
     root.innerHTML = "";
     var p = document.createElement("p");
     p.className = "loading-msg";
-    p.textContent = "Loading portfolio data…";
+    p.setAttribute("role", "status");
+    p.textContent = "Loading the portfolio and the current analysis…";
     root.appendChild(p);
   }
 
@@ -64,54 +61,34 @@
   function render(root) {
     root.innerHTML = "";
 
-    if (state.error) {
+    if (view.error) {
       var errEl = document.createElement("p");
       errEl.className = "error-msg";
-      errEl.textContent = state.error;
+      errEl.setAttribute("role", "alert");
+      errEl.textContent = view.error;
       root.appendChild(errEl);
       return;
     }
+    if (view.loading || !view.run) { showLoading(root); return; }
 
-    // Stale / missing state banner
-    if (!state.sharedRun || state.sharedRun.stale) {
-      root.appendChild(buildStaleBanner());
-    }
-
-    // Always show current portfolio HHI even without a screener run
     root.appendChild(buildCurrentHHI());
 
-    // Simulation results only if we have a valid (non-stale) run
-    if (state.sharedRun && !state.sharedRun.stale) {
-      root.appendChild(buildSimulationSection());
+    if (!AnalysisRun.selected(view.run)) {
+      var none = document.createElement("p");
+      none.className = "reit-stale-banner";
+      none.textContent = view.run.governanceNote;
+      root.appendChild(none);
       root.appendChild(buildTop3Section());
       root.appendChild(buildSensitivitySection());
-      // Stage 6: Scenario projections
-      if (typeof Projection !== "undefined") {
-        root.appendChild(buildProjectionSection());
-      }
+      return;
     }
-  }
 
-  // ─── Stale banner ─────────────────────────────────────────────────────────
-
-  function buildStaleBanner() {
-    var div = document.createElement("div");
-    div.className = "reit-stale-banner";
-    var icon = document.createElement("span");
-    icon.textContent = "ℹ️";
-    var msg = document.createElement("span");
-    msg.textContent = state.sharedRun
-      ? "The analysis is outdated — weights or investment amount changed. Run the Market Screener to refresh."
-      : "No analysis has been run yet. Go to the Market Screener to score and rank markets first.";
-    div.appendChild(icon);
-    div.appendChild(msg);
-
-    var link = document.createElement("a");
-    link.href = "#screener";
-    link.className = "reit-stale-link";
-    link.textContent = "→ Go to Market Screener";
-    div.appendChild(link);
-    return div;
+    root.appendChild(buildSimulationSection());
+    root.appendChild(buildTop3Section());
+    root.appendChild(buildSensitivitySection());
+    if (typeof Projection !== "undefined") {
+      root.appendChild(buildProjectionSection());
+    }
   }
 
   // ─── Current portfolio HHI ────────────────────────────────────────────────
@@ -124,24 +101,27 @@
     h.textContent = "Current Portfolio Concentration";
     div.appendChild(h);
 
-    var cityHHI = HHIEngine.cityHHI(state.assets);
-    var typeHHI = HHIEngine.typeHHI(state.assets);
+    var run = view.run;
+    var assets = run.assets;
+    var cityHHI = run.portfolio.cityHHI;
+    var typeHHI = run.portfolio.typeHHI;
 
     var grid = document.createElement("div");
     grid.className = "reit-metrics-grid";
 
     grid.appendChild(buildHHICard("City HHI", cityHHI, null));
     grid.appendChild(buildHHICard("Asset-type HHI", typeHHI, null));
-    grid.appendChild(buildMetricCard("Portfolio Value", "₹" + (state.portfolioValue / 1e7).toFixed(1) + " Cr", null));
-    grid.appendChild(buildMetricCard("Assets", state.assets.length, null));
+    grid.appendChild(buildMetricCard("Portfolio Value", "₹" + (run.portfolio.totalValueRs / 1e7).toFixed(1) + " Cr", null));
+    grid.appendChild(buildMetricCard("Assets", run.portfolio.assetCount +
+      (run.portfolio.source === "custom" ? " (custom portfolio)" : " (sample portfolio)"), null));
 
     div.appendChild(grid);
 
     // City and type allocation tables
     var allocDiv = document.createElement("div");
     allocDiv.className = "reit-alloc-wrap";
-    allocDiv.appendChild(buildAllocTable("City Allocation", HHIEngine.cityAllocation(state.assets)));
-    allocDiv.appendChild(buildAllocTable("Asset-type Allocation", HHIEngine.typeAllocation(state.assets)));
+    allocDiv.appendChild(buildAllocTable("City Allocation", HHIEngine.cityAllocation(assets)));
+    allocDiv.appendChild(buildAllocTable("Asset-type Allocation", HHIEngine.typeAllocation(assets)));
     div.appendChild(allocDiv);
 
     return div;
@@ -250,6 +230,10 @@
 
     var tbl = document.createElement("table");
     tbl.className = "reit-alloc-table";
+    var cap = document.createElement("caption");
+    cap.className = "reit-sr-only";
+    cap.textContent = title + ": share of current portfolio value";
+    tbl.appendChild(cap);
 
     var keys = Object.keys(alloc).sort(function (a, b) {
       return alloc[b].share - alloc[a].share;
@@ -276,7 +260,7 @@
   // ─── Simulation section ───────────────────────────────────────────────────
 
   function buildSimulationSection() {
-    var run = state.sharedRun;
+    var run = view.run;
     var div = document.createElement("div");
     div.className = "reit-section";
 
@@ -284,33 +268,37 @@
     h.textContent = "Simulated Investment";
     div.appendChild(h);
 
-    // Find selected target in ranked list
-    var target = null;
-    if (run.ranked) {
-      for (var i = 0; i < run.ranked.length; i++) {
-        if (run.ranked[i].marketId === run.selectedTargetId) {
-          target = run.ranked[i];
-          break;
-        }
-      }
-      if (!target && run.ranked.length > 0) { target = run.ranked[0]; }
-    }
-
-    if (!target || !target.simulation) {
-      var noSim = document.createElement("p");
-      noSim.textContent = "No simulation available. Run the Market Screener first.";
-      div.appendChild(noSim);
-      return div;
-    }
-
+    /* The target is the run's selected target — never a fallback to rank 1. */
+    var target = AnalysisRun.selected(run);
     var sim = target.simulation;
+    var gov = target.governance;
 
-    // Target info
     var info = document.createElement("p");
     info.className = "reit-sim-info";
-    info.textContent = "Target: " + target.locality + ", " + target.city
-      + " (" + target.propertyType + ") — Investment: ₹" + run.investmentCr + " Cr";
+    info.setAttribute("data-target-id", target.marketId);
+    info.textContent = AnalysisRun.targetLabel(run) + ": " + AnalysisRun.name(target) +
+      " (" + target.propertyType + ", raw rank " + target.rank +
+      (target.eligibleRank ? ", eligible rank " + target.eligibleRank : "") + ") — Investment: " +
+      AppMeta.cr(run.investmentRs, 2) + " — " + run.presetLabel;
     div.appendChild(info);
+
+    var support = document.createElement("p");
+    support.className = "reit-sim-support";
+    support.textContent = "Simulation support: " + (gov.eligible ? "✓ passes" : "✗ fails") +
+      " the simulation-support screen (" + target.observationCount + " simulated observations, " +
+      "Assumption Support Grade " + (gov.grade || "—") + (gov.eligible ? "" : "; " + gov.reasons.join("; ")) +
+      "). External calibration: " + target.externalCalibrationStatus + ".";
+    div.appendChild(support);
+
+    if (run.selectionMode === "manual") {
+      var rec = AnalysisRun.recommended(run);
+      var mn = document.createElement("p");
+      mn.className = "reit-stale-banner";
+      mn.textContent = "Manually selected target." + (run.selectionDiffers && rec
+        ? " ⚠ The current shortlist candidate is " + AnalysisRun.name(rec) + "; this page analyses the manual selection."
+        : "");
+      div.appendChild(mn);
+    }
 
     // Before/After cards — CITY HHI
     var citySection = document.createElement("div");
@@ -495,81 +483,93 @@
     return card;
   }
 
-  // ─── Top 3 table ──────────────────────────────────────────────────────────
+  // ─── Candidate tables ─────────────────────────────────────────────────────
 
+  /*
+   * Two tables, each labelled for what it is. Raw-score leaders are the top of
+   * the attractiveness ranking under the ACTIVE preset; several of them usually
+   * fail the simulation-support screen. The eligible shortlist is the top of the
+   * segments that pass. An ineligible segment is never called a recommendation.
+   */
   function buildTop3Section() {
-    var run = state.sharedRun;
-    if (!run || !run.ranked) { return document.createDocumentFragment(); }
-
+    var run = view.run;
     var div = document.createElement("div");
     div.className = "reit-section";
 
     var h = document.createElement("h2");
-    h.textContent = "Top 3 Target Markets";
+    h.textContent = "Candidates under the " + run.presetLabel + " preset";
     div.appendChild(h);
 
-    var tbl = document.createElement("table");
-    tbl.className = "reit-sim-table";
+    div.appendChild(candidateTable("Raw-score leaders — top 3 by composite attractiveness score",
+      AnalysisRun.rawTop(run, 3), "div-raw-top3"));
+    div.appendChild(candidateTable("Eligible shortlist — top 3 passing the simulation-support screen",
+      AnalysisRun.eligibleTop(run, 3), "div-eligible-top3"));
 
-    var thead = document.createElement("thead");
-    var hrow = document.createElement("tr");
-    ["Rank", "Market", "City", "Type", "Score", "Gross Yield",
-     "City HHI Δ", "City Δ Label",
-     "Type HHI Δ", "Type Δ Label"
-    ].forEach(function (h) {
-      var th = document.createElement("th"); th.textContent = h; hrow.appendChild(th);
-    });
-    thead.appendChild(hrow);
-    tbl.appendChild(thead);
-
-    var tbody = document.createElement("tbody");
-    var top3 = run.ranked.slice(0, 3);
-    top3.forEach(function (m) {
-      var tr = document.createElement("tr");
-      var cityDelta = null, typeDelta = null;
-      if (m.simulation) {
-        cityDelta = m.simulation.after.cityHHI - m.simulation.before.cityHHI;
-        typeDelta = m.simulation.after.typeHHI - m.simulation.before.typeHHI;
-      }
-      var cityLabel = cityDelta !== null
-        ? (cityDelta < -0.0001 ? "Improved" : cityDelta > 0.0001 ? "Worsened" : "Unchanged") : "—";
-      var typeLabel = typeDelta !== null
-        ? (typeDelta < -0.0001 ? "Improved" : typeDelta > 0.0001 ? "Worsened" : "Unchanged") : "—";
-
-      var cells = [
-        m.rank,
-        m.locality,
-        m.city,
-        m.propertyType,
-        m.totalScore.toFixed(1),
-        (m.grossYield * 100).toFixed(2) + "%",
-        cityDelta !== null ? (cityDelta < 0 ? "" : "+") + cityDelta.toFixed(4) : "—",
-        cityLabel,
-        typeDelta !== null ? (typeDelta < 0 ? "" : "+") + typeDelta.toFixed(4) : "—",
-        typeLabel
-      ];
-      cells.forEach(function (c, ci) {
-        var td = document.createElement("td");
-        td.textContent = c;
-        if (ci === 7) { td.className = cityDelta !== null ? hhiDeltaClass(cityDelta) : ""; }
-        if (ci === 9) { td.className = typeDelta !== null ? hhiDeltaClass(typeDelta) : ""; }
-        tr.appendChild(td);
-      });
-      tbody.appendChild(tr);
-    });
-
-    tbl.appendChild(tbody);
-    div.appendChild(tbl);
-
-    // Explanatory note about HHI for each dimension
     var note = document.createElement("p");
     note.className = "reit-note";
     note.textContent = "HHI interpretation: < 0.15 = Diversified  |  0.15–0.25 = Moderate  |  > 0.25 = Concentrated. "
       + "A market may improve geographic concentration but worsen asset-type concentration — both are shown separately. "
       + "Descriptive portfolio concentration indicator only; not a regulatory classification.";
     div.appendChild(note);
-
     return div;
+  }
+
+  function candidateTable(title, list, id) {
+    var run = view.run;
+    var wrap = document.createElement("div");
+    var h = document.createElement("h3");
+    h.id = id + "-h";
+    h.textContent = title;
+    wrap.appendChild(h);
+
+    var tbl = document.createElement("table");
+    tbl.className = "reit-sim-table";
+    tbl.id = id;
+    tbl.setAttribute("aria-labelledby", h.id);
+
+    var thead = document.createElement("thead");
+    var hrow = document.createElement("tr");
+    ["Raw rank", "Eligible rank", "Market", "Type", "Score", "Gross Yield", "Screen",
+     "City HHI Δ", "Type HHI Δ", "Role"].forEach(function (t) {
+      var th = document.createElement("th"); th.setAttribute("scope", "col"); th.textContent = t; hrow.appendChild(th);
+    });
+    thead.appendChild(hrow);
+    tbl.appendChild(thead);
+
+    var tbody = document.createElement("tbody");
+    list.forEach(function (m) {
+      var tr = document.createElement("tr");
+      if (m.marketId === run.selectedTargetId) { tr.className = "reit-selected-row"; }
+      var cityDelta = m.simulation ? m.simulation.after.cityHHI - m.simulation.before.cityHHI : null;
+      var typeDelta = m.simulation ? m.simulation.after.typeHHI - m.simulation.before.typeHHI : null;
+      var role = m.marketId === run.selectedTargetId ? AnalysisRun.targetLabel(run)
+               : m.marketId === run.recommendedCandidateId ? "Shortlist candidate"
+               : m.marketId === run.highestRawScoreMarketId ? "Highest raw-score market" : "—";
+      [m.rank, m.eligibleRank || "—", AnalysisRun.name(m), m.propertyType,
+       m.totalScore.toFixed(2), (m.grossYield * 100).toFixed(2) + "%",
+       m.governance.eligible ? "✓ Passes" : "✗ Fails (" + m.governance.failsOn + ")",
+       cityDelta !== null ? (cityDelta < 0 ? "" : "+") + cityDelta.toFixed(4) + " " + deltaWord(cityDelta) : "—",
+       typeDelta !== null ? (typeDelta < 0 ? "" : "+") + typeDelta.toFixed(4) + " " + deltaWord(typeDelta) : "—",
+       role
+      ].forEach(function (c, ci) {
+        var td = document.createElement("td");
+        td.textContent = c;
+        if (ci === 7 && cityDelta !== null) { td.className = hhiDeltaClass(cityDelta); }
+        if (ci === 8 && typeDelta !== null) { td.className = hhiDeltaClass(typeDelta); }
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);
+    var scroll = document.createElement("div");
+    scroll.className = "reit-table-scroll";
+    scroll.appendChild(tbl);
+    wrap.appendChild(scroll);
+    return wrap;
+  }
+
+  function deltaWord(d) {
+    return d < -0.0001 ? "(improved)" : d > 0.0001 ? "(worsened)" : "(unchanged)";
   }
 
   function hhiDeltaClass(delta) {
@@ -580,64 +580,62 @@
 
   // ─── Sensitivity analysis section ─────────────────────────────────────────
 
+  /*
+   * For each preset, with the current portfolio and amount: the highest
+   * raw-score segment AND the highest candidate passing the screen. Showing
+   * only the raw leader would present segments that fail the screen as each
+   * preset's recommendation.
+   */
   function buildSensitivitySection() {
-    var run = state.sharedRun;
-    if (!run) { return document.createDocumentFragment(); }
-
+    var run = view.run;
     var div = document.createElement("div");
     div.className = "reit-section";
 
     var h = document.createElement("h2");
-    h.textContent = "Sensitivity Analysis — Top 1 by Scenario";
+    h.textContent = "Sensitivity Analysis — every preset";
     div.appendChild(h);
 
     var note = document.createElement("p");
     note.className = "reit-note";
-    note.textContent = "Shows the #1 ranked market under three alternative weight scenarios. "
-      + "Ranking shifts confirm the model responds meaningfully to investor priorities.";
+    note.textContent = "The same portfolio and " + AppMeta.cr(run.investmentRs, 2) + " investment under each weight preset. " +
+      "Each card shows the highest raw-score segment and the highest-ranked candidate passing the simulation-support " +
+      "screen; they differ whenever the top scorer fails the screen. The active preset is marked.";
     div.appendChild(note);
-
-    var sa = ScoringEngine.sensitivityAnalysis(
-      state.markets, state.assets, HHIEngine.diversificationScore
-    );
 
     var grid = document.createElement("div");
     grid.className = "reit-sensitivity-grid";
 
-    var scenarios = ["incomeFocused", "growthFocused", "diversFocused"];
-    scenarios.forEach(function (key) {
-      var scenario = sa[key];
-      if (!scenario || !scenario.top3 || !scenario.top3[0]) { return; }
-      var top = scenario.top3[0];
-
+    run.sensitivity.forEach(function (sc) {
       var card = document.createElement("div");
-      card.className = "reit-sensitivity-card";
+      card.className = "reit-sensitivity-card" + (sc.active ? " reit-sensitivity-active" : "");
 
       var title = document.createElement("h3");
-      title.textContent = scenario.label;
+      title.textContent = sc.label + (sc.active ? " (active)" : "");
       card.appendChild(title);
 
-      var weights = scenario.weights;
+      var w = sc.weights;
       var wLine = document.createElement("p");
       wLine.className = "reit-sensitivity-weights";
-      wLine.textContent = "Yield " + Math.round(weights.yieldWeight * 100) + "% · "
-        + "Growth " + Math.round(weights.growthWeight * 100) + "% · "
-        + "Diversification " + Math.round(weights.diversWeight * 100) + "% · "
-        + "Demand " + Math.round(weights.demandWeight * 100) + "% · "
-        + "Risk " + Math.round(weights.riskWeight * 100) + "%";
+      wLine.textContent = "Yield " + Math.round(w.yieldWeight * 100) + "% · "
+        + "Growth " + Math.round(w.growthWeight * 100) + "% · "
+        + "Diversification " + Math.round(w.diversWeight * 100) + "% · "
+        + "Demand " + Math.round(w.demandWeight * 100) + "% · "
+        + "Risk " + Math.round(w.riskWeight * 100) + "%";
       card.appendChild(wLine);
 
-      var topLine = document.createElement("div");
-      topLine.className = "reit-sensitivity-top";
-      topLine.textContent = "#1: " + top.locality + ", " + top.city
-        + " — Score: " + top.totalScore.toFixed(1);
-      card.appendChild(topLine);
+      var raw = document.createElement("div");
+      raw.className = "reit-sensitivity-top";
+      raw.textContent = "Highest raw score: " + sc.highestRaw.name + " — " + sc.highestRaw.score.toFixed(2) +
+        (sc.highestRaw.passes ? " (✓ passes screen)" : " (✗ fails screen)");
+      card.appendChild(raw);
 
-      var yield2 = document.createElement("p");
-      yield2.className = "reit-sensitivity-detail";
-      yield2.textContent = "Gross yield: " + (top.grossYield * 100).toFixed(2) + "%"
-        + "  ·  Risk score: " + top.riskScore;
-      card.appendChild(yield2);
+      var cand = document.createElement("p");
+      cand.className = "reit-sensitivity-detail";
+      cand.textContent = sc.candidate
+        ? "Shortlist candidate: " + sc.candidate.name + " — raw rank " + sc.candidate.rawRank +
+          ", score " + sc.candidate.score.toFixed(2) + ", gross yield " + (sc.candidate.grossYield * 100).toFixed(2) + "%"
+        : "Shortlist candidate: none passes the screen";
+      card.appendChild(cand);
 
       grid.appendChild(card);
     });
@@ -645,7 +643,6 @@
     div.appendChild(grid);
     return div;
   }
-
 
   // ─── Scenario Projection Section (Stage 6) ────────────────────────────────
 
@@ -665,28 +662,22 @@
       + "Assumptions are illustrative; no leverage, tax or transaction costs are modelled.";
     div.appendChild(note);
 
-    var sr = state.sharedRun;
-    // Resolve selected target's gross yield from ranked list
-    var projTarget = null;
-    if (sr.ranked && sr.selectedTargetId) {
-      for (var pi = 0; pi < sr.ranked.length; pi++) {
-        if (sr.ranked[pi].marketId === sr.selectedTargetId) {
-          projTarget = sr.ranked[pi]; break;
-        }
-      }
-    }
-    if (!projTarget && sr.ranked && sr.ranked.length > 0) { projTarget = sr.ranked[0]; }
-    var targetGrossYield = projTarget ? (projTarget.grossYield || 0) : 0.07;
+    /* The projections are the run's, computed once from the selected target's
+     * own gross yield, so this table and the Decision Report are the same
+     * numbers by construction. */
+    var run = view.run;
+    var projTarget = AnalysisRun.selected(run);
+    var projections = run.projections.all;
+    var horizons    = run.projections.horizons;
 
-    var params = {
-      currentPortfolioValueRs: (sr.portfolioValueCr || 0) * 1e7,
-      currentAnnualRentRs:     (sr.annualRentCr || 0) * 1e7,
-      investmentRs:            (sr.investmentCr || 0) * 1e7,
-      newMarketGrossYield:     targetGrossYield
-    };
-
-    var projections = Projection.projectAll(params);
-    var horizons    = Projection.DEFAULT_HORIZONS;
+    var basis = document.createElement("p");
+    basis.className = "reit-text-muted";
+    basis.setAttribute("data-year0-rent", (run.projections.year0AnnualRentRs / 1e7).toFixed(3));
+    basis.textContent = "Year 0 annual rent = existing rent " + AppMeta.cr(run.projections.params.currentAnnualRentRs, 3) +
+      " + " + AppMeta.cr(run.investmentRs, 2) + " × " + AnalysisRun.name(projTarget) + " gross yield " +
+      (projTarget.grossYield * 100).toFixed(2) + "% (" + AppMeta.cr(run.projections.targetAnnualRentRs, 3) +
+      ") = " + AppMeta.cr(run.projections.year0AnnualRentRs, 3) + ".";
+    div.appendChild(basis);
 
     // Assumptions table
     var assumpHeading = document.createElement("h3");

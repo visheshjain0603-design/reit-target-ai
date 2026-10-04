@@ -57,30 +57,180 @@
     syntheticNotice: "All data in this application is synthetic and was created for academic " +
                      "demonstration only. It does not describe any real property, tenant, " +
                      "transaction or market, and must not be used for any investment decision.",
-    publicUrl:      "https://visheshjain0603-design.github.io/reit-target-ai/"
+    publicUrl:      "https://visheshjain0603-design.github.io/reit-target-ai/",
+    repoName:       "reit-target-ai",
+    repoUrl:        "https://github.com/visheshjain0603-design/reit-target-ai"
   };
 
-  /* ─── Recommendation governance ────────────────────────────────────────
-   * A market segment with 26 observations and a confidence grade of E can
-   * still win the composite score, because the score measures attractiveness
-   * and says nothing about how well the underlying estimate is supported.
-   * Presenting such a segment as a recommendation without qualification
-   * overstates what the data can carry, so eligibility is a separate test
-   * from the score, applied and displayed independently.
+  /** A repository-relative path as a link a reader can actually open. */
+  function docUrl(relPath) {
+    return PROJECT.repoUrl + "/blob/main/" + String(relPath).replace(/^\/+/, "");
+  }
+
+  /* ─── The simulation-support screen ────────────────────────────────────
+   * The composite score measures attractiveness. It says nothing about how
+   * precisely the simulation pins down a segment's figures, and nothing at all
+   * about whether those figures match the real market. Three things are kept
+   * apart, and must not be confused anywhere in the application:
+   *
+   *   1. attractiveness   the five-factor composite score
+   *   2. simulation support   how many seeded draws stand behind a segment's
+   *                       medians, how wide their P10–P90 spread is, and the
+   *                       project's own Assumption Support Grade
+   *   3. external calibration   whether a cited source was located and the
+   *                       figure traced to it — see EXTERNAL_CALIBRATION
+   *
+   * The screen below tests (2) only. More simulated draws narrow the estimate
+   * around the ASSUMED distribution; they do not create market evidence, so
+   * passing the screen never implies that a segment is externally supported.
+   *
+   * An earlier revision justified n = 30 by the Central Limit Theorem and
+   * described grade C as resting on "documented evidence". Neither holds: the
+   * project ranks medians of synthetic draws, not sample means, and no cited
+   * document was ever located (docs/SOURCE_VERIFICATION_REPORT.md).
    */
   var GOVERNANCE = {
-    MIN_OBSERVATIONS: 30,
-    MIN_GRADE:        "C",             // "C+" in prose: A, B or C qualifies
+    name:             "Simulation-support screen",
+    MIN_OBSERVATIONS: 30,              // simulated draws behind the segment's medians
+    MIN_GRADE:        "C",             // Assumption Support Grade: A, B or C qualifies
     GRADE_ORDER:      ["A", "B", "C", "D", "E"],
-    rationale: "Thirty observations is the conventional floor at which the sampling " +
-               "distribution of a mean is treated as approximately normal, and grade C " +
-               "is the lowest grade whose estimate rests on documented evidence rather " +
-               "than assumption alone. Both are descriptive conventions adopted for this " +
-               "project, not regulatory thresholds.",
-    overrideLabel: "Include segments that do not meet the evidence floor",
-    overrideNote:  "Overriding shows every segment in the ranking. Segments below the " +
-                   "floor stay marked, and the report records that the override was used."
+    rule: "at least 30 simulated observations and Assumption Support Grade C or better",
+    rationale: "A transparent project governance convention for simulation precision, not a " +
+               "regulatory or universal statistical threshold. Thirty draws keeps the P10–P90 " +
+               "spread of a segment's simulated medians reasonably narrow; grade C or better " +
+               "excludes segments whose assumptions the project itself classed as interpolated " +
+               "or placeholder. Passing the screen says nothing about real-market accuracy.",
+    overrideLabel: "Ignore the simulation-support screen (make the highest raw-score market the candidate)",
+    overrideNote:  "With the screen ignored, the candidate is simply the highest raw-score market. " +
+                   "Segments that fail the screen stay marked, and the report records that the " +
+                   "screen was ignored."
   };
+
+  /* The A–E grade is assigned by the project to each segment's ASSUMPTION SET
+   * (data-pipeline/market_universe.csv). It records the kind of benchmark the
+   * assumptions were meant to follow and how wide a band was assumed around
+   * them. It is an internal classification: none of the benchmarks it refers
+   * to has been located or traced, so it is not an evidence grade. */
+  var SUPPORT_GRADES = {
+    label: "Assumption Support Grade",
+    definition: "The project's internal A–E classification of how a segment's assumptions " +
+                "were constructed and how wide a band was assumed around them. It is not an " +
+                "evidence grade: none of the benchmarks it refers to has been externally verified.",
+    grades: {
+      A: "Assumptions intended to follow a named primary benchmark; narrowest assumed band (±5–8%).",
+      B: "Assumptions intended to follow a primary or secondary benchmark with minor interpolation (±10–12%).",
+      C: "City-level benchmark adjusted by a locality-class multiplier (±15–20%).",
+      D: "Estimated from comparable segments; wide assumed band (±20–30%).",
+      E: "Placeholder assumptions; widest assumed band (±30–40%)."
+    }
+  };
+
+  /* ─── External calibration ─────────────────────────────────────────────
+   * Derived ONLY from the source register's verification outcomes, never from
+   * simulation count or grade. A segment is:
+   *   Verified             every external source it cites was located and the figure traced
+   *   Partially supported  at least one cited source was located and a figure traced
+   *   Unverified           no cited figure has been traced
+   * The register records zero located documents, so every segment is
+   * Unverified until that changes in the register itself.
+   */
+  var EXTERNAL_CALIBRATION = {
+    label:    "External calibration",
+    STATUSES: ["Verified", "Partially supported", "Unverified"],
+    basis:    "Source Verification Report: 0 of 12 cited documents located, 0 figures traced, " +
+              "no source upgraded to Verified.",
+    reportPath: "docs/SOURCE_VERIFICATION_REPORT.md"
+  };
+
+  /** Classify one register row's verification_status text. */
+  function sourceOutcome(statusText) {
+    var t = String(statusText || "").trim();
+    if (/^verified\b/i.test(t) && !/not\s+verified/i.test(t)) { return "Verified"; }
+    if (/partially supported|figure traced/i.test(t))          { return "Partially supported"; }
+    if (/^n\/a|internal/i.test(t))                              { return "Internal"; }
+    return "Unverified";
+  }
+
+  /**
+   * External calibration for a segment from the outcomes of the sources it
+   * cites. Takes no observation count and no grade — by construction it cannot
+   * be inferred from simulation precision.
+   */
+  function calibrationStatus(sourceIds, outcomes) {
+    var ids = (sourceIds || []).filter(function (id) {
+      return outcomes && outcomes[id] && outcomes[id] !== "Internal";
+    });
+    if (!ids.length) { return "Unverified"; }
+    var verified = ids.filter(function (id) { return outcomes[id] === "Verified"; }).length;
+    var partial  = ids.filter(function (id) { return outcomes[id] === "Partially supported"; }).length;
+    if (verified === ids.length) { return "Verified"; }
+    if (verified + partial > 0)  { return "Partially supported"; }
+    return "Unverified";
+  }
+
+  /* ─── Controlled glossary ──────────────────────────────────────────────
+   * The words every page, the agent context, the report and the documentation
+   * must use for the same concepts. tests/reit-tests.js checks the documents
+   * against it, and the agent output checker rejects the retired terms.
+   */
+  var TERMS = {
+    attractivenessScore: { label: "Composite attractiveness score",
+      definition: "The five-factor weighted score (rental yield, rental growth, diversification, demand, low market risk), 0–100." },
+    rawRank: { label: "Raw rank",
+      definition: "Position among all segments by composite attractiveness score alone." },
+    highestRawScoreMarket: { label: "Highest raw-score market",
+      definition: "Raw rank 1, whether or not it passes the simulation-support screen." },
+    simulationSupportScreen: { label: "Simulation-support screen",
+      definition: "At least 30 simulated observations and Assumption Support Grade C or better. A project governance convention for simulation precision." },
+    eligibleRank: { label: "Eligible rank",
+      definition: "Position among the segments that pass the simulation-support screen." },
+    shortlistCandidate: { label: "Shortlist candidate",
+      definition: "The highest-ranked candidate passing the simulation-support screen: an exploratory model output, not an investment recommendation." },
+    nextEligibleCandidate: { label: "Next eligible candidate",
+      definition: "Eligible rank 2." },
+    selectedTarget: { label: "Selected target",
+      definition: "The segment every page analyses. In automatic mode it is the shortlist candidate; in manual mode it is the user's choice." },
+    manualTarget: { label: "Manually selected target",
+      definition: "A selected target chosen by the user rather than by the screen." },
+    simulatedObservations: { label: "Simulated market observations",
+      definition: "Seeded draws from the project's generator. Not properties, listings or transactions." },
+    supportGrade: { label: "Assumption Support Grade", definition: SUPPORT_GRADES.definition },
+    externalCalibration: { label: "External calibration status",
+      definition: "Verified, Partially supported or Unverified, from the source register only." },
+    knownSyntheticAnomalies: { label: "Known synthetic anomalies",
+      definition: "Anomalies the generator inserted deliberately, recorded separately as ground truth." }
+  };
+
+  /* Phrases that describe the retired framing. Pages, agent output and current
+   * documentation must not use them. */
+  var RETIRED_TERMS = [
+    { pattern: /\bstrong evidence\b/i,        use: "simulation support" },
+    { pattern: /\bevidence floor\b/i,         use: "simulation-support screen" },
+    { pattern: /\bmeets the floor\b/i,        use: "passes the simulation-support screen" },
+    { pattern: /\bdocumented evidence\b/i,    use: "external calibration (Unverified)" },
+    { pattern: /\bconfidence grade\b/i,       use: "Assumption Support Grade" },
+    { pattern: /\brunner-?up\b/i,             use: "highest raw-score alternative / next eligible candidate" },
+    { pattern: /\bplanted anomal/i,            use: "known synthetic anomalies" },
+    { pattern: /central limit theorem/i,       use: "(remove — not applicable)" }
+  ];
+
+  /* Display labels for the internal sourceType codes in markets.json. None
+   * says "reported": no reported figure has been verified, so a label that
+   * implied one would contradict the Source Verification Report. */
+  var SOURCE_TYPE_LABELS = {
+    reported_tier1:                 "Benchmark-based assumption — Tier-1 source cited, not located",
+    estimated_tier3:                "City benchmark × locality multiplier — Tier-3 source cited, not located",
+    estimated_synthetic:            "Estimated by synthetic interpolation",
+    synthetic_academic_placeholder: "Synthetic placeholder"
+  };
+
+  function sourceTypeLabel(code) {
+    return SOURCE_TYPE_LABELS[code] || "Unclassified assumption";
+  }
+
+  /* Fixed next-step wording for every candidate while calibration is unverified. */
+  var CANDIDATE_CAVEAT = "Exploratory shortlist only. External calibration remains unverified — " +
+    "proceed to further evidence collection and due diligence before any real decision.";
 
   /* ─── The agent roster ─────────────────────────────────────────────────
    * Four agents, not six. Two of the original six were removed for reasons
@@ -113,8 +263,8 @@
     {
       key:   "marketScreening",
       label: "Market Screening Analyst",
-      purpose: "Explains why the leading segment scored as it did, and how the " +
-               "runner-up differs from it.",
+      purpose: "Explains why the shortlist candidate scored as it did, and how it " +
+               "differs from the highest raw-score market and the next eligible candidate.",
       step:  { id: "screening", label: "Ranking interpreted" },
       legacy: ["marketScreening"]
     },
@@ -229,6 +379,7 @@
                           sDoc.outlierDetection.groundTruth.planted) || null,
       contaminationPct:  (sDoc && sDoc.outlierDetection && sDoc.outlierDetection.groundTruth &&
                           sDoc.outlierDetection.groundTruth.contaminationPct) || null,
+      externalCalibrationStatus: "Unverified",   // overridden by buildMeta from the register
       marketsBelowObsFloor: markets.filter(function (m) {
                               return (m.observationCount || 0) < GOVERNANCE.MIN_OBSERVATIONS;
                             }).length,
@@ -254,6 +405,16 @@
   var AppMeta = {
     PROJECT:     PROJECT,
     GOVERNANCE:  GOVERNANCE,
+    SUPPORT_GRADES:       SUPPORT_GRADES,
+    EXTERNAL_CALIBRATION: EXTERNAL_CALIBRATION,
+    TERMS:                TERMS,
+    RETIRED_TERMS:        RETIRED_TERMS,
+    CANDIDATE_CAVEAT:     CANDIDATE_CAVEAT,
+    SOURCE_TYPE_LABELS:   SOURCE_TYPE_LABELS,
+    sourceTypeLabel:      sourceTypeLabel,
+    sourceOutcome:        sourceOutcome,
+    calibrationStatus:    calibrationStatus,
+    docUrl:               docUrl,
     AGENTS:      AGENTS,
     AGENT_KEYS:  AGENT_KEYS,
     agent:            agent,

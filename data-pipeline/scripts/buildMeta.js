@@ -52,6 +52,64 @@ if (AppMeta.PROJECT.methodologyVersion !== ScenarioKey.METHODOLOGY_VERSION) {
   );
 }
 
+/* ─── Source verification: the ONLY input to external calibration ──────── */
+
+function parseCsv(text) {
+  var rows = [], row = [], cell = "", q = false;
+  for (var i = 0; i < text.length; i++) {
+    var ch = text[i];
+    if (q) {
+      if (ch === '"' && text[i + 1] === '"') { cell += '"'; i++; }
+      else if (ch === '"') { q = false; }
+      else { cell += ch; }
+    } else if (ch === '"') { q = true; }
+    else if (ch === ",") { row.push(cell); cell = ""; }
+    else if (ch === "\n" || ch === "\r") {
+      if (ch === "\r" && text[i + 1] === "\n") { i++; }
+      row.push(cell); cell = "";
+      if (row.length > 1 || row[0] !== "") { rows.push(row); }
+      row = [];
+    } else { cell += ch; }
+  }
+  if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+  var head = rows.shift();
+  return rows.map(function (r) {
+    var o = {};
+    head.forEach(function (h, i) { o[h] = r[i] === undefined ? "" : r[i]; });
+    return o;
+  });
+}
+
+var register = parseCsv(fs.readFileSync(path.join(PROJECT, "data-pipeline", "source_register.csv"), "utf8"));
+var outcomes = {};
+var regRows = register.map(function (r) {
+  var cls = AppMeta.sourceOutcome(r.verification_status);
+  outcomes[r.source_id] = cls;
+  return { id: r.source_id, publisher: r.publisher, title: r.title, outcome: r.verification_status,
+           classification: cls };
+});
+var external = regRows.filter(function (r) { return r.classification !== "Internal"; });
+var verifiedCount = external.filter(function (r) { return r.classification === "Verified"; }).length;
+var partialCount  = external.filter(function (r) { return r.classification === "Partially supported"; }).length;
+var segmentCalibration = {};
+marketsDoc.markets.forEach(function (m) {
+  var st = AppMeta.calibrationStatus(m.sourceIds, outcomes);
+  segmentCalibration[st] = (segmentCalibration[st] || 0) + 1;
+});
+var sourceVerification = {
+  derivedFrom: "data-pipeline/source_register.csv (verification_status)",
+  externalSources: external.length,
+  verified: verifiedCount,
+  partiallySupported: partialCount,
+  unverified: external.length - verifiedCount - partialCount,
+  segmentCalibration: segmentCalibration,
+  summary: verifiedCount + " of " + external.length + " cited external sources verified; " +
+           partialCount + " partially supported. A segment is Verified only when every external " +
+           "source it cites is verified.",
+  outcomes: outcomes,
+  rows: regRows
+};
+
 var counts = AppMeta.derive({
   marketsDoc:    marketsDoc,
   portfolioDoc:  portfolioDoc,
@@ -92,8 +150,17 @@ var meta = {
     return { key: a.key, label: a.label, purpose: a.purpose };
   }),
   counts: counts,
+  sourceVerification: sourceVerification,
+  terminology: {
+    terms: AppMeta.TERMS,
+    supportGrades: AppMeta.SUPPORT_GRADES,
+    externalCalibration: AppMeta.EXTERNAL_CALIBRATION,
+    candidateCaveat: AppMeta.CANDIDATE_CAVEAT
+  },
   tests: countAssertions()
 };
+var calibrationValues = Object.keys(segmentCalibration);
+counts.externalCalibrationStatus = calibrationValues.length === 1 ? calibrationValues[0] : "Mixed";
 
 fs.writeFileSync(path.join(DATA, "meta.json"), JSON.stringify(meta, null, 1) + "\n", "utf8");
 

@@ -43,8 +43,8 @@ All data in this project is synthetic. Nothing below describes a real market.
 | Weight presets | 4 |
 | Scoring methodology version | 1.0.0 |
 | Recommendation evidence floor | at least 30 observations and confidence grade C or better |
-| Assertion calls in tests/reit-tests.js | 524 |
-| Distinct test identifiers (T-nnn) in tests/reit-tests.js | 62 |
+| Assertion calls in tests/reit-tests.js | 581 |
+| Distinct test identifiers (T-nnn) in tests/reit-tests.js | 68 |
 
 ## Regenerating
 

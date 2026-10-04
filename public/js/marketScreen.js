@@ -2,8 +2,9 @@
  * marketScreen.js — Market Screener page controller
  * REIT Target AI | NMIMS B.Sc. Finance — BA Theme 4 (Academic Demo)
  *
- * WRITES the shared analysis state (ReitState) after every scoring run.
- * Overview, Diversification, Agent Output and Decision Report READ it.
+ * Reads and changes the ONE shared analysis (analysisRun.js). Preset, weights,
+ * amount, screen override and manual selection are inputs to that run; every
+ * page — this one included — re-renders from the recomputed result.
  *
  * Depends on: hhi.js, scoringEngine.js, stateManager.js, uiHelpers.js,
  *             appMeta.js, governance.js, filters.js, charts.js
@@ -12,11 +13,13 @@
  * ---------------------------------------------------
  *   scoring      how attractive a segment looks, from the five weighted
  *                factors. Unchanged by anything below: filters and the
- *                evidence floor never rescore or reorder a single row.
+ *                simulation-support screen never rescore or reorder a single row.
  *
- *   evidence     whether the segment's estimate rests on enough data to carry
- *                a recommendation (governance.js). Shown beside the score as a
- *                second axis, never folded into it.
+ *   support      whether the simulation behind the segment is precise enough
+ *                to shortlist it (governance.js: simulated observations and
+ *                Assumption Support Grade). Shown beside the score, never
+ *                folded into it. External calibration is a third, separate
+ *                status — Unverified for every segment.
  *
  *   display      which of the fifty rows are on screen (filters.js). Ranks
  *                shown are always ranks within the full fifty, so "rank 12"
@@ -32,23 +35,27 @@
   var ROOT_ID = "screener-content";
 
   // ─── State ────────────────────────────────────────────────────────────────
+  //
+  // Everything analytical here is a COPY of the shared run, refreshed on every
+  // recompute. This page owns only what it displays: which panels are open,
+  // slider positions that do not yet total 100%, and the lazily loaded
+  // observation summaries. It never computes a target of its own.
 
   var state = {
+    run:            null,
     markets:        [],
-    assets:         [],
-    marketsDoc:     null,
-    portfolioValue: 0,
+    ranked:         [],        // all 50, scored and ordered — never filtered
     weights:        null,
     weightPreset:   "balanced",
     investmentCr:   0,
-    ranked:         [],        // all 50, scored and ordered — never filtered
+    selectedId:     null,
+    selectionMode:  "auto",
+    govOverride:    false,
     filters:        null,
     filterDomains:  null,
     filtersOpen:    false,
-    govOverride:    false,
-    governance:     null,      // result of Governance.chooseTarget
+    draftWeights:   null,      // slider values while they do not total 100%
     expanded:       null,      // marketId of the one open breakdown row
-    selectedId:     null,
     obsDist:        null,      // observation-distribution.json, loaded lazily
     obsDistPending: null,
     loading:        true,
@@ -56,7 +63,22 @@
     showAll:        false
   };
 
-  var TOP_N = 10;   // rows shown before "show all"
+  var TOP_N = 10;
+
+  function syncFromRun(run) {
+    var data = AnalysisRun.data() || {};
+    state.run           = run;
+    state.markets       = (data.marketsDoc && data.marketsDoc.markets) || [];
+    state.ranked        = run.ranked;
+    state.weights       = run.weights;
+    state.weightPreset  = run.preset;
+    state.investmentCr  = run.investmentCr;
+    state.selectedId    = run.selectedTargetId;
+    state.selectionMode = run.selectionMode;
+    state.govOverride   = run.governanceOverride;
+    state.filters       = Object.assign(Filters.defaults(), run.inputs.filters || {});
+    if (!state.filterDomains) { state.filterDomains = Filters.describe(state.markets); }
+  }
 
   // ─── Init ──────────────────────────────────────────────────────────────────
 
@@ -65,146 +87,36 @@
     if (!root) { return; }
     showLoading(root);
 
-    state.filters = Filters.defaults();
-
-    // Restore what the user last chose, where it is still valid.
-    var saved = ReitState.load();
-    if (saved) {
-      if (saved.selectedTargetId) { state.selectedId = saved.selectedTargetId; }
-      if (saved.investmentCr > 0)  { state.investmentCr = saved.investmentCr; }
-      if (saved.governanceOverride) { state.govOverride = true; }
-      if (saved.weights && ScoringEngine.validateWeights(saved.weights).valid) {
-        state.weights = saved.weights;
-        state.weightPreset = saved.weightPreset || "custom";
-      }
-    }
-
-    Promise.all([
-      fetch("data/markets.json").then(function (r) { return r.json(); }),
-      fetch("data/portfolio.json").then(function (r) { return r.json(); })
-    ]).then(function (results) {
-      state.marketsDoc     = results[0];
-      state.markets        = results[0].markets || [];
-      state.assets         = results[1].assets  || [];
-      state.portfolioValue = HHIEngine.totalValue(state.assets);
-      state.filterDomains  = Filters.describe(state.markets);
-
-      if (!state.weights || !ScoringEngine.validateWeights(state.weights).valid) {
-        state.weights      = Object.assign({}, ScoringEngine.PRESETS.balanced);
-        state.weightPreset = "balanced";
-      }
-      if (state.investmentCr <= 0) {
-        state.investmentCr = Math.round(state.portfolioValue / 1e7 * 0.10 * 100) / 100;
-      }
-
-      runScoring();
+    AnalysisRun.ready().then(function (run) {
       state.loading = false;
+      syncFromRun(run);
       render(root);
     }).catch(function (err) {
       state.loading = false;
-      state.error = "Could not load data: " + err.message;
+      state.error = "Could not load the dataset: " + err.message + ". Reload the page to try again.";
+      render(root);
+    });
+
+    /* Any page may change an input (Reset Demo on Overview, the portfolio
+     * page, a manual selection here). Every change arrives as a new run. */
+    AnalysisRun.subscribe(function (run) {
+      state.draftWeights = null;
+      syncFromRun(run);
       render(root);
     });
   }
 
-  // ─── Scoring ───────────────────────────────────────────────────────────────
-
-  function runScoring() {
-    var investmentRs = Math.round(state.investmentCr * 1e7);
-    var r = ScoringEngine.rankMarkets(
-      state.markets, state.weights, state.assets, HHIEngine.diversificationScore
-    );
-
-    for (var i = 0; i < r.ranked.length; i++) {
-      r.ranked[i].simulation = investmentRs > 0
-        ? HHIEngine.simulateInvestment(state.assets, r.ranked[i], investmentRs)
-        : null;
-    }
-    state.ranked = r.ranked;
-
-    /* Evidence eligibility, computed on the full ranking. This annotates and
-     * chooses; it does not reorder. state.ranked stays in score order. */
-    state.governance = Governance.chooseTarget(state.ranked, { override: state.govOverride });
-
-    /*
-     * Which segment is the target?
-     *
-     * An explicit choice by the user wins, always — including a choice of a
-     * segment below the evidence floor, because the override toggle is not the
-     * only way to express that intent and second-guessing a direct click would
-     * be worse than honouring it. The segment stays marked either way.
-     *
-     * With no explicit choice, the default is the governance recommendation,
-     * NOT simply rank 1. Before this page applied an evidence floor the default
-     * was rank 1 outright, which under three of the four presets meant
-     * recommending a segment built on 26 observations at confidence grade D.
-     */
-    var explicit = null;
-    if (state.selectedId) {
-      for (var j = 0; j < state.ranked.length; j++) {
-        if (state.ranked[j].marketId === state.selectedId) { explicit = state.ranked[j]; break; }
-      }
-    }
-    var target = explicit ||
-                 state.governance.target ||
-                 state.governance.topOverall ||
-                 null;
-    state.selectedId = target ? target.marketId : null;
-
-    var top = state.ranked[0] || null;
-    var cityBefore = null, cityAfter = null, typeBefore = null, typeAfter = null;
-    /* The HHI before/after figures recorded for the rest of the application
-     * must describe the SELECTED target, not rank 1. They previously described
-     * rank 1 regardless of what the user had chosen, so the Diversification
-     * page and the report could show the concentration effect of a different
-     * market from the one named beside it. */
-    if (target && target.simulation) {
-      cityBefore = target.simulation.before.cityHHI;
-      cityAfter  = target.simulation.after.cityHHI;
-      typeBefore = target.simulation.before.typeHHI;
-      typeAfter  = target.simulation.after.typeHHI;
-    }
-
-    ReitState.save({
-      runId:            ReitState.newRunId(),
-      createdAt:        Date.now(),
-      stale:            false,
-      weights:          state.weights,
-      weightPreset:     state.weightPreset,
-      investmentCr:     state.investmentCr,
-      selectedTargetId: state.selectedId,
-      ranked:           state.ranked,
-      cityHHIBefore:    cityBefore,
-      cityHHIAfter:     cityAfter,
-      typeHHIBefore:    typeBefore,
-      typeHHIAfter:     typeAfter,
-      portfolioValueCr: parseFloat((state.portfolioValue / 1e7).toFixed(3)),
-      annualRentCr:     parseFloat((HHIEngine.totalAnnualRent(state.assets) / 1e7).toFixed(5)),
-      marketCount:      state.markets.length,
-      assetCount:       state.assets.length,
-
-      // Evidence governance, recorded so the report can state it rather than
-      // recompute it and risk disagreeing with what the user saw.
-      governanceOverride:   state.govOverride,
-      recommendedTargetId:  state.governance.target ? state.governance.target.marketId : null,
-      topOverallId:         top ? top.marketId : null,
-      outrankedCount:       state.governance.outranked.length,
-      eligibleCount:        state.governance.eligibleCount,
-      governanceNote:       state.governance.note,
-      targetMeetsFloor:     target ? !!(target.governance && target.governance.eligible) : null,
-      userOverrodeTarget:   !!(explicit && state.governance.target &&
-                               explicit.marketId !== state.governance.target.marketId)
-    });
-  }
-
+  /* Filters persist with the run's inputs, so they survive navigation and are
+   * cleared by Reset Demo. They never change the run itself: ranks, scores and
+   * the selected target are identical with or without them. */
   function rerender() {
     var root = document.getElementById(ROOT_ID);
+    var saved = Object.assign(Filters.defaults(), (state.run && state.run.inputs.filters) || {});
+    if (state.run && JSON.stringify(saved) !== JSON.stringify(state.filters)) {
+      AnalysisRun.update({ filters: state.filters });   // re-renders through the subscription
+      return;
+    }
     if (root) { render(root); }
-  }
-
-  function rescoreAndRender() {
-    runScoring();
-    rerender();
   }
 
   // ─── Loading / error ───────────────────────────────────────────────────────
@@ -213,7 +125,8 @@
     root.innerHTML = "";
     var p = document.createElement("p");
     p.className = "loading-msg";
-    p.textContent = "Scoring markets…";
+    p.setAttribute("role", "status");
+    p.textContent = "Scoring the market segments…";
     root.appendChild(p);
   }
 
@@ -225,10 +138,12 @@
     if (state.error) {
       var errEl = document.createElement("p");
       errEl.className = "error-msg";
+      errEl.setAttribute("role", "alert");
       errEl.textContent = state.error;
       root.appendChild(errEl);
       return;
     }
+    if (state.loading || !state.run) { showLoading(root); return; }
 
     root.appendChild(buildRecommendationBanner());
     root.appendChild(buildControlPanel());
@@ -237,90 +152,120 @@
     root.appendChild(buildScatter());
   }
 
-  // ─── Recommendation banner (two-dimensional result) ───────────────────────
+  // ─── Candidate banner (three separate dimensions) ──────────────────────────
 
   function buildRecommendationBanner() {
+    var run = state.run;
     var wrap = document.createElement("div");
     wrap.className = "reit-rec-banner";
-    var g = state.governance;
-    if (!g) { return wrap; }
-
-    var R = Governance.rules();
 
     var h = document.createElement("h2");
     h.className = "reit-rec-title";
-    h.textContent = "Recommended target";
+    h.textContent = AnalysisRun.targetLabel(run);
     wrap.appendChild(h);
 
-    var target = null;
-    for (var i = 0; i < state.ranked.length; i++) {
-      if (state.ranked[i].marketId === state.selectedId) { target = state.ranked[i]; break; }
-    }
-
+    var target = AnalysisRun.selected(run);
     if (!target) {
       var none = document.createElement("p");
       none.className = "reit-rec-none";
-      none.textContent = g.note;
+      none.textContent = run.governanceNote;
       wrap.appendChild(none);
+      wrap.appendChild(buildOverrideToggle());
       return wrap;
     }
 
-    /* Two columns, two dimensions. Score on the left, strength of evidence on
-     * the right, each with its own units. A single blended "quality" figure was
-     * considered and rejected: it would have hidden exactly the trade-off the
-     * reader needs to see. */
+    /* Attractiveness, simulation support and external calibration in separate
+     * cells, each in its own units. Blending them into one "quality" figure
+     * would hide exactly the distinction the reader needs. */
+    var gov = target.governance;
+    var u = target.uncertainty && target.uncertainty.grossYieldPct;
     var grid = document.createElement("div");
     grid.className = "reit-rec-grid";
 
     grid.appendChild(recCell("Segment",
-      (target.locality || target.marketId) + ", " + target.city,
-      target.propertyType + " · " + (target.localityClass || "—") + " · rank " +
-      target.rank + " of " + state.ranked.length));
+      AnalysisRun.name(target),
+      target.propertyType + " · raw rank " + target.rank + " of " + run.ranked.length +
+      (target.eligibleRank ? " · eligible rank " + target.eligibleRank : " · fails the screen")));
 
-    grid.appendChild(recCell("Composite score",
-      target.totalScore.toFixed(1) + " / 100",
-      "How attractive the segment looks on the five weighted factors"));
+    grid.appendChild(recCell("Composite attractiveness score",
+      target.totalScore.toFixed(2) + " / 100",
+      "Five weighted factors — " + run.presetLabel));
 
-    var gov = target.governance || Governance.evaluate(target);
-    grid.appendChild(recCell("Evidence",
-      gov.tier + " — grade " + (gov.grade || "?") + ", " + gov.observations + " obs",
-      gov.eligible
-        ? "Meets the floor of " + R.MIN_OBSERVATIONS + " observations and grade " + R.MIN_GRADE
-        : "Below the floor: " + gov.reasons.join("; ")));
+    grid.appendChild(recCell("Simulation support",
+      (gov.eligible ? "✓ Passes screen" : "✗ Fails screen") + " · " + gov.tier,
+      target.observationCount + " simulated observations · Assumption Support Grade " +
+      (gov.grade || "—") + (u ? " · P10–P90 gross yield " + u.lower.toFixed(2) + "–" +
+      u.upper.toFixed(2) + "%" : "")));
+
+    grid.appendChild(recCell("External calibration",
+      target.externalCalibrationStatus,
+      "No cited source document has been located or traced"));
 
     grid.appendChild(recCell("Investment",
-      AppMeta.cr(state.investmentCr * 1e7, 2),
-      ScoringEngine.PRESETS[state.weightPreset]
-        ? ScoringEngine.PRESETS[state.weightPreset].label + " weights"
-        : "Custom weights"));
+      AppMeta.cr(run.investmentRs, 2),
+      run.presetLabel + (run.preset === "custom" ? "" : " weights")));
 
     wrap.appendChild(grid);
 
-    var note = document.createElement("p");
-    note.className = "reit-rec-note" +
-      (gov.eligible ? " reit-rec-note-ok" : " reit-rec-note-warn");
-    note.textContent = g.note;
-    wrap.appendChild(note);
+    if (run.selectionMode === "manual") {
+      wrap.appendChild(buildManualNotice(run, target));
+    } else {
+      var note = document.createElement("p");
+      note.className = "reit-rec-note" + (gov.eligible ? " reit-rec-note-ok" : " reit-rec-note-warn");
+      note.textContent = run.governanceNote;
+      wrap.appendChild(note);
+    }
 
-    /* When the highest-scoring segment is not the recommendation, show it
-     * anyway, with its real score and the reason. Hiding it would be the wrong
-     * kind of tidy: the reader is entitled to see what the score alone would
-     * have chosen. */
-    if (g.topOverall && g.topOverall.marketId !== target.marketId) {
-      var tg = g.topOverall.governance || Governance.evaluate(g.topOverall);
+    /* The highest raw-score market, always visible with its real score and the
+     * reason it is not the candidate. Hiding it would be the wrong kind of tidy. */
+    var raw = AnalysisRun.rawLeader(run);
+    if (raw && raw.marketId !== target.marketId) {
       var alt = document.createElement("p");
       alt.className = "reit-rec-alt";
-      alt.textContent = "Highest score overall: " +
-        (g.topOverall.locality || g.topOverall.marketId) + ", " + g.topOverall.city +
-        " at " + g.topOverall.totalScore.toFixed(1) + " / 100 — " +
-        (tg.eligible ? "not selected because another segment was chosen explicitly."
-                     : "not recommended because it is below the evidence floor (" +
-                       tg.reasons.join("; ") + ").");
+      alt.textContent = "Highest raw-score market: " + AnalysisRun.name(raw) + " at " +
+        raw.totalScore.toFixed(2) + " / 100 (raw rank 1) — " +
+        (raw.governance.eligible
+          ? "passes the simulation-support screen; not selected because another segment was chosen manually."
+          : "fails the simulation-support screen: " + raw.governance.reasons.join("; ") + ".");
       wrap.appendChild(alt);
     }
 
+    var caveat = document.createElement("p");
+    caveat.className = "reit-rec-caveat";
+    caveat.textContent = AppMeta.CANDIDATE_CAVEAT;
+    wrap.appendChild(caveat);
+
     wrap.appendChild(buildOverrideToggle());
     return wrap;
+  }
+
+  /** Shown wherever a manual selection is in force, with the way back. */
+  function buildManualNotice(run, target) {
+    var box = document.createElement("div");
+    box.className = "reit-manual-notice" + (run.selectionDiffers ? " reit-manual-differs" : "");
+    box.setAttribute("role", "status");
+    var rec = AnalysisRun.recommended(run);
+    var p = document.createElement("p");
+    p.textContent = "Manually selected target: " + AnalysisRun.name(target) + ". " +
+      (rec
+        ? "The current shortlist candidate under these settings is " + AnalysisRun.name(rec) +
+          " (raw rank " + rec.rank + ", eligible rank " + rec.eligibleRank + ")."
+        : "No segment passes the simulation-support screen under these settings.");
+    box.appendChild(p);
+    if (run.selectionDiffers) {
+      var w = document.createElement("p");
+      w.className = "reit-manual-warning";
+      w.textContent = "⚠ The manual selection differs from the current shortlist candidate. " +
+        "Every page analyses the manual selection until you return to automatic mode.";
+      box.appendChild(w);
+    }
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "reit-btn reit-btn--secondary reit-return-auto";
+    btn.textContent = "Return to automatic recommendation";
+    btn.addEventListener("click", function () { AnalysisRun.returnToAuto(); });
+    box.appendChild(btn);
+    return box;
   }
 
   function recCell(label, value, sub) {
@@ -354,12 +299,7 @@
     cb.id = id;
     cb.checked = state.govOverride;
     cb.addEventListener("change", function () {
-      state.govOverride = this.checked;
-      /* Clear any explicit pick so the toggle visibly does something: with a
-       * manual selection still in place the recommendation would not move and
-       * the control would look broken. */
-      state.selectedId = null;
-      rescoreAndRender();
+      AnalysisRun.update({ governanceOverride: this.checked });
     });
 
     var label = document.createElement("label");
@@ -371,8 +311,7 @@
 
     var note = document.createElement("p");
     note.className = "reit-gov-override-note";
-    note.textContent = R.overrideNote + " Floor: " + R.MIN_OBSERVATIONS +
-      " observations and grade " + R.MIN_GRADE + " or better. " + R.rationale;
+    note.textContent = R.overrideNote + " Screen: " + R.rule + ". " + R.rationale;
     row.appendChild(note);
 
     return row;
@@ -403,10 +342,8 @@
     input.className = "reit-investment-input";
     input.addEventListener("change", function () {
       var v = parseFloat(this.value);
-      if (v > 0 && isFinite(v)) {
-        state.investmentCr = v;
-        rescoreAndRender();
-      }
+      if (v > 0 && isFinite(v)) { AnalysisRun.update({ investmentCr: v }); }
+      else { this.value = state.investmentCr; }
     });
 
     var label = document.createElement("label");
@@ -422,26 +359,26 @@
   function buildPresetRow() {
     var row = document.createElement("div");
     row.className = "reit-preset-row";
+    row.setAttribute("role", "group");
+    row.setAttribute("aria-label", "Weight preset");
 
     var label = document.createElement("span");
     label.className = "reit-preset-label";
     label.textContent = "Preset:";
     row.appendChild(label);
 
-    ["balanced", "incomeFocused", "growthFocused", "diversFocused"].forEach(function (key) {
+    AnalysisRun.PRESET_KEYS.forEach(function (key) {
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className = "reit-preset-btn" + (state.weightPreset === key ? " reit-preset-active" : "");
       btn.setAttribute("aria-pressed", state.weightPreset === key ? "true" : "false");
+      btn.setAttribute("data-preset", key);
       btn.textContent = ScoringEngine.PRESETS[key].label;
       btn.addEventListener("click", function () {
-        state.weights      = Object.assign({}, ScoringEngine.PRESETS[key]);
-        state.weightPreset = key;
-        /* A new preset produces a new ranking, so a target chosen under the old
-         * one is no longer a considered choice. Clear it and let governance
-         * pick again. */
-        state.selectedId = null;
-        rescoreAndRender();
+        /* In automatic mode the selected target follows the new ranking. A
+         * manual selection is kept, and the banner says whether it still
+         * matches the new shortlist candidate. */
+        AnalysisRun.update({ preset: key, weights: null });
       });
       row.appendChild(btn);
     });
@@ -461,15 +398,17 @@
       { key: "riskWeight",   label: "Low Market Risk" }
     ];
 
+    var shown = state.draftWeights || state.weights;
     var total = 0;
-    factors.forEach(function (f) { total += (state.weights[f.key] || 0); });
+    factors.forEach(function (f) { total += (shown[f.key] || 0); });
     var totalPct = Math.round(total * 100);
     var totalValid = Math.abs(total - 1.0) <= 0.005;
 
     var totalRow = document.createElement("div");
     totalRow.className = "reit-weight-total" + (totalValid ? " reit-weight-ok" : " reit-weight-err");
     totalRow.setAttribute("role", "status");
-    totalRow.textContent = "Total: " + totalPct + "% " + (totalValid ? "✓" : "— weights must sum to 100%");
+    totalRow.textContent = "Total: " + totalPct + "% " + (totalValid ? "✓"
+      : "— weights must sum to 100% before they are applied. Every page still shows the last valid analysis.");
     wrap.appendChild(totalRow);
 
     factors.forEach(function (f) {
@@ -482,7 +421,7 @@
       slider.max   = "100";
       slider.step  = "5";
       slider.id    = "w-" + f.key;
-      slider.value = Math.round((state.weights[f.key] || 0) * 100);
+      slider.value = Math.round((shown[f.key] || 0) * 100);
       slider.className = "reit-weight-slider";
 
       var lbl = document.createElement("label");
@@ -498,13 +437,20 @@
         valSpan.textContent = this.value + "%";
       });
       slider.addEventListener("change", function () {
-        state.weights[f.key] = parseInt(this.value, 10) / 100;
-        state.weightPreset = "custom";
-        state.selectedId = null;
-        if (ScoringEngine.validateWeights(state.weights).valid) {
-          runScoring();
+        var draft = Object.assign({}, state.draftWeights || state.weights);
+        draft[f.key] = parseInt(this.value, 10) / 100;
+        if (ScoringEngine.validateWeights(draft).valid) {
+          state.draftWeights = null;
+          AnalysisRun.update({ preset: "custom", weights: draft });
+        } else {
+          /* Not applied: an invalid weighting is never published to the other
+           * pages. Keep the draft here until it totals 100%. */
+          state.draftWeights = draft;
+          var root = document.getElementById(ROOT_ID);
+          if (root) { render(root); }
+          var again = document.getElementById(slider.id);
+          if (again) { again.focus(); }
         }
-        rerender();
       });
 
       row.appendChild(lbl);
@@ -577,8 +523,9 @@
     body.appendChild(checkGroup("City", "cities", d.cities));
     body.appendChild(checkGroup("Property type", "propertyTypes", d.propertyTypes));
     body.appendChild(checkGroup("Locality class", "localityClasses", d.localityClasses));
-    body.appendChild(checkGroup("Confidence grade", "grades", d.grades,
-      "A is best, E weakest. Grades record how well a segment's estimate is evidenced."));
+    body.appendChild(checkGroup("Assumption Support Grade", "grades", d.grades,
+      "The project's internal A–E classification of how a segment's assumptions were built. " +
+      "Not an evidence grade: no cited source has been verified."));
 
     body.appendChild(numberPair("Gross yield (%)", "yieldMin", "yieldMax",
       d.yieldPct.min, d.yieldPct.max, 0.1));
@@ -587,9 +534,10 @@
     body.appendChild(numberSingle("Maximum risk score", "riskMax",
       d.riskScore.min, d.riskScore.max, 1,
       "Risk runs 0–100 and lower is better, so this is an upper bound."));
-    body.appendChild(numberSingle("Minimum observations", "minObservations",
+    body.appendChild(numberSingle("Minimum simulated observations", "minObservations",
       d.observations.min, d.observations.max, 1,
-      "Simulated market observations behind the segment's median. Range in this dataset: " +
+      "Seeded draws behind the segment's medians. More draws narrow the estimate around the " +
+      "assumed distribution; they are not market evidence. Range: " +
       d.observations.min + "–" + d.observations.max + "."));
 
     body.appendChild(eligibleOnlyRow());
@@ -706,9 +654,8 @@
 
   function eligibleOnlyRow() {
     var R = Governance.rules();
-    var fs = fieldset("Evidence floor",
-      "Show only segments with at least " + R.MIN_OBSERVATIONS +
-      " observations and confidence grade " + R.MIN_GRADE + " or better.");
+    var fs = fieldset("Simulation-support screen",
+      "Show only segments with " + R.rule + ".");
     var id = "f-eligibleOnly";
     var cb = document.createElement("input");
     cb.type = "checkbox";
@@ -720,13 +667,13 @@
     });
     var lb = document.createElement("label");
     lb.setAttribute("for", id);
-    lb.textContent = "Segments meeting the evidence floor only";
+    lb.textContent = "Segments passing the simulation-support screen only";
     var sum = Governance.summarise(state.markets);
     var note = document.createElement("p");
     note.className = "reit-filter-hint";
-    note.textContent = sum.eligible + " of " + sum.total + " segments meet it (" +
-      sum.failGradeOnly + " fail on grade alone, " + sum.failObsOnly +
-      " on sample size alone, " + sum.failBoth + " on both).";
+    note.textContent = sum.eligible + " of " + sum.total + " segments pass (" +
+      sum.failGradeOnly + " fail on support grade alone, " + sum.failObsOnly +
+      " on simulated observations alone, " + sum.failBoth + " on both).";
     fs.appendChild(cb);
     fs.appendChild(lb);
     fs.appendChild(note);
@@ -765,16 +712,17 @@
 
     var cap = document.createElement("caption");
     cap.className = "reit-table-caption";
-    cap.textContent = "Market segments in composite-score order. Rank is the position " +
+    cap.textContent = "Market segments in composite-score order. Raw rank is the position " +
       "within all " + state.ranked.length + " segments, not within the filtered view. " +
-      "Evidence is a separate judgement from score.";
+      "Simulation support is a separate test from the score; external calibration is " +
+      "Unverified for every segment.";
     tbl.appendChild(cap);
 
     var headers = [
-      "#", "Market", "City", "Type", "Score", "Evidence",
+      "Raw rank", "Market", "City", "Type", "Score", "Simulation support",
       "Gross Yield", "Growth", "Demand",
       "City HHI Δ", "Type HHI Δ",
-      "Obs.", "Conf.", "Detail", "Select"
+      "Sim. obs.", "Support grade", "Detail", "Select"
     ];
 
     var thead = document.createElement("thead");
@@ -809,7 +757,7 @@
         { text: m.locality },
         { text: m.city },
         { text: m.propertyType },
-        { text: m.totalScore.toFixed(1) },
+        { text: m.totalScore.toFixed(2) },
         { evidence: gov },
         { text: (m.grossYield * 100).toFixed(2) + "%" },
         { text: (m.annualRentalGrowthRatio * 100).toFixed(1) + "%" },
@@ -823,19 +771,24 @@
       cells.forEach(function (c) {
         var td = document.createElement("td");
         if (c.evidence) {
+          /* Symbol plus word, so the status never depends on colour. */
           var tier = document.createElement("span");
-          tier.className = "reit-evidence-badge reit-evidence-" +
-            c.evidence.tier.toLowerCase();
-          tier.textContent = c.evidence.tier;
+          tier.className = "reit-evidence-badge reit-support-" +
+            c.evidence.tier.toLowerCase() + (c.evidence.eligible ? " reit-support-pass" : " reit-support-fail");
+          tier.textContent = (c.evidence.eligible ? "✓ " : "✗ ") + c.evidence.tier;
           tier.title = c.evidence.eligible
             ? c.evidence.label
             : c.evidence.label + ": " + c.evidence.reasons.join("; ");
           td.appendChild(tier);
+          var srText = document.createElement("span");
+          srText.className = "reit-sr-only";
+          srText.textContent = c.evidence.eligible ? " (passes the screen)" : " (fails the screen)";
+          td.appendChild(srText);
         } else if (c.conf !== undefined) {
           if (c.conf) {
             var badge = document.createElement("span");
             badge.className = "reit-conf-badge reit-conf-" + c.conf.toLowerCase();
-            badge.title = "Data confidence grade " + c.conf + " (A=highest, E=lowest)";
+            badge.title = "Assumption Support Grade " + c.conf + " (internal A–E classification; not externally verified)";
             badge.textContent = c.conf;
             td.appendChild(badge);
           } else {
@@ -870,14 +823,17 @@
       var tdSel = document.createElement("td");
       var selBtn = document.createElement("button");
       selBtn.type = "button";
-      selBtn.className = "reit-select-btn" + (m.marketId === state.selectedId ? " reit-select-active" : "");
-      selBtn.textContent = m.marketId === state.selectedId ? "✓ Selected" : "Select";
+      var isSel = m.marketId === state.selectedId;
+      selBtn.className = "reit-select-btn" + (isSel ? " reit-select-active" : "");
+      selBtn.textContent = isSel
+        ? (state.selectionMode === "manual" ? "✓ Selected (manual)" : "✓ Selected (auto)")
+        : "Select";
+      selBtn.setAttribute("aria-pressed", isSel ? "true" : "false");
       selBtn.setAttribute("aria-label",
-        "Select " + m.locality + ", " + m.city + " as the investment target" +
-        (gov.eligible ? "" : " (below the evidence floor)"));
+        "Select " + m.locality + ", " + m.city + " manually as the target" +
+        (gov.eligible ? "" : " (fails the simulation-support screen)"));
       selBtn.addEventListener("click", function () {
-        state.selectedId = m.marketId;
-        rescoreAndRender();
+        AnalysisRun.selectManually(m.marketId);
       });
       tdSel.appendChild(selBtn);
       tr.appendChild(tdSel);
@@ -1160,21 +1116,23 @@
 
     div.appendChild(tbl);
 
-    // Evidence statement for this segment — the second dimension, in words.
+    // Simulation support and external calibration — the other two dimensions, in words.
     var gov = m.governance || Governance.evaluate(m);
     var R = Governance.rules();
     var evid = document.createElement("p");
     evid.className = "reit-breakdown-evidence" +
       (gov.eligible ? " reit-evidence-ok" : " reit-evidence-warn");
-    evid.textContent = "Evidence: " + gov.tier + ". " +
-      gov.observations + " simulated market observations, confidence grade " +
+    evid.textContent = "Simulation support: " + gov.tier + ". " +
+      gov.observations + " simulated market observations, Assumption Support Grade " +
       (gov.grade || "unrecorded") + ". " +
       (gov.eligible
-        ? "Meets the recommendation floor of " + R.MIN_OBSERVATIONS +
-          " observations and grade " + R.MIN_GRADE + " or better."
-        : "Below the recommendation floor — " + gov.reasons.join("; ") +
-          ". The composite score above is unaffected by this; it measures " +
-          "attractiveness, not how well the estimate is supported.");
+        ? "Passes the simulation-support screen (" + R.rule + ")."
+        : "Fails the simulation-support screen — " + gov.reasons.join("; ") +
+          ". The composite score above is unaffected; it measures attractiveness, " +
+          "not simulation precision.") +
+      " External calibration: " + (m.externalCalibrationStatus || "Unverified") +
+      ". More simulated draws narrow the estimate around the assumed distribution; " +
+      "they are not market evidence.";
     div.appendChild(evid);
 
     // HHI simulation
@@ -1258,7 +1216,8 @@
     uDiv.className = "reit-uncertainty-panel";
     var uTitle = document.createElement("p");
     uTitle.className = "reit-uncertainty-title";
-    uTitle.textContent = "Uncertainty ranges (empirical P10–P90 of this segment's observations):";
+    uTitle.textContent = "Simulation spread (P10–P90 of this segment's simulated observations). " +
+      "This measures precision around the project's assumptions, not real-market uncertainty:";
     uDiv.appendChild(uTitle);
 
     var uTbl = document.createElement("table");
@@ -1293,9 +1252,14 @@
     uDiv.appendChild(uTbl);
 
     if (mkt.methodologyNote) {
+      /* The note names the benchmarks the assumptions were meant to follow.
+       * None of them has been located, so it is shown as a record of intent,
+       * with the calibration status beside it — never as a citation. */
       var mNote = document.createElement("p");
       mNote.className = "reit-methodology-note";
-      mNote.textContent = "ⓘ " + mkt.methodologyNote;
+      mNote.textContent = "ⓘ Assumption note, as recorded in the project's register: \u201C" +
+        mkt.methodologyNote + "\u201D The benchmark it names has not been located or traced — " +
+        "external calibration: Unverified.";
       uDiv.appendChild(mNote);
     }
     if (mkt.comparabilityWarning && mkt.comparabilityWarning !== "None") {

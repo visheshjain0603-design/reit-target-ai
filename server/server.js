@@ -180,7 +180,7 @@ function serveStatic(reqPath, res) {
  * @param {string} userPrompt         - JSON context + question
  * @returns {Promise<{text: string}>}
  */
-function callGemini(systemInstruction, userPrompt, modelName) {
+function callGemini(systemInstruction, userPrompt, modelName, responseSchema) {
   var activeModel = modelName || MODEL;
   return new Promise(function (resolve, reject) {
     if (!API_KEY) {
@@ -204,6 +204,13 @@ function callGemini(systemInstruction, userPrompt, modelName) {
         maxOutputTokens: MAX_OUTPUT_TOKENS
       }
     });
+    if (responseSchema) {
+      /* Hold the model to the exact output shape: prose fields only, no
+       * figures it could fill inconsistently. */
+      var parsedBody = JSON.parse(body);
+      parsedBody.generationConfig.responseSchema = responseSchema;
+      body = JSON.stringify(parsedBody);
+    }
 
     var apiPath = "/v1beta/models/" + activeModel + ":generateContent?key=" + API_KEY;
     var options = {
@@ -277,7 +284,7 @@ function callGemini(systemInstruction, userPrompt, modelName) {
               "Empty response from Gemini (finishReason: " + (cand.finishReason || "unknown") + ")."
             ));
           }
-          resolve({ text: text, model: MODEL });
+          resolve({ text: text, model: activeModel });
         } catch (e) {
           reject(new Error("Failed to parse Gemini response: " + e.message));
         }
@@ -334,9 +341,9 @@ function isRetryableStatus(code) {
  * Permanent errors (bad key, unknown model, malformed request) fail fast so
  * the real problem is not hidden behind four slow retries.
  */
-function callGeminiWithRetry(systemInstruction, userPrompt, modelName, attempt) {
+function callGeminiWithRetry(systemInstruction, userPrompt, modelName, attempt, schema) {
   attempt = attempt || 0;
-  return callGemini(systemInstruction, userPrompt, modelName).catch(function (err) {
+  return callGemini(systemInstruction, userPrompt, modelName, schema).catch(function (err) {
     if (!err.retryable || attempt >= MAX_RETRIES) { throw err; }
     var waitMs = err.retryAfterMs ||
                  (RETRY_BASE_MS * Math.pow(2, attempt) + Math.floor(Math.random() * 250));
@@ -345,7 +352,7 @@ function callGeminiWithRetry(systemInstruction, userPrompt, modelName, attempt) 
                 MAX_RETRIES + " in " + waitMs + "ms");
     return new Promise(function (r) { setTimeout(r, waitMs); })
       .then(function () {
-        return callGeminiWithRetry(systemInstruction, userPrompt, modelName, attempt + 1);
+        return callGeminiWithRetry(systemInstruction, userPrompt, modelName, attempt + 1, schema);
       });
   });
 }
@@ -359,23 +366,23 @@ function callGeminiWithRetry(systemInstruction, userPrompt, modelName, attempt) 
  * to wait for, so we move straight to the next model rather than failing the
  * agent card. Transient errors are still retried on the current model first.
  */
-function callGeminiWithFallback(systemInstruction, userPrompt, idx) {
+function callGeminiWithFallback(systemInstruction, userPrompt, idx, schema) {
   idx = idx || 0;
   var modelName = MODEL_CHAIN[idx];
-  return callGeminiWithRetry(systemInstruction, userPrompt, modelName)
+  return callGeminiWithRetry(systemInstruction, userPrompt, modelName, 0, schema)
     .catch(function (err) {
       var hasNext = idx + 1 < MODEL_CHAIN.length;
       if (err.quotaExhausted && hasNext) {
         console.warn("  ⚠ " + modelName + " daily quota exhausted — falling back to " +
                      MODEL_CHAIN[idx + 1]);
-        return callGeminiWithFallback(systemInstruction, userPrompt, idx + 1);
+        return callGeminiWithFallback(systemInstruction, userPrompt, idx + 1, schema);
       }
       // An unusable model name (404/400) should also not block the demo.
       if (!err.quotaExhausted && hasNext &&
           (err.statusCode === 404 || err.statusCode === 400)) {
         console.warn("  ⚠ " + modelName + " unusable (" + err.statusCode +
                      ") — falling back to " + MODEL_CHAIN[idx + 1]);
-        return callGeminiWithFallback(systemInstruction, userPrompt, idx + 1);
+        return callGeminiWithFallback(systemInstruction, userPrompt, idx + 1, schema);
       }
       if (err.quotaExhausted) {
         err.message = "Daily free-tier quota is used up on every configured model (" +
@@ -419,60 +426,62 @@ function callGeminiWithFallback(systemInstruction, userPrompt, idx) {
  * them. None of them may recalculate, rank, or introduce a number.
  */
 
+/* The response schemas are shared with the browser and the cache builder, so the
+ * shape the model is held to and the shape the output checker verifies are one
+ * definition (public/js/agentOutputCheck.js). */
+var AgentOutputCheck = require(path.join(__dirname, "..", "public", "js", "agentOutputCheck.js"));
+
+/* Rules every agent follows. Stated once so the four prompts cannot drift. */
+var COMMON_RULES = [
+  "SHARED RULES (all four agents):",
+  "A. The data is SYNTHETIC. Say so. Nothing here describes a real property, market or transaction.",
+  "B. You interpret figures that were computed deterministically. Never calculate, estimate, rank, re-rank or validate anything.",
+  "C. Quote every figure EXACTLY as the context writes it, with the same decimals: \"7.00%\" not \"7%\", \"0.4130\" not \"0.413\", \"67.71\" not \"67.7\". Never introduce a figure that is not in the context.",
+  "D. Use the context's vocabulary: raw rank, eligible rank, highest raw-score market, shortlist candidate, selected target, next eligible candidate, highest raw-score alternative, simulation-support screen, simulated observations, Assumption Support Grade, external calibration. NEVER write \"runner-up\", \"evidence floor\", \"confidence grade\" or \"strong evidence\".",
+  "E. A segment's rank is its rawRank (or its eligibleRank among segments passing the screen). Never say a segment \"ranked first\" unless its rawRank is 1.",
+  "F. When you say why a segment fails the simulation-support screen, use ITS OWN exclusionReasons / failsScreenOn: some fail on simulated observations, some on Assumption Support Grade alone, some on both. Never attribute a grade-only failure to sample size.",
+  "G. Simulation support is NOT evidence. More simulated observations narrow the estimate around the project's assumed distribution; they do not show that the figures are true of any real market. Thirty observations is a project governance convention, not a statistical guarantee. External calibration is Unverified for every segment.",
+  "H. Figures in marketDataset describe the 50 candidate market segments, NOT the portfolio. Figures in portfolio describe the existing holdings. Never mix them.",
+  "I. Refer to records as simulated market observations — never properties, listings or transactions.",
+  "J. If the context contains revisionNotes, your previous answer broke the rules listed there. Correct every one.",
+  "K. Write plain English. Never write context field names such as rawRank, eligibleRank, factorScores, grossYieldPct or recommendedCandidate — say \"raw rank 8\", \"rental yield factor score\", \"gross yield 7.00%\".",
+  "L. selectionMode \"auto\" means the selected target IS the shortlist candidate; never call it manually selected. Only when selectionMode is \"manual\" is it a manually selected target.",
+  "M. Write money as ₹<figure> Cr, for example \"₹692.84 Cr\", never a bare number.",
+  "N. Respond ONLY with JSON matching the required schema. No markdown."
+].join("\n");
+
 var AGENT_PROMPTS = {
 
   dataStatistical: [
     "You are the Data & Statistical Analyst for REIT Target AI, an academic demonstration system.",
-    "Your role: describe the dataset's quality AND its descriptive statistics together — sample sizes, dispersion, spread of yields and risk, and any anomalies already identified.",
-    "Rules:",
-    "1. Comment ONLY on the figures provided. Do NOT invent, recalculate or extrapolate any value.",
-    "2. State plainly that ALL data is SYNTHETIC and was generated for academic illustration.",
-    "3. Identify sample-size weaknesses. A segment is under-powered when its observationCount is below minObsThreshold. Base this on segmentsBelowMinObs and smallestSegmentObs — NEVER on segmentCount, which counts how many market segments a city contains and is not a sample size at all. Write it in plain English, naming the actual numbers and never the field names: e.g. \"Kolkata: all 3 segments rest on fewer than 30 observations (smallest 26)\".",
-    "4. Prefer median and IQR over mean and standard deviation where both are provided, and say why when you do.",
-    "5. Where a pooled figure and a within-group figure disagree, report BOTH and attribute the difference to the grouping. Do not present the pooled figure alone.",
-    "6. Refer to the records as simulated market observations. Never call them properties, listings or transactions.",
-    "7. Do NOT present any of this as investment advice.",
-    '8. Respond ONLY with valid JSON: { "overallQuality": "good|fair|poor", "dataSummary": "...", "sampleSizeWarnings": ["..."], "dispersionNotes": ["..."], "keyFindings": ["..."], "outlierNotes": ["..."], "statisticalCaveats": ["..."], "disclaimer": "..." }'
+    "Your role: describe the market-segment dataset (marketDataset), its simulation support (how many simulated observations stand behind each segment, by city), the spread of segment gross yields, the segment-median outliers (segmentMedianOutliers, using its definition), and the known synthetic anomalies (knownSyntheticAnomalies).",
+    "Name cities and counts from segmentsBelowThresholdByCity, smallestSegmentObservations and segmentsBelowObservationThreshold. Write numbers, never field names.",
+    COMMON_RULES
   ].join("\n"),
 
   marketScreening: [
     "You are the Market Screening Analyst for REIT Target AI, an academic demonstration system.",
-    "Your role: explain WHY the recommended segment scored as it did, and how the runner-up differs from it, using the pre-calculated factor scores and contributions provided.",
-    "Rules:",
-    "1. Do NOT invent scores or rankings. Refer only to the provided data.",
-    "2. Explain the scoring methodology in terms of the five factors: rental yield, rental growth, diversification benefit, demand strength and low market risk.",
-    "3. Name the single factor that contributed most to the leading score, and the factor on which the runner-up is stronger. These contributions are given to you; do not estimate them.",
-    "4. The composite score measures attractiveness only. Evidence strength is a SEPARATE judgement supplied as governance data. If the recommended segment is not the highest-scoring one, say so and give the evidence reason provided — never imply the score was adjusted, because it was not.",
-    "5. State that ALL data is SYNTHETIC.",
-    '6. Respond ONLY with valid JSON: { "topPickExplanation": "...", "dominantFactor": "...", "runnerUpComparison": "...", "factorInsights": ["..."], "watchPoints": ["..."], "evidenceNote": "...", "disclaimer": "..." }'
+    "Your role: explain why the selected target (selectedTarget) scored as it did, using its contributions and factorScores; name its dominant factor; compare it with comparisonMarket, calling that segment by its exact role (comparisonMarket.role); and explain the simulation-support screen outcome for the segments listed in higherRawScoreExclusions.",
+    "State the selected target's rawRank and eligibleRank exactly. If selectionMode is \"manual\", say it is a manually selected target and name the shortlist candidate (recommendedCandidate).",
+    "The composite score measures attractiveness only. The screen is a separate test of simulation support. Never imply a score was adjusted.",
+    COMMON_RULES
   ].join("\n"),
 
   portfolioRisk: [
     "You are the Portfolio Risk & Scenario Analyst for REIT Target AI, an academic demonstration system.",
-    "Your role: interpret the before-and-after Herfindahl-Hirschman Index (HHI) figures AND the scenario projections provided, as one assessment of what this investment would do to the portfolio.",
-    "Rules:",
-    "1. Do NOT use the labels 'safe' or 'dangerous' for HHI levels — use 'concentrated', 'moderate' or 'diversified'.",
-    "2. HHI above 0.25 = concentrated; 0.15-0.25 = moderate; below 0.15 = diversified. These are descriptive benchmarks, not regulatory thresholds.",
-    "3. A lower HHI after the investment means improved diversification. Quote the actual before and after values.",
-    "4. Do NOT recalculate anything. Comment only on the provided values.",
-    "5. When projections are provided, state what they assume (flat growth rates, no leverage, no transaction costs, no tax) before stating what they show.",
-    "6. Identify the concentration that remains AFTER the investment, not only the improvement. An improvement from 0.63 to 0.58 is still concentrated.",
-    "7. State that ALL data is SYNTHETIC.",
-    '8. Respond ONLY with valid JSON: { "cityHHIInterpretation": "...", "typeHHIInterpretation": "...", "residualConcentration": "...", "yieldImpact": "...", "scenarioInterpretation": "...", "projectionCaveats": ["..."], "overallAssessment": "...", "disclaimer": "..." }'
+    "Your role: interpret the concentration block (city and asset-type HHI before and after investing in the selected target), the portfolio weighted yield before and after, and the three-year projections block.",
+    "HHI above 0.25 is concentrated, 0.15 to 0.25 moderate, below 0.15 diversified — descriptive benchmarks, not regulatory thresholds. Never use 'safe' or 'dangerous'. A lower HHI is better diversified; state the concentration that REMAINS after the investment.",
+    "State the projection assumptions (flat growth, no leverage, tax, fees or transaction costs) before what they show.",
+    COMMON_RULES
   ].join("\n"),
 
   orchestrator: [
     "You are the Investment Orchestrator for REIT Target AI, an academic demonstration system.",
-    "You receive the outputs of the Data & Statistical Analyst, the Market Screening Analyst and the Portfolio Risk & Scenario Analyst, together with the result of a DETERMINISTIC validation performed in code.",
-    "IMPORTANT: You are called ONLY because those deterministic checks passed. The checks are arithmetic, not opinion: do not re-litigate them, re-perform them, or claim to have verified anything yourself.",
-    "Your role: synthesise the three analyses into one structured final recommendation.",
-    "Rules:",
-    "1. Include only what is supported by the agent outputs and the analytical context provided.",
-    "2. Do NOT invent new analysis, recalculate scores, or cite any figure not in the context.",
-    "3. 'selectedTarget' MUST be the segment named as the recommendation in the context. That is not always the highest-scoring segment: an evidence floor applies. If the two differ, say so in 'evidenceBasis' and give the reason from the governance data.",
-    "4. State clearly that this is an ACADEMIC DEMONSTRATION on SYNTHETIC data and is NOT investment advice.",
-    "5. 'importantRisks' must include at least one risk arising from the data itself (sample size, evidence grade, or the synthetic nature of the dataset), not only market risks.",
-    '6. Respond ONLY with valid JSON: { "selectedTarget": "...", "investmentAmount": "₹<N> Cr", "compositeScore": 0, "expectedYieldPct": 0, "evidenceBasis": "...", "cityHHIEffect": "...", "assetTypeHHIEffect": "...", "whyTopRanked": "...", "importantRisks": ["..."], "syntheticDisclaimer": "...", "disclaimer": "..." }'
+    "You receive the three analysts' outputs and the result of the deterministic checks performed in code. You are called only because those checks passed. The checks are arithmetic, not opinion: do not re-perform them or claim to have verified anything.",
+    "Your role: synthesise the analyses into one structured summary of the SELECTED TARGET. recommendationSummary must name selectedTarget.name and its role: \"shortlist candidate\" (the highest-ranked candidate passing the simulation-support screen) or \"manually selected target\". This is an exploratory model candidate, never an investment recommendation.",
+    "screeningBasis: why the screen produced this candidate, citing each higher raw-score segment's own exclusion reason. nextSteps MUST state that external calibration remains unverified and that further evidence collection and due diligence are required before any real decision.",
+    "importantRisks must include at least one risk arising from the data itself (synthetic data, simulation-only support, unverified calibration).",
+    COMMON_RULES
   ].join("\n")
 };
 
@@ -538,12 +547,13 @@ function handleAgentRequest(req, res) {
     var ck = cacheKey(agentType, context);
     var cachedResult = cacheGet(ck);
     if (cachedResult) {
-      return jsonResponse(res, 200, { agentType: agentType, output: cachedResult, fromCache: true });
+      return jsonResponse(res, 200, { agentType: agentType, output: cachedResult.output,
+                                      model: cachedResult.model, fromCache: true });
     }
 
-    callGeminiWithFallback(systemPrompt, userPrompt).then(function (result) {
+    callGeminiWithFallback(systemPrompt, userPrompt, 0, AgentOutputCheck.SCHEMAS[agentType]).then(function (result) {
       var parsed = extractJson(result.text);
-      cachePut(ck, parsed);
+      cachePut(ck, { output: parsed, model: result.model });
       jsonResponse(res, 200, { agentType: agentType, model: result.model, output: parsed });
     }).catch(function (e) {
       // Log server-side only — do NOT expose API key or internal paths
@@ -559,7 +569,7 @@ function handleAgentRequest(req, res) {
 }
 
 
-// ─── /api/agents/analyse — sequential 6-agent chain ────────────────────────
+// ─── /api/agents/analyse — sequential four-agent chain ──────────────────────
 
 /* The chain is three analysts then the orchestrator. Validation is no longer a
  * link in it: it runs deterministically in the browser before the chain starts,
@@ -599,7 +609,7 @@ function runChain(context, chainResults, idx, callback) {
   var key = cacheKey(agentType, agentCtx);
   var cached = cacheGet(key);
   if (cached) {
-    chainResults[agentType + "Output"] = Object.assign({}, cached, { fromCache: true });
+    chainResults[agentType + "Output"] = Object.assign({}, cached.output, { _model: cached.model, fromCache: true });
     return runChain(context, chainResults, idx + 1, callback);
   }
 
@@ -608,10 +618,10 @@ function runChain(context, chainResults, idx, callback) {
                      JSON.stringify(agentCtx, null, 2) +
                      "\n\nProvide your structured JSON analysis.";
 
-  callGeminiWithFallback(systemPrompt, userPrompt).then(function (result) {
+  callGeminiWithFallback(systemPrompt, userPrompt, 0, AgentOutputCheck.SCHEMAS[agentType]).then(function (result) {
     var parsed = extractJson(result.text);
     parsed._model = result.model;
-    cachePut(key, parsed);
+    cachePut(key, { output: parsed, model: result.model });
     chainResults[agentType + "Output"] = parsed;
     runChain(context, chainResults, idx + 1, callback);
   }).catch(function (e) {

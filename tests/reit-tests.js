@@ -72,6 +72,22 @@ var Stats        = require(path.join(__dirname, "..", "public", "js", "stats.js"
 }());
 var ReitState = require(path.join(__dirname, "..", "public", "js", "stateManager.js"));
 
+/* The data the application computes its shared run from, read from the
+ * committed files — so these tests exercise the real dataset. */
+function canonicalRunData(overrides) {
+  var fs0 = require("fs");
+  function rd(p) { return JSON.parse(fs0.readFileSync(path.join(__dirname, "..", p), "utf8")); }
+  var meta0 = rd("public/data/meta.json");
+  return Object.assign({
+    marketsDoc:     rd("public/data/markets.json"),
+    sampleAssets:   rd("public/data/portfolio.json").assets,
+    portfolioMode:  "sample",
+    customAssets:   [],
+    statisticsDoc:  rd("public/data/statistics.json"),
+    sourceOutcomes: (meta0.sourceVerification && meta0.sourceVerification.outcomes) || {}
+  }, overrides || {});
+}
+
 /* ── Test harness ─────────────────────────────────────────────────────────── */
 var passed = 0;
 var failed = 0;
@@ -659,31 +675,43 @@ console.log("\n── T26-T35 New tests: shared state, HHI dimensions, preset va
 }());
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   T32  stateManager markStale / isStale
+   T32  Reset Demo touches only application keys and keeps the custom portfolio
+   ───────────────────────────────────────────────────────────────────────────
+   Rewritten. T32 and T33 tested markStale()/isStale(), which belonged to the
+   retired design in which the Market Screener stored a computed snapshot that
+   other pages read and could find stale. The shared analysis run
+   (analysisRun.js) stores only INPUTS and recomputes, so nothing can be stale
+   and those functions were removed deliberately. What replaces them — the
+   reset contract — is tested here.
    ═══════════════════════════════════════════════════════════════════════════ */
 (function () {
   ReitState.clear();
-  assert("T32a", "isStale() = true when no state saved", ReitState.isStale() === true);
+  global.localStorage.setItem("someone_else", "keep");
+  ReitState.save({ schemaVersion: 2, preset: "incomeFocused", investmentCr: 80, selectionMode: "manual", manualTargetId: "MKT-036" });
+  ReitState.setPortfolioMode("custom");
+  ReitState.saveCustomPortfolio([{ assetId: "C-1", propertyValue: 1e8, city: "Pune", assetType: "Retail", annualRent: 7e6 }]);
 
-  ReitState.save({ runId: ReitState.newRunId(), stale: false, investmentCr: 50 });
-  assert("T32b", "isStale() = false after save with stale=false", ReitState.isStale() === false);
-
-  ReitState.markStale();
-  assert("T32c", "isStale() = true after markStale()", ReitState.isStale() === true);
-
-  var s = ReitState.load();
-  assert("T32d", "load().stale = true after markStale()", s !== null && s.stale === true, "got " + (s && s.stale));
+  ReitState.resetApp();
+  assert("T32a", "resetApp() clears the saved analysis inputs", ReitState.load() === null);
+  assert("T32b", "resetApp() returns the portfolio mode to sample", ReitState.portfolioMode() === "sample");
+  assert("T32c", "resetApp() keeps the user's custom holdings (user work is never deleted)",
+    ReitState.customPortfolio().length === 1);
+  assert("T32d", "resetApp() leaves other applications' keys alone",
+    global.localStorage.getItem("someone_else") === "keep");
+  global.localStorage.removeItem("someone_else");
+  ReitState.saveCustomPortfolio([]);
 }());
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   T33  stateManager clear removes state
+   T33  stateManager clear removes the saved inputs
    ═══════════════════════════════════════════════════════════════════════════ */
 (function () {
-  ReitState.save({ runId: "r1", stale: false });
+  ReitState.save({ schemaVersion: 2, preset: "balanced" });
   assert("T33a", "load() returns state before clear()", ReitState.load() !== null);
   ReitState.clear();
   assert("T33b", "load() returns null after clear()", ReitState.load() === null);
-  assert("T33c", "isStale() = true after clear()", ReitState.isStale() === true);
+  assert("T33c", "the stale-snapshot API is gone (inputs are recomputed, never stale)",
+    typeof ReitState.markStale === "undefined" && typeof ReitState.isStale === "undefined");
 }());
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -836,53 +864,47 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
 }());
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   T39  Agent context — portfolioCtx structure matches screener shared state
+   T39  A stored schema-1 snapshot migrates to schema-2 inputs
+   ───────────────────────────────────────────────────────────────────────────
+   Rewritten. T39 asserted that the old computed snapshot (ranked list, HHI
+   figures, stale flag) round-tripped through storage — the design in which
+   pages read a stored analysis. That design was deliberately replaced: only
+   inputs are stored and the analysis is recomputed (analysisRun.js). A browser
+   holding an old snapshot must still load cleanly, which is tested here.
    ═══════════════════════════════════════════════════════════════════════════ */
 (function () {
-  // Verify that the shared state schema fields match what agents.js expects
-  var requiredStateFields = ["runId","createdAt","stale","weights","weightPreset",
-    "investmentCr","selectedTargetId","ranked","cityHHIBefore","cityHHIAfter",
-    "typeHHIBefore","typeHHIAfter","portfolioValueCr","marketCount","assetCount"];
-
-  // Save a full state and verify load() returns all fields intact
-  ReitState.clear();
-  var payload = {};
-  requiredStateFields.forEach(function (f) {
-    if (f === "stale")      { payload[f] = false; }
-    else if (f === "ranked"){ payload[f] = []; }
-    else if (f === "weights"){ payload[f] = BALANCED_WEIGHTS; }
-    else if (typeof f === "string" && f.indexOf("HHI") !== -1) { payload[f] = 0.25; }
-    else if (f === "runId") { payload[f] = ReitState.newRunId(); }
-    else if (f === "createdAt") { payload[f] = Date.now(); }
-    else { payload[f] = 42; }
-  });
-  ReitState.save(payload);
-  var loaded = ReitState.load();
-
-  var allPresent = requiredStateFields.every(function (f) {
-    return Object.prototype.hasOwnProperty.call(loaded, f);
-  });
-  assert("T39a", "all required shared state fields survive round-trip", allPresent,
-    "missing: " + requiredStateFields.filter(function(f){ return !Object.prototype.hasOwnProperty.call(loaded, f); }).join(","));
-  assert("T39b", "loaded weights match saved balanced weights",
-    loaded.weights && loaded.weights.yieldWeight === 0.25 && loaded.weights.growthWeight === 0.25);
+  var AR = require(path.join(__dirname, "..", "public", "js", "analysisRun.js"));
+  var legacy = { runId: "run-1", stale: false, weights: BALANCED_WEIGHTS, weightPreset: "incomeFocused",
+                 investmentCr: 60, selectedTargetId: "MKT-024", ranked: [{ marketId: "MKT-024" }],
+                 governanceOverride: true, cityHHIBefore: 0.4 };
+  var inp = AR.normaliseInputs(legacy);
+  assert("T39a", "a schema-1 snapshot keeps its preset, amount and screen setting",
+    inp.preset === "incomeFocused" && inp.investmentCr === 60 && inp.governanceOverride === true,
+    JSON.stringify(inp));
+  assert("T39b", "a schema-1 selection becomes automatic (the old format could not tell a pick from a default)",
+    inp.selectionMode === "auto" && inp.manualTargetId === null);
+  assert("T39c", "no computed figures survive migration — the run is always recomputed",
+    inp.ranked === undefined && inp.cityHHIBefore === undefined && inp.schemaVersion === 2);
+  var bad = AR.normaliseInputs({ weightPreset: "custom", weights: { yieldWeight: 0.9, growthWeight: 0.9 } });
+  assert("T39d", "invalid custom weights fall back to Balanced", bad.preset === "balanced");
 }());
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   T40  Weight/investment change triggers stale flag
+   T40  Changing an input recomputes the run (no stale flag needed)
+   ───────────────────────────────────────────────────────────────────────────
+   Rewritten for the same reason as T39: the stale flag existed because pages
+   held a stored analysis. Now an input change produces a new run.
    ═══════════════════════════════════════════════════════════════════════════ */
 (function () {
-  ReitState.clear();
-  ReitState.save({ runId: ReitState.newRunId(), stale: false, investmentCr: 45, weights: BALANCED_WEIGHTS });
-  assert("T40a", "fresh save is not stale", ReitState.isStale() === false);
-
-  // Simulate a weight change by marking stale (as marketScreen.js would)
-  ReitState.markStale();
-  assert("T40b", "markStale() sets stale=true", ReitState.isStale() === true);
-
-  // Re-run (new save) clears stale
-  ReitState.save({ runId: ReitState.newRunId(), stale: false, investmentCr: 60, weights: BALANCED_WEIGHTS });
-  assert("T40c", "new save clears stale flag", ReitState.isStale() === false);
+  var AR = require(path.join(__dirname, "..", "public", "js", "analysisRun.js"));
+  var D = canonicalRunData();
+  var a = AR.compute({ preset: "balanced" }, D);
+  var b = AR.compute({ preset: "balanced", investmentCr: 60 }, D);
+  assert("T40a", "a different investment amount gives a different scenario key", a.scenarioKey !== b.scenarioKey);
+  assert("T40b", "a different investment amount changes the HHI after investing",
+    a.hhi.cityAfter !== b.hhi.cityAfter);
+  assert("T40c", "the default investment is ₹50 Cr (10% of the ₹500 Cr sample portfolio)",
+    a.investmentCr === 50, String(a.investmentCr));
 }());
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -893,17 +915,18 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
   var fs = require("fs");
   var src = fs.readFileSync(require("path").join(__dirname, "..", "public", "js", "agents.js"), "utf8");
 
-  assert("T41a", "agents.js contains 'AI explanation unavailable' fallback message",
-    src.indexOf("AI explanation unavailable") !== -1, "not found");
-  assert("T41b", "agents.js handles offline state with error message (not empty string)",
-    src.indexOf("offline: true") !== -1, "no offline flag found");
-  /* The orchestrator gate. It used to read a model's validatedOk flag; it now
-   * reads the result of validator.js. Asserting the OLD condition would be
-   * asserting that the model's opinion still gates a recommendation, which is
-   * the thing that was fixed. */
-  assert("T41c", "agents.js gates the orchestrator on the deterministic check result",
-    src.indexOf("runDeterministicChecks") !== -1 &&
-    /if \(!validation\.passed\)/.test(src),
+  /* T41a, b, c, e, f rewritten for the shared-run Agents page. The page no
+   * longer probes localhost:3001 from every origin (which logged failed
+   * requests on the static deployment); it shows deterministic output with an
+   * explicit provenance when no commentary is available, and reads the gate
+   * from the run's own validation result. */
+  assert("T41a", "agents.js states plainly when no AI interpretation is shown",
+    src.indexOf("Deterministic output only — no AI interpretation is shown.") !== -1, "not found");
+  assert("T41b", "agents.js probes the proxy only when served by it, so static mode logs no failed request",
+    /var LIVE_ORIGIN = /.test(src) && /if \(!LIVE_ORIGIN\) \{ state\.serverOnline = false; return Promise\.resolve\(\); \}/.test(src),
+    "no static-mode guard on the proxy probe");
+  assert("T41c", "agents.js gates the orchestrator on the run's deterministic check result",
+    /var v = run\.validation;/.test(src) && /if \(!v\.passed\)/.test(src),
     "the deterministic gate was not found");
   /* Checks for a USE of validatedOk, not a mention of it. A bare
    * indexOf("validatedOk") also matched the comment that explains why the flag
@@ -914,11 +937,11 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
     !/[.\[]\s*validatedOk|validatedOk\s*[=!<>]|validatedOk\s*:/.test(src),
     "validatedOk is used as a value in agents.js, not merely mentioned");
   assert("T41e", "a failed gate says the checks are arithmetic, not an AI failure",
-    src.indexOf("These are arithmetic checks on the analysis inputs") !== -1,
+    /These are arithmetic checks on the "\s*\+\s*"analysis inputs, not AI judgements/.test(src),
     "the failure message does not distinguish the two");
-  assert("T41f", "agents.js publishes its outputs for the Decision Report",
-    src.indexOf("window._reitAgentOutputs = published") !== -1,
-    "report.js reads window._reitAgentOutputs; nothing writes it");
+  assert("T41f", "agents.js publishes its outputs for the Decision Report, tagged with their scenario key",
+    src.indexOf("window._reitAgentOutputs = pub") !== -1 && /scenarioKey: state\.resultsKey/.test(src),
+    "outputs are not published with the run they belong to");
 }());
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -1098,21 +1121,36 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
   var fs = require("fs");
   var serverSrc = fs.readFileSync(require("path").join(__dirname, "..", "server", "server.js"), "utf8");
 
-  assert("T45a", "orchestrator prompt has selectedTarget field",     serverSrc.indexOf('"selectedTarget"') !== -1);
-  assert("T45b", "orchestrator prompt has cityHHIEffect field",      serverSrc.indexOf('"cityHHIEffect"') !== -1);
-  assert("T45c", "orchestrator prompt has assetTypeHHIEffect field", serverSrc.indexOf('"assetTypeHHIEffect"') !== -1);
-  assert("T45d", "orchestrator prompt has whyTopRanked field",       serverSrc.indexOf('"whyTopRanked"') !== -1);
-  assert("T45e", "orchestrator prompt has syntheticDisclaimer",      serverSrc.indexOf('"syntheticDisclaimer"') !== -1);
+  /* T45a–e, g, h rewritten. They asserted the orchestrator's OLD output
+   * fields (selectedTarget, compositeScore-style headline fields, whyTopRanked,
+   * evidenceBasis). Those were replaced deliberately: the model now returns
+   * prose fields only, under a strict response schema shared with the output
+   * checker, and every headline figure is rendered from the deterministic
+   * context. "Evidence basis" became "screening basis" because simulation
+   * support is not evidence. */
+  var AOC = require(require("path").join(__dirname, "..", "public", "js", "agentOutputCheck.js"));
+  var orchReq = AOC.SCHEMAS.orchestrator.required;
+  assert("T45a", "orchestrator schema has recommendationSummary", orchReq.indexOf("recommendationSummary") !== -1);
+  assert("T45b", "orchestrator schema has concentrationEffect", orchReq.indexOf("concentrationEffect") !== -1);
+  assert("T45c", "orchestrator schema has screeningBasis", orchReq.indexOf("screeningBasis") !== -1);
+  assert("T45d", "orchestrator schema requires nextSteps (the calibration caveat)", orchReq.indexOf("nextSteps") !== -1);
+  assert("T45e", "no schema asks the model for a number field",
+    Object.keys(AOC.SCHEMAS).every(function (k) {
+      var props = AOC.SCHEMAS[k].properties;
+      return Object.keys(props).every(function (f) { return props[f].type === "STRING" || props[f].type === "ARRAY"; }) &&
+             !props.compositeScore && !props.expectedYieldPct;
+    }));
   /* The orchestrator is now told that the gate was arithmetic and that it must
    * not claim to have verified anything itself — the opposite of the old
    * instruction, which invited it to reason about a validatedOk flag. */
   assert("T45f", "orchestrator prompt states the checks were deterministic",
     serverSrc.indexOf("The checks are arithmetic, not opinion") !== -1,
     "not found");
-  assert("T45g", "orchestrator prompt has the evidenceBasis field",
-    serverSrc.indexOf('"evidenceBasis"') !== -1);
-  assert("T45h", "orchestrator prompt forbids assuming the recommendation is rank 1",
-    serverSrc.indexOf("That is not always the highest-scoring segment") !== -1);
+  assert("T45g", "the server sends each agent's schema to Gemini as responseSchema",
+    /parsedBody\.generationConfig\.responseSchema = responseSchema/.test(serverSrc) &&
+    /AgentOutputCheck\.SCHEMAS\[agentType\]/.test(serverSrc));
+  assert("T45h", "the shared prompt rules forbid calling a non-rank-1 segment \"first\"",
+    /Never say a segment \\"ranked first\\" unless its rawRank is 1/.test(serverSrc));
 }());
 
 
@@ -1624,10 +1662,11 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
    */
 
   // T78a — the chain calls the four current agents and none of the retired ones
+  // (call form updated: the chain now goes through step(agentKey, ctx) for both live and stored replies)
   var t78a = ['dataStatistical', 'marketScreening', 'portfolioRisk', 'orchestrator']
-    .every(function (a) { return agentsSrc.indexOf('callAgent("' + a + '"') !== -1; }) &&
+    .every(function (a) { return agentsSrc.indexOf('step("' + a + '"') !== -1; }) &&
     ['dataQuality', 'statisticalAnalysis', 'diversification', 'validation']
-    .every(function (a) { return agentsSrc.indexOf('callAgent("' + a + '"') === -1; });
+    .every(function (a) { return agentsSrc.indexOf('step("' + a + '"') === -1 && agentsSrc.indexOf('callAgent("' + a + '"') === -1; });
   assert(t78a, 'T78a', 'runSequence calls the four current agents and no retired agent');
 
   // T78b — portfolioAnalysis NOT in AGENT_ORDER
@@ -1649,12 +1688,15 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
 
   // T78e — the context carries the Stats engine output (built in agentContext.js)
   var ctxSrc78 = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'agentContext.js'), 'utf8');
+  // (rewritten: the context is built once per run by AnalysisRun via AgentContext.fromRun, and the
+  //  dataset statistics are labelled as the MARKET-SEGMENT dataset, never the portfolio)
   var t78e = ctxSrc78.indexOf('Stats.portfolioStats(markets)') !== -1 &&
-             agentsSrc.indexOf('AgentContext.build(') !== -1;
-  assert(t78e, 'T78e', 'agents.js builds its context through AgentContext, which calls Stats.portfolioStats');
+             /scope: "MARKET-SEGMENT DATASET/.test(ctxSrc78) &&
+             agentsSrc.indexOf('run.agentContext') !== -1;
+  assert(t78e, 'T78e', 'the agent context comes from the shared run, with dataset statistics labelled as not the portfolio');
 
   // T78f — the Data & Statistical Analyst output feeds the later agents
-  var t78f = agentsSrc.indexOf('dataStatisticalOutput: dsRes.output') !== -1;
+  var t78f = /dataStatisticalOutput: out\.ds/.test(agentsSrc);
   assert(t78f, 'T78f', 'later agents receive dataStatisticalOutput');
 
   // T78g — the Orchestrator sees all three analysts and the deterministic checks
@@ -1823,33 +1865,32 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
 
 }());
 
-/* ─── T82 : stateManager — annualRentCr field propagation ──────────────────── */
+/* ─── T82 : projection rent comes from the run, not a stored field ─────────────
+   Rewritten. T82a–d asserted that an annualRentCr field was written into the
+   stored snapshot by the Screener and read back by Diversification and the
+   Report — the plumbing whose gaps let those pages project from different
+   targets. The rent now enters the projection once, inside the shared run, and
+   both pages render run.projections. */
 (function () {
-  var ReitState = require('../public/js/stateManager.js');
-  var HHIEngine = require('../public/js/hhi.js');
-
-  // T82a: stateManager source contains annualRentCr in schema comment
   var fs   = require('fs');
   var path = require('path');
-  var smSrc = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'stateManager.js'), 'utf8');
-  assert(smSrc.indexOf('annualRentCr') !== -1,
-    'T82a', 'stateManager.js schema comment includes annualRentCr');
-
-  // T82b: marketScreen.js saves annualRentCr
-  var msSrc = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'marketScreen.js'), 'utf8');
-  assert(msSrc.indexOf('annualRentCr') !== -1,
-    'T82b', 'marketScreen.js saves annualRentCr to state');
-
-  // T82c: diversification.js reads annualRentCr from state
+  var AR = require(path.join(__dirname, '..', 'public', 'js', 'analysisRun.js'));
+  var run = AR.compute({ preset: 'balanced' }, canonicalRunData());
+  var t = AR.selected(run);
+  var expect0 = run.portfolio.annualRentRs + run.investmentRs * t.grossYield;
+  assert('T82a', 'year-0 rent = existing rent + investment × the selected target\'s gross yield',
+    near(run.projections.year0AnnualRentRs, expect0, 1) &&
+    near(run.projections.all.base[0].annualRent, expect0, 1),
+    (run.projections.year0AnnualRentRs / 1e7).toFixed(3) + ' vs ' + (expect0 / 1e7).toFixed(3));
+  assert('T82b', 'the projection uses the selected target\'s yield, not a 7% default',
+    run.projections.params.newMarketGrossYield === t.grossYield);
   var divSrc = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'diversification.js'), 'utf8');
-  assert(divSrc.indexOf('sr.annualRentCr') !== -1,
-    'T82c', 'diversification.js reads sr.annualRentCr');
-
-  // T82d: report.js reads annualRentCr from state
   var rptSrc = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'report.js'), 'utf8');
-  assert(rptSrc.indexOf('state.annualRentCr') !== -1,
-    'T82d', 'report.js reads state.annualRentCr');
-
+  assert('T82c', 'diversification.js renders run.projections and never recomputes them',
+    /run\.projections\.all/.test(divSrc) && divSrc.indexOf('Projection.projectAll(') === -1);
+  assert('T82d', 'report.js renders run.projections and never recomputes them',
+    /run\.projections\.summary3y/.test(rptSrc) && rptSrc.indexOf('Projection.projectAll(') === -1 &&
+    rptSrc.indexOf('0.07') === -1);
 }());
 
 /* ─── T83 : report.js — decision report fixes ──────────────────────────────── */
@@ -1871,9 +1912,10 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
          rptSrc.indexOf('meta().PROJECT.author') !== -1,
     'T83b', 'report cover takes the author (Vishesh Jain) from AppMeta.PROJECT');
 
-  // T83c: Descriptive target name logic (locality/city/propertyType) present
-  assert(rptSrc.indexOf('rm.locality') !== -1,
-    'T83c', 'report.js resolves descriptive target name via locality');
+  // T83c: Descriptive target name, via the one naming helper every page uses
+  // (rewritten: the report used to build the name itself from rm.locality)
+  assert(/AnalysisRun\.name\(target\)/.test(rptSrc),
+    'T83c', 'report.js names the target through AnalysisRun.name, as every page does');
 
   // T83d: Target composite score displayed
   assert(rptSrc.indexOf('Target Composite Score') !== -1,
@@ -2860,20 +2902,24 @@ console.log("\n── T-149-T-156 Final-submission additions ──────�
   var overridden = Governance.chooseTarget(ranked, { override: true });
   assert("T-151k", "the override recommends the highest-scoring segment",
     overridden.target.marketId === ranked[0].marketId && overridden.overrideUsed === true);
+  // (wording updated: "evidence floor overridden" became "simulation-support screen ignored")
   assert("T-151l", "the override is recorded, not silent",
-    /overridden/i.test(overridden.note));
+    /screen ignored/i.test(overridden.note), overridden.note);
 
   var sum = Governance.summarise(markets);
   assert("T-151m", "the eligibility breakdown accounts for every segment",
     sum.eligible + sum.failObsOnly + sum.failGradeOnly + sum.failBoth === sum.total,
     JSON.stringify(sum));
 
-  // Evidence tiers must be ordered sensibly.
-  assert("T-151n", "evidence tiers run Strong, Adequate, Limited, Weak",
-    Governance.evidenceTier(70, "B") === "Strong" &&
-    Governance.evidenceTier(40, "C") === "Adequate" &&
+  /* Rewritten. The tiers were "Strong / Adequate / Limited / Weak evidence".
+   * They measure simulation precision, and no figure is externally verified,
+   * so "Strong evidence" was renamed deliberately to a simulation-support
+   * level. Same thresholds, same order. */
+  assert("T-151n", "simulation-support levels run High, Moderate, Limited, Low",
+    Governance.evidenceTier(70, "B") === "High" &&
+    Governance.evidenceTier(40, "C") === "Moderate" &&
     Governance.evidenceTier(40, "D") === "Limited" &&
-    Governance.evidenceTier(10, "E") === "Weak");
+    Governance.evidenceTier(10, "E") === "Low");
 }());
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -3044,8 +3090,9 @@ console.log("\n── T-149-T-156 Final-submission additions ──────�
    * instrument, but this defect was a single wrong property name, which is
    * exactly what a regex can pin down.
    */
-  assert("T-154a", "the report's screening table reads totalScore",
-    /typeof m\.totalScore === 'number' \? m\.totalScore\.toFixed\(1\)/.test(src),
+  // (form updated: the screening tables now show scores to two decimals, like every other page)
+  assert("T-154a", "the report's screening tables read totalScore",
+    /m\.totalScore\.toFixed\(2\)/.test(src),
     "the score column does not read totalScore");
   assert("T-154b", "the report no longer reads the non-existent m.score field",
     !/typeof m\.score === 'number'/.test(src),
@@ -3055,8 +3102,12 @@ console.log("\n── T-149-T-156 Final-submission additions ──────�
     src.indexOf("Commentary Provenance") !== -1);
   assert("T-154d", "the report includes the deterministic check results",
     src.indexOf("Deterministic Input Checks") !== -1);
-  assert("T-154e", "the report states the target's evidence and whether it meets the floor",
-    src.indexOf("Target Evidence") !== -1 && src.indexOf("Meets Evidence Floor") !== -1);
+  /* Rewritten: "Target Evidence" / "Meets Evidence Floor" asserted the retired
+   * framing. The report now states simulation support and external
+   * calibration as separate lines. */
+  assert("T-154e", "the report states the target's simulation support and external calibration separately",
+    src.indexOf("Target Simulation Support") !== -1 && src.indexOf("Target External Calibration") !== -1 &&
+    src.indexOf("Meets Evidence Floor") === -1);
   assert("T-154f", "the report takes its limitations from validator.js, not a second copy",
     /Validator\.LIMITATIONS/.test(src) &&
     !/HHI computed on book value \(acquisition cost\), not mark-to-market NAV/.test(src),
@@ -3099,16 +3150,28 @@ console.log("\n── T-149-T-156 Final-submission additions ──────�
     "the router still resolves its default page by naming a specific page");
 
   var ov = fs.readFileSync(path.join(repo, "public", "js", "overview.js"), "utf8");
-  assert("T-155f", "the Overview page offers Reset Demo with a confirmation step",
-    ov.indexOf("Reset demo") !== -1 && ov.indexOf("Click again to confirm reset") !== -1);
-  assert("T-155g", "Reset Demo clears only this application's own state",
-    /ReitState\.clear\(\)/.test(ov) && !/localStorage\.clear\(\)/.test(ov),
+  /* T-155f–i rewritten.
+   *  f: the silent second click ("Click again to confirm reset") was replaced by
+   *     an explicit confirmation panel with Reset and Cancel buttons.
+   *  g: reset now goes through AnalysisRun.reset() → ReitState.resetApp(), which
+   *     clears application keys only.
+   *  h: the Overview used to show "no analysis has been run" until the Screener
+   *     had been visited; it now computes the canonical analysis immediately
+   *     and labels exactly what it is (preset, amount, portfolio, mode).
+   *  i: "runner-up / next-best segment" was ambiguous; the comparison is now the
+   *     highest raw-score alternative or the next eligible candidate. */
+  assert("T-155f", "Reset Demo opens an explicit confirmation panel with Reset and Cancel",
+    ov.indexOf("Reset the demo to its defaults?") !== -1 && ov.indexOf('"Cancel"') !== -1 &&
+    ov.indexOf("Click again to confirm reset") === -1);
+  assert("T-155g", "Reset Demo resets through AnalysisRun and never clears unrelated storage",
+    /AnalysisRun\.reset\(\)/.test(ov) && !/localStorage\.clear\(\)/.test(ov),
     "reset must not clear unrelated browser storage");
-  assert("T-155h", "the Overview page says nothing has run before anything has",
-    ov.indexOf("No analysis has been run in this browser yet") !== -1,
-    "the landing page would show defaults that read as results");
-  assert("T-155i", "the Overview page compares the target with the runner-up",
-    ov.indexOf("Target against the next-best segment") !== -1);
+  assert("T-155h", "the Overview renders the shared run as soon as data loads, labelled with its inputs",
+    /AnalysisRun\.ready\(\)/.test(ov) && ov.indexOf("No analysis has been run in this browser yet") === -1 &&
+    /The shared analysis every page renders/.test(ov));
+  assert("T-155i", "the Overview compares against the highest raw-score alternative or next eligible candidate",
+    /AnalysisRun\.comparison\(run\)/.test(ov) &&
+    !/runner-?up|next-best/i.test(ov.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "")));
   assert("T-155j", "every nav link has a matching section",
     (html.match(/data-page="([a-z]+)"/g) || []).every(function (m) {
       var id = m.replace(/data-page="|"/g, "");
@@ -3417,118 +3480,333 @@ console.log("\n── T-159 Source verification honesty ────────
 /* ═══════════════════════════════════════════════════════════════════════════
    SUMMARY
    ═══════════════════════════════════════════════════════════════════════════ */
-console.log("\n── T-160 Agent context, scenario key and agent cache ─────────────────────");
+console.log("\n── T-160–T-166 Shared analysis run: acceptance tests ─────────────────────");
+/*
+ * These replace the earlier T-160 block, which built the agent context
+ * through AgentContext.build() — a per-page builder retired when every page
+ * moved to the one shared run (public/js/analysisRun.js).
+ *
+ * Every test below runs on the committed data, through the same modules the
+ * browser loads. Page modules cannot run in Node, so cross-page agreement is
+ * established in two parts: (1) every figure a page shows comes from one run
+ * object, and (2) each page module reads that object and computes nothing of
+ * its own (source assertions). tests/browserAcceptance.js checks the rendered
+ * DOM of all eight routes in a browser.
+ */
 (function () {
   var fs   = require("fs");
   var repo = path.join(__dirname, "..");
   var JS   = path.join(repo, "public", "js");
+  var AR   = require(path.join(JS, "analysisRun.js"));
   var AC   = require(path.join(JS, "agentContext.js"));
   var SK   = require(path.join(JS, "scenarioKey.js"));
-  var SE   = require(path.join(JS, "scoringEngine.js"));
   var GOV  = require(path.join(JS, "governance.js"));
   var AM   = require(path.join(JS, "appMeta.js"));
-  var doc  = JSON.parse(fs.readFileSync(path.join(repo, "public", "data", "markets.json"), "utf8"));
-  var assets = JSON.parse(fs.readFileSync(path.join(repo, "public", "data", "portfolio.json"), "utf8")).assets;
+  var AOC  = require(path.join(JS, "agentOutputCheck.js"));
+  var P    = require(path.join(JS, "projection.js"));
+  var D    = canonicalRunData();
+  var markets = D.marketsDoc.markets;
+  function src(f) { return fs.readFileSync(path.join(JS, f), "utf8"); }
 
-  function keyOf(built) {
-    return SK.compute({
-      marketsDoc: doc, assets: assets, weights: built.ctx.weights,
-      investmentCr: built.ctx.investmentCr,
-      selectedTargetId: built.ctx.selectedTarget ? built.ctx.selectedTarget.marketId : null,
-      ranked: built.ranked
+  // ── T-160  Agent context vocabulary and cache ─────────────────────────────
+  var bal = AR.compute({ preset: "balanced" }, D);
+  var ctx = bal.agentContext;
+  assert("T-160a", "the agent context carries the full vocabulary",
+    ["highestRawScoreMarket", "recommendedCandidate", "selectedTarget", "selectionMode",
+     "simulationSupportScreen", "externalCalibration", "higherRawScoreExclusions", "concentration",
+     "projections", "marketDataset"].every(function (k) { return k in ctx; }) &&
+    ["rawRank", "eligibleRank", "passesSimulationSupportRule", "externalCalibrationStatus",
+     "simulationObservationCount", "supportGrade", "exclusionReasons", "largestContribution"]
+      .every(function (k) { return k in ctx.selectedTarget; }));
+  assert("T-160b", "the context never uses the word runner-up",
+    !/runner-?up/i.test(JSON.stringify(ctx).replace(/"wordsNotToUse":\[[^\]]*\]/, "")));
+  assert("T-160c", "dataset statistics are labelled as the market-segment dataset, not the portfolio",
+    /NOT the portfolio/.test(ctx.marketDataset.scope) && /PORTFOLIO/.test(ctx.portfolio.scope));
+  assert("T-160d", "quoted figures carry their display precision (7.03, 0.4130)",
+    ctx.selectedTarget.grossYieldPct === "7.03" && ctx.portfolio.cityHHI === "0.4130",
+    ctx.selectedTarget.grossYieldPct + " / " + ctx.portfolio.cityHHI);
+  assert("T-160e", "the context's selected target is the run's selected target",
+    ctx.selectedTarget.marketId === bal.selectedTargetId && bal.selectedTargetId === "MKT-016");
+
+  var cache = JSON.parse(fs.readFileSync(path.join(repo, "public", "data", "agent-cache.json"), "utf8"));
+  var entries = cache.scenarios ? Object.keys(cache.scenarios) : [];
+  assert("T-160f", "agent-cache.json is in the current format with four scenarios and no retired .agents block",
+    cache.format === "scenarios-v2" && !!cache.scenarios && !cache.agents && entries.length === 4,
+    "format " + cache.format + ", " + entries.length + " scenarios");
+  assert("T-160g", "every cache entry is stored under the key its descriptor hashes to, at the current context version",
+    entries.every(function (k) {
+      var d = cache.scenarios[k].descriptor;
+      return SK.compute(d) === k && d.contextVersion === SK.CONTEXT_VERSION;
+    }));
+
+  var presetKeys = AR.PRESET_KEYS;
+  presetKeys.forEach(function (p, i) {
+    var run = AR.compute({ preset: p }, D);
+    var e = cache.scenarios[run.scenarioKey];
+    assert("T-160h" + (i + 1), "the cache holds the " + p + " scenario under the key the app computes, for the same target",
+      !!e && e.preset === p && e.targetId === run.selectedTargetId &&
+      e.descriptor.selectedTargetId === run.selectedTargetId &&
+      SK.canonical(e.descriptor.weights) === SK.canonical(run.scenarioDescriptor.weights) &&
+      SK.canonical(e.descriptor.portfolio) === SK.canonical(run.scenarioDescriptor.portfolio) &&
+      SK.canonical(e.descriptor.dataset) === SK.canonical(run.scenarioDescriptor.dataset),
+      run.scenarioKey);
+    if (!e) { return; }
+    var allOk = AM.AGENT_KEYS.every(function (a) {
+      var o = e.agents[a] && e.agents[a].output;
+      var ctxA = Object.assign({}, run.agentContext);
+      return o && AOC.check(a, o, ctxA, markets).ok;
     });
-  }
-  /* The run the Market Screener saves for a preset, through JSON as localStorage would. */
-  function screenerRun(preset) {
-    var w = Object.assign({}, SE.PRESETS[preset]);
-    var inv = AC.defaultInvestmentCr(assets);
-    var ranked = AC.rankForScreener(doc.markets, assets, w, inv);
-    var c = GOV.chooseTarget(ranked, { override: false });
-    return JSON.parse(JSON.stringify({ stale: false, weights: w, investmentCr: inv,
-      selectedTargetId: (c.target || c.topOverall).marketId, ranked: ranked, governanceOverride: false }));
-  }
-
-  var fallback = AC.build({ markets: doc.markets, assets: assets, run: null });
-  var viaScreener = AC.build({ markets: doc.markets, assets: assets, run: screenerRun("balanced") });
-
-  /* The Agents page without a screener run used to select rank 1 (MKT-036),
-   * while the Screener selects the evidence-floor recommendation (MKT-016). */
-  assert("T-160a", "with no screener run the Agents page selects the evidence-floor recommendation, not rank 1",
-    fallback.selectedMarket.marketId === fallback.ctx.governance.recommendedSegment &&
-    fallback.selectedMarket.marketId !== fallback.ranked[0].marketId,
-    fallback.selectedMarket.marketId + " vs rank 1 " + fallback.ranked[0].marketId);
-
-  assert("T-160b", "the no-run scenario key equals the Balanced screener-run key, so both hit the same cache entry",
-    keyOf(fallback) === keyOf(viaScreener), keyOf(fallback) + " vs " + keyOf(viaScreener));
-
-  /* selectedTarget was looked up in the top 3 and fell back to rank 1, so for
-   * a recommendation at rank 5 the models were told the target was rank 1. */
-  assert("T-160c", "ctx.selectedTarget is the selected market even when it ranks below 3",
-    viaScreener.ctx.selectedTarget.marketId === viaScreener.selectedMarket.marketId &&
-    viaScreener.ctx.selectedTarget.rank > 3,
-    viaScreener.ctx.selectedTarget.marketId + " rank " + viaScreener.ctx.selectedTarget.rank);
-
-  assert("T-160d", "the governance block and selectedTarget name the same segment by default",
-    viaScreener.ctx.governance.recommendedSegment === viaScreener.ctx.selectedTarget.marketId);
-
-  var fp = SK.rankingFingerprint(viaScreener.ranked);
-  assert("T-160e", "the scenario key fingerprints real scores (totalScore), not null",
-    fp.length === SK.TOP_N && fp.every(function (r) { return typeof r.score === "number"; }),
-    JSON.stringify(fp[0]));
-
-  var keys = Object.keys(SE.PRESETS).map(function (p) {
-    return keyOf(AC.build({ markets: doc.markets, assets: assets, run: screenerRun(p) }));
+    assert("T-160i" + (i + 1), "every cached " + p + " reply passes the deterministic output check",
+      allOk && Object.keys(e.agents).sort().join(",") === AM.AGENT_KEYS.slice().sort().join(","));
   });
-  assert("T-160f", "the four presets produce four distinct scenario keys",
-    keys.filter(function (k, i) { return keys.indexOf(k) === i; }).length === 4, keys.join(","));
 
-  var bSrc = fs.readFileSync(path.join(repo, "data-pipeline", "scripts", "buildAgentCache.js"), "utf8");
-  assert("T-160g", "buildAgentCache.js builds its context through AgentContext and its chain from AppMeta",
-    bSrc.indexOf("AgentContext.build(") !== -1 && bSrc.indexOf("AppMeta.AGENTS") !== -1 &&
-    !/"(dataQuality|statisticalAnalysis|diversification|validation)"/.test(bSrc) &&
-    bSrc.indexOf("SPJIMR") === -1);
+  // Cache key changes with every relevant input (Stage 13: 13, 14).
+  var variants = {
+    "investment amount": { preset: "balanced", investmentCr: 60 },
+    "preset":            { preset: "incomeFocused" },
+    "screen override":   { preset: "balanced", governanceOverride: true },
+    "manual selection":  { schemaVersion: 2, preset: "balanced", selectionMode: "manual", manualTargetId: "MKT-016" },
+    "custom weights":    { preset: "custom", weights: { yieldWeight: 0.3, growthWeight: 0.2, diversWeight: 0.2, demandWeight: 0.2, riskWeight: 0.1 } }
+  };
+  Object.keys(variants).forEach(function (k, i) {
+    var v = AR.compute(variants[k], D);
+    var hit = cache.scenarios[v.scenarioKey];
+    /* A preset change lands on THAT preset's stored scenario, which is correct;
+     * every other change must find nothing stored. */
+    assert("T-160j" + (i + 1), "changing the " + k + " changes the scenario key, so Balanced commentary is rejected",
+      v.scenarioKey !== bal.scenarioKey && (!hit || (k === "preset" && hit.preset === v.preset)));
+  });
+  var custom = AR.compute({ preset: "balanced" }, canonicalRunData({
+    portfolioMode: "custom",
+    customAssets: [{ assetId: "C1", assetName: "Custom", city: "Pune", assetType: "Retail",
+                     propertyValue: 2e9, annualRent: 1.4e8 }]
+  }));
+  assert("T-160k", "a custom portfolio changes the scenario key (no commentary from the sample portfolio)",
+    custom.scenarioKey !== bal.scenarioKey && custom.portfolio.source === "custom");
+  assert("T-160l", "ScenarioKey.diff names the input that differs",
+    SK.diff(bal.scenarioDescriptor, AR.compute(variants["investment amount"], D).scenarioDescriptor)
+      .indexOf("investment amount") !== -1);
 
-  /* The Run button required a live proxy, so on the static deployment the
-   * cache could never be reached. It must also be enabled by a cache match. */
-  var aSrc = fs.readFileSync(path.join(JS, "agents.js"), "utf8");
-  assert("T-160k", "the Run button is enabled by a matching cache entry, not only by a live proxy",
-    /var canRun\s*=\s*\(live \|\| state\.cacheMatch\)/.test(aSrc) &&
-    aSrc.indexOf("Show Pre-generated Analysis") !== -1);
+  // Output checker rejects the defects found in the first cache build.
+  var badMS = { candidateExplanation: "Aerocity, Delhi NCR ranked first on composite score.",
+    dominantFactor: "demand",
+    comparisonWithAlternative: "Compared with the runner-up, GIFT City, Ahmedabad, it scores lower.",
+    screenOutcome: "Several segments were excluded due to insufficient sample sizes.",
+    factorInsights: ["Its gross yield is 7%."], watchPoints: ["Strong evidence supports the shortlist."],
+    disclaimer: "Not advice." };
+  var inc = AR.compute({ preset: "incomeFocused" }, D);
+  var bad = AOC.check("marketScreening", badMS, inc.agentContext, markets);
+  var msgs = bad.issues.map(function (x) { return x.message; }).join(" | ");
+  assert("T-160m", "the output checker rejects 'ranked first' for a raw-rank-8 candidate", /not first/.test(msgs), msgs);
+  assert("T-160n", "the output checker rejects 'runner-up'", /Retired term/.test(msgs) && /runner/i.test(JSON.stringify(bad.issues)));
+  assert("T-160o", "the output checker rejects 7% for a 7.00% figure", /7% does not match/.test(msgs), msgs);
+  assert("T-160p", "the output checker rejects a sample-size explanation when a segment failed on grade alone",
+    /support grade alone/.test(msgs), msgs);
+  assert("T-160q", "the output checker rejects evidence overclaims", /as evidence/.test(msgs), msgs);
+  assert("T-160r", "the output checker rejects the wrong dominant factor", /largest contribution is rental yield/.test(msgs), msgs);
+  var badDS = { datasetSummary: "Synthetic.", simulationSupportNotes: ["x"],
+    dispersionNotes: ["The portfolio-wide gross yield median is 7.90%."], segmentOutlierNotes: ["y"],
+    knownAnomalyNote: "z", caveats: ["c"], disclaimer: "d" };
+  assert("T-160s", "the output checker rejects the dataset median described as a portfolio figure",
+    /portfolio figure/.test(AOC.check("dataStatistical", badDS, ctx, markets).issues.map(function (x) { return x.message; }).join(" ")));
 
-  /* The Orchestrator's prompt does not define expectedYieldPct; in the first
-   * cache build the model gave the target's gross yield for two presets and the
-   * portfolio's post-investment yield for the other two, under a card labelled
-   * "Expected Gross Yield". The headline now comes from the context. */
-  var incomeRun = screenerRun("incomeFocused");
-  var incomeBuilt = AC.build({ markets: doc.markets, assets: assets, run: incomeRun });
-  var fixedOut = AC.applyDeterministicFigures(
-    { selectedTarget: "x", compositeScore: 68.18, expectedYieldPct: 6.686, investmentAmount: "₹50 Cr" },
-    incomeBuilt.ctx);
-  assert("T-160l", "headline yield is the selected target's gross yield; the model's differing figure is kept, not shown",
-    fixedOut.expectedYieldPct === incomeBuilt.ctx.selectedTarget.grossYieldPct &&
-    fixedOut.compositeScore === incomeBuilt.ctx.selectedTarget.totalScore &&
-    fixedOut._modelFigures && fixedOut._modelFigures.expectedYieldPct === 6.686,
-    JSON.stringify(fixedOut));
-  assert("T-160m", "agents.js applies the deterministic figures to the Orchestrator and hides _modelFigures",
-    aSrc.indexOf("AgentContext.applyDeterministicFigures(orchRes.output, ctx)") !== -1 &&
-    /HIDDEN_KEYS = \{[^}]*_modelFigures: true/.test(aSrc));
+  // ── T-161  System Check: current APIs, all passing ────────────────────────
+  var SC = require(path.join(JS, "systemCheck.js"));
+  var mem = {};
+  var results = SC.run({
+    HHIEngine: require(path.join(JS, "hhi.js")), ScoringEngine: require(path.join(JS, "scoringEngine.js")),
+    Projection: P, DataCleaner: require(path.join(JS, "dataCleaner.js")), ScenarioKey: SK,
+    AnalysisRun: AR, AppMeta: AM, run: bal, marketsDoc: D.marketsDoc, sampleAssets: D.sampleAssets,
+    metaDoc: JSON.parse(fs.readFileSync(path.join(repo, "public", "data", "meta.json"), "utf8")),
+    cacheDoc: cache,
+    storage: { setItem: function (k, v) { mem[k] = v; }, getItem: function (k) { return mem[k] || null; },
+               removeItem: function (k) { delete mem[k]; } }
+  });
+  assert("T-161a", "System Check runs ten checks", results.length === 10, String(results.length));
+  results.forEach(function (r) {
+    assert("T-161-" + r.id, "System Check " + r.id + " passes on the canonical data — " + r.label, r.ok, r.detail);
+  });
+  assert("T-161b", "every System Check reports an expected and an actual value",
+    results.every(function (r) { return r.expected && r.actual && /Expected .*; got /.test(r.detail); }));
+  assert("T-161c", "the System Check leaves no probe key behind", Object.keys(mem).length === 0);
+  var scSrc = src("systemCheck.js").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+  assert("T-161d", "the System Check uses the engines' production field names and entry points",
+    /propertyValue:/.test(scSrc) && /assetType:/.test(scSrc) && /DC\.cleanRecords\(DC\.parseCSV\(/.test(scSrc) &&
+    !/DataCleaner\.clean\b(?!Records)/.test(scSrc) && !/\bvalue: \d/.test(scSrc));
+  assert("T-161e", "the System Check never writes the analysis-state key",
+    scSrc.indexOf("ReitState.save") === -1 && src("dataCentre.js").indexOf("ReitState.save") === -1);
+  var broken = SC.run({
+    HHIEngine: { cityHHI: function () { return 0; }, typeHHI: function () { return 0; },
+                 totalValue: function () { return 0; }, totalAnnualRent: function () { return 0; },
+                 simulateInvestment: function () { return null; }, diversificationScore: function () { return 50; } },
+    ScoringEngine: require(path.join(JS, "scoringEngine.js")), Projection: P,
+    DataCleaner: require(path.join(JS, "dataCleaner.js")), ScenarioKey: SK, AnalysisRun: AR, AppMeta: AM,
+    run: bal, marketsDoc: D.marketsDoc, sampleAssets: D.sampleAssets, metaDoc: null, cacheDoc: null, storage: null
+  });
+  assert("T-161f", "a broken engine makes the System Check fail visibly (checks are not bypassed)",
+    broken.filter(function (r) { return !r.ok; }).length >= 3);
 
-  /* The published cache. Fails until it is rebuilt against the live API —
-   * deliberately: a cache the application cannot read is a defect, not a pass. */
-  var cachePath = path.join(repo, "public", "data", "agent-cache.json");
-  var cache = fs.existsSync(cachePath) ? JSON.parse(fs.readFileSync(cachePath, "utf8")) : null;
-  var entries = cache && cache.scenarios ? Object.keys(cache.scenarios) : [];
-  var agentKeys = AM.AGENTS.map(function (a) { return a.key; });
-  assert("T-160h", "public/data/agent-cache.json exists in the .scenarios format, with no .agents block",
-    !!cache && !!cache.scenarios && !cache.agents,
-    cache ? "top-level keys: " + Object.keys(cache).join(",") : "file missing — run buildAgentCache.js");
-  assert("T-160i", "every cache entry is stored under the key its own descriptor hashes to",
-    entries.length > 0 && entries.every(function (k) { return SK.compute(cache.scenarios[k].descriptor) === k; }));
-  assert("T-160j", "the cache covers all four presets, each with exactly the four current agents",
-    keys.every(function (k) {
-      var e = cache && cache.scenarios && cache.scenarios[k];
-      return e && Object.keys(e.agents).sort().join(",") === agentKeys.slice().sort().join(",");
-    }), entries.length + " entries");
+  // ── T-162  Cross-page synchronisation, all four presets ───────────────────
+  var EXPECT = {};
+  presetKeys.forEach(function (p) {
+    // Expected defaults derived from the engine, not typed: the highest-ranked
+    // segment passing the screen under that preset.
+    var w = require(path.join(JS, "scoringEngine.js")).PRESETS[p];
+    var rk = AC.rankForScreener(markets, D.sampleAssets, w, 50);
+    EXPECT[p] = GOV.chooseTarget(rk, { override: false }).target.marketId;
+  });
+  presetKeys.forEach(function (p, i) {
+    var run = AR.compute({ preset: p }, D);
+    var sel = AR.selected(run);
+    var dg = AR.digest(run);
+    var n = String(i + 1);
+    assert("T-162a" + n, p + ": ranking is in descending score order and the raw leader is rank 1",
+      run.ranked.every(function (m, j) { return j === 0 || run.ranked[j - 1].totalScore >= m.totalScore; }) &&
+      run.highestRawScoreMarketId === run.ranked[0].marketId);
+    assert("T-162b" + n, p + ": the automatic selection is the engine's eligible default (" + EXPECT[p] + ")",
+      run.selectionMode === "auto" && run.selectedTargetId === EXPECT[p] && run.recommendedCandidateId === EXPECT[p]);
+    assert("T-162c" + n, p + ": the selected target passes the simulation-support screen",
+      sel.governance.eligible && sel.eligibleRank === 1);
+    assert("T-162d" + n, p + ": HHI figures belong to the selected target",
+      run.hhi.cityAfter === sel.simulation.after.cityHHI && run.hhi.typeAfter === sel.simulation.after.typeHHI);
+    assert("T-162e" + n, p + ": projected rent uses the selected target's own yield",
+      near(run.projections.all.base[0].annualRent, run.portfolio.annualRentRs + run.investmentRs * sel.grossYield, 1));
+    assert("T-162f" + n, p + ": agent context, validator and scenario key describe the same target",
+      run.agentContext.selectedTarget.marketId === sel.marketId &&
+      run.scenarioDescriptor.selectedTargetId === sel.marketId && run.validation.passed);
+    assert("T-162g" + n, p + ": the digest every page is compared on is internally consistent",
+      dg.targetId === sel.marketId && dg.score === sel.totalScore.toFixed(2) &&
+      dg.year0RentCr === (run.projections.year0AnnualRentRs / 1e7).toFixed(3));
+  });
+  // Each page renders the shared run and computes no target of its own.
+  var pages = { "overview.js": /AnalysisRun\.selected\(run\)|AnalysisRun\.current\(\)/,
+                "marketScreen.js": /AnalysisRun\.selected\(run\)/,
+                "diversification.js": /AnalysisRun\.selected\(run\)/,
+                "agents.js": /run\.agentContext/,
+                "report.js": /AnalysisRun\.selected\(run\)/ };
+  Object.keys(pages).forEach(function (f, i) {
+    var s0 = src(f);
+    assert("T-162h" + (i + 1), f + " renders the shared run, subscribes to it, and computes no target itself",
+      pages[f].test(s0) && /AnalysisRun\.(subscribe|ready)\(/.test(s0) &&
+      s0.indexOf("Governance.chooseTarget(") === -1 && s0.indexOf("ScoringEngine.rankMarkets(") === -1 &&
+      s0.indexOf("ReitState.load()") === -1);
+  });
+  assert("T-162i", "Diversification's candidate tables and sensitivity come from the run under the active preset",
+    /AnalysisRun\.rawTop\(run, 3\)/.test(src("diversification.js")) &&
+    /AnalysisRun\.eligibleTop\(run, 3\)/.test(src("diversification.js")) &&
+    /run\.sensitivity\.forEach/.test(src("diversification.js")) &&
+    src("diversification.js").indexOf("sensitivityAnalysis(") === -1);
+  var inc2 = AR.compute({ preset: "incomeFocused" }, D);
+  assert("T-162j", "the sensitivity view reports both the raw leader and the screen's candidate for every preset",
+    inc2.sensitivity.length === 4 && inc2.sensitivity.every(function (s0) { return s0.highestRaw && s0.candidate; }) &&
+    inc2.sensitivity.filter(function (s0) { return s0.active; }).length === 1 &&
+    inc2.sensitivity.some(function (s0) { return !s0.highestRaw.passes; }));
+
+  // ── T-163  Automatic versus manual selection ──────────────────────────────
+  var man = AR.compute({ schemaVersion: 2, preset: "balanced", selectionMode: "manual", manualTargetId: "MKT-036" }, D);
+  assert("T-163a", "a manual selection is honoured even when it fails the screen",
+    man.selectionMode === "manual" && man.selectedTargetId === "MKT-036" && man.recommendedCandidateId === "MKT-016");
+  assert("T-163b", "a manual selection that differs from the candidate is flagged", man.selectionDiffers === true);
+  assert("T-163c", "every page labels it 'Manually selected target'", AR.targetLabel(man) === "Manually selected target");
+  var manInc = AR.compute({ schemaVersion: 2, preset: "incomeFocused", selectionMode: "manual", manualTargetId: "MKT-036" }, D);
+  assert("T-163d", "after a preset change the manual target is kept and the new candidate is reported",
+    manInc.selectedTargetId === "MKT-036" && manInc.recommendedCandidateId === "MKT-024" && manInc.selectionDiffers);
+  var back = AR.compute({ schemaVersion: 2, preset: "incomeFocused", selectionMode: "auto", manualTargetId: null }, D);
+  assert("T-163e", "returning to automatic mode restores the current candidate", back.selectedTargetId === "MKT-024");
+  assert("T-163f", "HHI, projections and agent context follow the manual target",
+    man.hhi.cityAfter === AR.market(man, "MKT-036").simulation.after.cityHHI &&
+    man.projections.params.newMarketGrossYield === AR.market(man, "MKT-036").grossYield &&
+    man.agentContext.selectedTarget.marketId === "MKT-036" && man.agentContext.selectionMode === "manual");
+  var gone = AR.compute({ schemaVersion: 2, preset: "balanced", selectionMode: "manual", manualTargetId: "MKT-999" }, D);
+  assert("T-163g", "a manual target that no longer exists falls back to automatic", gone.selectionMode === "auto" && gone.selectedTargetId === "MKT-016");
+  assert("T-163h", "pages offer a way back to automatic mode",
+    /AnalysisRun\.returnToAuto\(\)/.test(src("marketScreen.js")) && /AnalysisRun\.returnToAuto\(\)/.test(src("overview.js")));
+
+  // ── T-164  Reset Demo restores the canonical defaults ─────────────────────
+  var d0 = AR.defaults();
+  var reset = AR.compute(d0, D);
+  assert("T-164a", "defaults: Balanced, canonical weights, ₹50 Cr, screen applied, automatic, no filters",
+    d0.preset === "balanced" && d0.weights === null && d0.investmentCr === null &&
+    d0.governanceOverride === false && d0.selectionMode === "auto" && d0.manualTargetId === null && d0.filters === null);
+  assert("T-164b", "the default run is valid immediately: ₹50 Cr into Gurugram — Cyber Hub, sample portfolio",
+    reset.investmentCr === 50 && reset.selectedTargetId === "MKT-016" && reset.portfolio.source === "sample" &&
+    reset.validation.passed);
+  var arSrc = src("analysisRun.js");
+  assert("T-164c", "AnalysisRun.reset() clears application keys, restores defaults and recomputes at once",
+    /AnalysisRun\.reset = function \(\) \{\s*root\.ReitState\.resetApp\(\);\s*_inputs = defaults\(\);[\s\S]{0,80}return recompute\(\);/.test(arSrc));
+  assert("T-164d", "Reset Demo returns the user to the Overview and focuses the current analysis",
+    /window\.location\.hash = "overview"/.test(src("overview.js")) && /ov-current-analysis/.test(src("overview.js")));
+  assert("T-164e", "the custom portfolio is used by the analysis only in custom mode",
+    custom.portfolio.source === "custom" && reset.portfolio.source === "sample");
+
+  // ── T-165  Decision Report tables ─────────────────────────────────────────
+  var rpt = src("report.js");
+  assert("T-165a", "the report has separate raw-score and eligible-shortlist tables",
+    /Top 3 by raw attractiveness score/.test(rpt) && /Top eligible shortlist/.test(rpt));
+  assert("T-165b", "each screening row shows raw rank, eligibility, support grade, simulated observations, calibration and exclusion reason",
+    ["Raw rank", "Eligible rank", "Screen", "Support grade", "Sim. obs.", "External calibration", "Exclusion reason"]
+      .every(function (h) { return rpt.indexOf("'" + h + "'") !== -1; }));
+  assert("T-165c", "the selected target is shown even when it is in neither top-3 table",
+    /if \(target && !inEither\)/.test(rpt));
+  assert("T-165d", "model recommendation and manual selection are labelled separately",
+    /Shortlist Candidate \(model\)/.test(rpt) && /Manually Selected Target/.test(rpt));
+  assert("T-165e", "agent commentary is printed only for the run it was produced for",
+    /agentOutputs\.scenarioKey === run\.scenarioKey/.test(rpt));
+  assert("T-165f", "Balanced: the candidate (raw rank 5) appears in the eligible table while the raw table shows ranks 1–3",
+    AR.rawTop(bal, 3).map(function (m) { return m.rank; }).join() === "1,2,3" &&
+    AR.eligibleTop(bal, 3)[0].marketId === "MKT-016" && AR.eligibleTop(bal, 3)[0].rank === 5);
+
+  // ── T-166  Calibration separate from simulation support; CI units ─────────
+  var outcomes = D.sourceOutcomes;
+  assert("T-166a", "external calibration takes no simulation count or grade (it cannot be inferred from them)",
+    AM.calibrationStatus.length === 2 &&
+    AM.calibrationStatus(["SRC-001"], outcomes) === "Unverified");
+  var best = markets.slice().sort(function (a, b) { return b.observationCount - a.observationCount; })[0];
+  assert("T-166b", "the segment with the most simulated observations is still Unverified",
+    GOV.externalCalibration(best, outcomes) === "Unverified" && best.observationCount >= 70);
+  assert("T-166c", "calibration would read Verified only from the register",
+    AM.calibrationStatus(["SRC-001"], { "SRC-001": "Verified" }) === "Verified" &&
+    AM.calibrationStatus(["SRC-001", "SRC-002"], { "SRC-001": "Verified", "SRC-002": "Unverified" }) === "Partially supported");
+  assert("T-166d", "every segment is Unverified, as the Source Verification Report found",
+    bal.ranked.every(function (m) { return m.externalCalibrationStatus === "Unverified"; }));
+  assert("T-166e", "no page or module justifies n = 30 by the Central Limit Theorem or calls grade C documented evidence",
+    ["appMeta.js", "governance.js", "marketScreen.js", "overview.js", "report.js", "dataCentre.js",
+     "statsDashboard.js", "agents.js"].every(function (f) {
+      var t = src(f);
+      // The retired-terms list in appMeta.js names the CLT in order to forbid it; that is not a justification.
+      var code = t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\{ pattern: \/central limit theorem\/i[^}]*\}/, "");
+      return !/approximately normal|central limit/i.test(code) && !/rests on documented evidence/i.test(t);
+    }));
+  assert("T-166f", "the screen is described as a project convention, not a statistical threshold",
+    /project governance convention for simulation precision, not a regulatory or universal statistical threshold/.test(AM.GOVERNANCE.rationale));
+  var userFacing = ["overview.js", "marketScreen.js", "report.js", "dataCentre.js", "diversification.js", "agents.js"]
+    .map(function (f) { return src(f).replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, ""); }).join("\n");
+  assert("T-166g", "pages do not use the retired evidence vocabulary",
+    !/Strong evidence|Meets evidence floor|evidence floor|Planted anomal|runner-up/i.test(userFacing));
+  var Stats = require(path.join(JS, "stats.js"));
+  var groups = Stats.segmentStats(markets, true);
+  assert("T-166h", "the city × type CI unit is the micro-market, and the unit count is the number of segments",
+    groups.every(function (g) { return g.grossYield.ciUnit === Stats.CI_UNIT && g.grossYield.ciUnits === g.count; }) &&
+    /micro-market/.test(Stats.CI_UNIT));
+  assert("T-166i", "a group with too few micro-markets states why no CI is computed",
+    groups.filter(function (g) { return !g.grossYield.ci; }).every(function (g) {
+      return /only \d+ micro-market/.test(g.grossYield.ciUnavailableReason);
+    }));
+  var dc = src("dataCentre.js");
+  assert("T-166j", "the Data Centre labels micro-markets, simulated observations, CI unit, result and reason",
+    ["Micro-markets", "Simulated observations", "CI unit", "CI result", "CI unavailable reason"]
+      .every(function (h) { return dc.indexOf("'" + h + "'") !== -1; }) &&
+    dc.indexOf("Statistics across records") === -1);
+  assert("T-166k", "the Data Centre separates the five analytical levels",
+    ["Portfolio Holdings", "Market Segment Aggregates", "Simulated Observation Dataset",
+     "Source / Calibration Register", "Data Quality and Cleaning Results"].every(function (h) { return dc.indexOf(h) !== -1; }) &&
+    dc.indexOf("Data Preview —") === -1);
+  assert("T-166l", "internal source codes are shown as plain labels, none saying 'reported'",
+    Object.keys(AM.SOURCE_TYPE_LABELS).every(function (k) { return !/reported/i.test(AM.SOURCE_TYPE_LABELS[k]); }) &&
+    markets.every(function (m) { return AM.sourceTypeLabel(m.sourceType) !== "Unclassified assumption"; }) &&
+    /AppMeta\.sourceTypeLabel\(m\.sourceType\)/.test(dc));
+  assert("T-166m", "the 1,000 sq ft columns are explained as normalised representative amounts",
+    /normalised representative amounts/.test(dc));
 }());
 
 console.log("\n══════════════════════════════════════════════════════════════════════════");

@@ -1,34 +1,31 @@
 /**
- * governance.js — evidence eligibility for a recommendation
+ * governance.js — the simulation-support screen for the shortlist candidate
  * REIT Target AI | NMIMS B.Sc. Finance — BA Theme 4 (Academic Demo)
  *
- * THE PROBLEM THIS SOLVES
- * -----------------------
- * The composite score measures how attractive a market segment looks. It says
- * nothing whatever about how well that appearance is supported by evidence.
- * Those are different questions, and conflating them produced a result the
- * project could not defend: under the Balanced preset the highest-scoring
- * segment was Ambattur, Chennai, whose estimate rests on 26 simulated
- * observations and carries confidence grade D. It was being presented as the
- * recommendation with no qualification at all, ahead of segments with three
- * times the supporting evidence.
+ * WHAT THIS DECIDES, AND WHAT IT DOES NOT
+ * ---------------------------------------
+ * The composite score measures how attractive a segment looks on five weighted
+ * factors. It says nothing about how precisely the simulation pins those
+ * figures down. Under the Balanced preset the highest raw-score segment,
+ * Ambattur, rests on 26 simulated observations and Assumption Support Grade D;
+ * the shortlist therefore applies a second, independent test:
  *
- * Scoring is therefore left completely untouched — the ranking below is the
- * same ranking as before, in the same order, with the same numbers — and
- * eligibility is applied as a SECOND, independent dimension:
+ *            score  ->  how attractive the segment looks           (unchanged here)
+ *           screen  ->  is the simulation behind it precise enough  (this module)
+ *      calibration  ->  has any cited source been traced            (AppMeta.calibrationStatus)
  *
- *            score  →  how attractive the segment looks
- *       eligibility  →  whether the evidence can carry a recommendation
+ * The screen tests simulation support ONLY. Passing it does not mean the
+ * figures are true of the real market — external calibration is a separate
+ * status, and it is Unverified for every segment. So the output of this module
+ * is a "shortlist candidate", never an evidence-qualified recommendation.
  *
- * The recommendation defaults to the highest-scoring ELIGIBLE segment. The
- * highest-scoring segment overall is still shown, still with its real score,
- * labelled with why it was not recommended. Nothing is hidden and no number is
- * altered; the user can lift the floor with an explicit override, and the
- * report records that they did.
+ * Scoring is untouched: no score changes and no row moves. The highest
+ * raw-score market is always shown with the reason it was passed over, and the
+ * user can ignore the screen explicitly; the report records that they did.
  *
- * The thresholds live in appMeta.js (AppMeta.GOVERNANCE) so they are stated
- * once for the whole project. Both are descriptive conventions adopted for
- * this academic project, NOT regulatory requirements.
+ * The thresholds live in appMeta.js (AppMeta.GOVERNANCE). They are a project
+ * governance convention for simulation precision, not a regulatory or
+ * universal statistical threshold.
  *
  * Pure module: no DOM, no network, no clock reads.
  */
@@ -54,9 +51,10 @@
   }
 
   /**
-   * Evaluate one market segment against the evidence floor.
-   * Returns the two component tests separately, because "fails on sample size"
-   * and "fails on evidence grade" are different problems with different fixes.
+   * Evaluate one segment against the simulation-support screen.
+   * Returns the two component tests separately, because "too few simulated
+   * draws" and "assumptions graded below C" are different problems — and the
+   * agent commentary must never attribute an exclusion to the wrong one.
    */
   function evaluate(market) {
     var R = rules();
@@ -68,53 +66,63 @@
     var floor = gradeIndex(R.MIN_GRADE, order);
 
     var obsOk   = obs >= R.MIN_OBSERVATIONS;
-    // An unknown or missing grade fails: absence of evidence about the
-    // evidence is not evidence that the evidence is good.
+    // A missing grade fails: an unclassified assumption set cannot be said to
+    // meet a classification threshold.
     var gradeOk = gi !== -1 && gi <= floor;
 
-    var reasons = [];
+    var reasons = [], reasonCodes = [];
     if (!obsOk) {
-      reasons.push("only " + obs + " observations, below the floor of " + R.MIN_OBSERVATIONS);
+      reasons.push("only " + obs + " simulated observations (screen requires " + R.MIN_OBSERVATIONS + ")");
+      reasonCodes.push("observations");
     }
     if (!gradeOk) {
       reasons.push(grade
-        ? "confidence grade " + grade + ", below the floor of " + R.MIN_GRADE
-        : "no confidence grade recorded");
+        ? "Assumption Support Grade " + grade + " (screen requires " + R.MIN_GRADE + " or better)"
+        : "no Assumption Support Grade recorded");
+      reasonCodes.push("grade");
     }
 
+    var eligible = obsOk && gradeOk;
     return {
       marketId:    market && market.marketId,
-      eligible:    obsOk && gradeOk,
+      eligible:    eligible,
+      passesSimulationSupportRule: eligible,
       obsOk:       obsOk,
       gradeOk:     gradeOk,
       observations: obs,
+      simulationObservationCount: obs,
       grade:        grade,
+      supportGrade: grade,
       minObservations: R.MIN_OBSERVATIONS,
       minGrade:        R.MIN_GRADE,
       reasons:     reasons,
-      /* Short phrase for a table cell. Deliberately describes the EVIDENCE,
-       * never the investment: "Limited evidence" is a statement about the
-       * dataset, whereas "risky" would be a statement about the asset, which
-       * this test is not entitled to make. */
-      label:       (obsOk && gradeOk) ? "Meets evidence floor" : "Below evidence floor",
+      reasonCodes: reasonCodes,
+      failsOn:     eligible ? null
+                 : (!obsOk && !gradeOk) ? "both"
+                 : (!obsOk ? "simulated observations" : "support grade"),
+      /* Short phrase for a table cell, with a symbol so the status never rests
+       * on colour alone. It describes the SIMULATION, never the investment. */
+      label:       eligible ? "\u2713 Passes simulation-support screen"
+                            : "\u2717 Fails simulation-support screen",
       tier:        evidenceTier(obs, grade, order)
     };
   }
 
   /**
-   * A four-step evidence tier, for the second axis of the two-dimensional
-   * display. Combines sample size and grade so the reader sees strength of
-   * evidence at a glance next to the score, rather than having to compare two
-   * numbers in two different units.
+   * Simulation support level, for display beside the score. Combines the draw
+   * count and the Assumption Support Grade into one word. It describes the
+   * PRECISION of the simulation around its assumptions — not evidence. The
+   * previous labels ("Strong", "Adequate") read as statements about real-world
+   * evidence, which nothing in this project can support.
    */
   function evidenceTier(obs, grade, order) {
     order = order || rules().GRADE_ORDER;
     var gi = gradeIndex(grade, order);
     if (gi === -1) { return "Unclassified"; }
-    if (obs >= 60 && gi <= 1) { return "Strong"; }      // 60+ observations, grade A or B
-    if (obs >= 30 && gi <= 2) { return "Adequate"; }    // 30+ observations, grade C or better
+    if (obs >= 60 && gi <= 1) { return "High"; }        // 60+ draws, grade A or B
+    if (obs >= 30 && gi <= 2) { return "Moderate"; }    // passes the screen
     if (obs >= 30 || gi <= 2) { return "Limited"; }     // one of the two holds
-    return "Weak";                                      // neither holds
+    return "Low";                                       // neither holds
   }
 
   /** Attach .governance to every market in a list. Does not reorder or rescore. */
@@ -126,7 +134,7 @@
   }
 
   /**
-   * Choose the segment to recommend.
+   * Choose the shortlist candidate.
    *
    * @param {Array}  ranked    already scored and sorted, highest score first
    * @param {Object} opts      { override: boolean }
@@ -150,10 +158,10 @@
         overrideUsed: true,
         eligibleCount: list.filter(function (m) { return m.governance.eligible; }).length,
         note: topOverall
-          ? "Evidence floor overridden. The recommendation is the highest-scoring segment, " +
+          ? "Simulation-support screen ignored. The candidate is the highest raw-score market, " +
             (topOverall.governance.eligible
-              ? "which also meets the floor."
-              : "which does not meet it (" + topOverall.governance.reasons.join("; ") + ").")
+              ? "which also passes the screen."
+              : "which fails it (" + topOverall.governance.reasons.join("; ") + ").")
           : "No segments available."
       };
     }
@@ -168,9 +176,8 @@
         outranked:    list.slice(),
         overrideUsed: false,
         eligibleCount: 0,
-        note: "No segment meets the evidence floor of " + rules().MIN_OBSERVATIONS +
-              " observations and grade " + rules().MIN_GRADE + " or better, so no " +
-              "recommendation is made. The ranking is still shown in full."
+        note: "No segment passes the simulation-support screen (" + rules().rule +
+              "), so no shortlist candidate is named. The ranking is still shown in full."
       };
     }
 
@@ -185,17 +192,17 @@
       overrideUsed: false,
       eligibleCount: eligible.length,
       note: outranked.length === 0
-        ? "The highest-scoring segment also meets the evidence floor."
+        ? "The highest raw-score market also passes the simulation-support screen, so it is the shortlist candidate."
         : outranked.length + " segment" + (outranked.length === 1 ? "" : "s") +
-          " scored above the recommendation but did not meet the evidence floor, so the " +
-          "recommendation is the highest-scoring segment that did: " +
+          " scored above the shortlist candidate but " + (outranked.length === 1 ? "fails" : "fail") +
+          " the simulation-support screen, so the candidate is the highest-ranked segment that passes it: " +
           (target.locality || target.marketId) + ", " + (target.city || "") +
-          " (rank " + target.rank + ", score " +
-          (typeof target.totalScore === "number" ? target.totalScore.toFixed(1) : "—") + ")."
+          " (raw rank " + target.rank + ", score " +
+          (typeof target.totalScore === "number" ? target.totalScore.toFixed(2) : "—") + ")."
     };
   }
 
-  /** Counts for a summary line: how much of the universe clears the floor. */
+  /** Counts for a summary line: how much of the universe passes the screen. */
   function summarise(markets) {
     var list = annotate((markets || []).slice());
     var R = rules();
@@ -210,7 +217,14 @@
     };
   }
 
+  /** External calibration for one segment, from the register outcomes only. */
+  function externalCalibration(market, outcomes) {
+    var m = (typeof module !== "undefined" && module.exports) ? require("./appMeta.js") : root.AppMeta;
+    return m.calibrationStatus(market && market.sourceIds, outcomes || {});
+  }
+
   var Governance = {
+    externalCalibration: externalCalibration,
     evaluate:     evaluate,
     evidenceTier: evidenceTier,
     annotate:     annotate,

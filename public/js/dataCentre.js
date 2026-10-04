@@ -3,918 +3,544 @@
  *
  * NMIMS B.Sc. Finance | BA Project Theme 4 | Academic Demo
  *
- * Renders the #datacentre page:
- *   - Dataset status cards (portfolio.json, markets.json)
- *   - Data input options: synthetic snapshot, CSV upload, CSV template download,
- *     restore previous
- *   - Full data preview table with provenance schema
- *   - CSV cleaning pipeline report and funnel chart
- *   - Connector architecture note + disabled "Refresh External Data" button
+ * FIVE ANALYTICAL LEVELS, KEPT APART
+ * ----------------------------------
+ * This page previously mixed 50 market-level rows, 2,156 simulated
+ * observations and city × property-type groupings under one "Data Preview"
+ * heading, with "N" and "Obs" columns whose units differed, a confidence-
+ * interval column that read "n<10" beside groups of hundreds of observations,
+ * and internal codes such as "reported_tier1" shown as if a reported figure
+ * existed. Each level now has its own section and its own units:
  *
- * XSS policy: all user-controlled text goes through textContent, never innerHTML.
- * The only innerHTML use here is for SVG charts (Charts.renderFunnelChart).
+ *   1. Portfolio Holdings                     the active portfolio
+ *   2. Market Segment Aggregates — 50 rows    one row per segment (medians)
+ *   3. Simulated Observation Dataset — 2,156 rows   the draws behind the medians
+ *   4. Source / Calibration Register          what was cited, and what was found
+ *   5. Data Quality and Cleaning Results      CSV import and the cleaning pipeline
+ *
+ * and the System Check (systemCheck.js) runs the production engines against
+ * the current data. Large tables are collapsed by default.
+ *
+ * XSS policy: user-controlled text goes through textContent, never innerHTML.
  */
 
 (function () {
   'use strict';
 
-  /* ── State ────────────────────────────────────────────────── */
-  var _currentRecords  = [];   // active dataset (synthetic or CSV-cleaned)
-  var _cleaningReport  = null; // last DataCleaner report
-  var _dataSource      = 'synthetic'; // 'synthetic' | 'csv'
+  var ROOT_ID = 'datacentre-content';
+
+  var view = {
+    loaded: false,
+    error: null,
+    csvRecords: [],          // last imported CSV, cleaned
+    cleaningReport: null,    // last DataCleaner report
+    csvFileName: null,
+    obsPreview: null,        // first 100 simulated observations, loaded on request
+    obsPreviewPending: false,
+    checkResults: null
+  };
 
   /* ── Helpers ──────────────────────────────────────────────── */
-  function el(id)  { return document.getElementById(id); }
-  function fmt(n, dp) { return typeof n === 'number' && !isNaN(n) ? n.toFixed(dp || 0) : '—'; }
-  function fmtCr(rs)  { return typeof rs === 'number' && !isNaN(rs) ? '₹' + (rs / 1e7).toFixed(2) + ' Cr' : '—'; }
-  function fmtPct(d)  { return typeof d === 'number' && !isNaN(d) ? (d * 100).toFixed(2) + '%' : '—'; }
-
-  /** Safe text node append to parent */
-  function addText(parent, str) {
-    parent.appendChild(document.createTextNode(String(str)));
-  }
-
-  /** Create element with optional className */
-  function make(tag, cls) {
+  function make(tag, cls, text) {
     var e = document.createElement(tag);
-    if (cls) e.className = cls;
+    if (cls) { e.className = cls; }
+    if (text !== undefined && text !== null) { e.textContent = String(text); }
     return e;
   }
+  function td(text, cls) { return make('td', cls, text === null || text === undefined ? '—' : text); }
+  function th(text, scope) { var h = make('th', null, text); if (scope) { h.setAttribute('scope', scope); } return h; }
+  function fmtCr(rs, dp) { return typeof rs === 'number' && isFinite(rs) ? '₹' + (rs / 1e7).toFixed(dp === undefined ? 2 : dp) + ' Cr' : '—'; }
+  function fmtPct(d)  { return typeof d === 'number' && isFinite(d) ? (d * 100).toFixed(2) + '%' : '—'; }
+  function rs(n) { return typeof n === 'number' && isFinite(n) ? '₹' + Math.round(n).toLocaleString('en-IN') : '—'; }
+  function toast(msg, type) { if (typeof showToast === 'function') { showToast(msg, type); } }
 
-  /** Create <td> with textContent */
-  function td(text, cls) {
-    var cell = document.createElement('td');
-    if (cls) cell.className = cls;
-    cell.textContent = String(text === null || text === undefined ? '—' : text);
-    return cell;
+  function section(num, title, intro, id) {
+    var s = make('section', 'reit-section reit-dc-section');
+    s.setAttribute('aria-labelledby', id);
+    var h = make('h2', null, num ? num + '. ' + title : title);
+    h.id = id;
+    s.appendChild(h);
+    if (intro) { s.appendChild(make('p', 'reit-text-muted', intro)); }
+    return s;
   }
 
-  /** Create <th> */
-  function th(text, scope) {
-    var h = document.createElement('th');
-    if (scope) h.setAttribute('scope', scope);
-    h.textContent = String(text);
-    return h;
-  }
-
-  /* ── Provenance schema columns for the preview table ─────── */
-  var PREVIEW_COLUMNS = [
-    { key: 'recordId',        label: 'Record ID' },
-    { key: 'sourceName',      label: 'Source' },
-    { key: 'datasetType',     label: 'Dataset Type' },
-    { key: 'isSynthetic',     label: 'Synthetic?' },
-    { key: 'city',            label: 'City' },
-    { key: 'locality',        label: 'Locality' },
-    { key: 'propertyType',    label: 'Property Type' },
-    { key: 'areaSqFt',        label: 'Area (sq ft)' },
-    { key: 'askingPriceINR',  label: 'Asking Price (₹)' },
-    { key: 'monthlyRentINR',  label: 'Monthly Rent (₹)' },
-    { key: 'pricePerSqFt',    label: '₹/sq ft' },
-    { key: 'rentPerSqFt',     label: 'Rent/sq ft' },
-    { key: 'duplicateFlag',   label: 'Duplicate?' },
-    { key: 'outlierFlag',     label: 'Outlier?' },
-    { key: 'validationStatus',label: 'Status' },
-    { key: 'exclusionReason', label: 'Exclusion Reason' }
-  ];
-
-  /* ── Build synthetic records from markets.json ────────────── */
-  function syntheticRecordsFromMarkets(markets) {
-    return markets.map(function (m, i) {
-      var price = m.medianCapitalValuePerSqFt * 1000; // represent per 1000 sq ft unit
-      var rent  = m.medianMonthlyRentPerSqFt  * 1000;
-      return {
-        recordId:        m.marketId || ('SYN-' + String(i + 1).padStart(4, '0')),
-        sourceName:      m.sourceType  || 'Synthetic',
-        sourceUrl:       '',
-        collectionDate:  m.dataAsOf    || '2026-09-19',
-        datasetType:     'synthetic-market-segment',
-        isSynthetic:     true,
-        listingType:     'market-average',
-        city:            m.city,
-        locality:        m.locality,
-        propertyType:    m.propertyType,
-        areaSqFt:        1000,
-        askingPriceINR:  price,
-        monthlyRentINR:  rent,
-        pricePerSqFt:    m.medianCapitalValuePerSqFt,
-        rentPerSqFt:     m.medianMonthlyRentPerSqFt,
-        duplicateFlag:   false,
-        outlierFlag:     false,
-        validationStatus:'ok',
-        exclusionReason: ''
-      };
-    });
-  }
-
-  /* ── Dataset status cards ─────────────────────────────────── */
-  function buildStatusCards(container, portfolioData, marketsData) {
-    container.innerHTML = ''; // clear — no user data here
-
-    var grid = make('div', 'reit-status-grid');
-
-    var datasets = [
-      {
-        name:   'Portfolio Data',
-        file:   'data/portfolio.json',
-        type:   'Synthetic holdings',
-        date:   '2026-09-19',
-        records: (portfolioData && portfolioData.assets) ? portfolioData.assets.length : 0,
-        badge:  'synthetic'
-      },
-      {
-        name:   'Market Segments',
-        file:   'data/markets.json',
-        type:   'Synthetic market data',
-        date:   (marketsData && marketsData.dataAsOf) || '2026-09-19',
-        records: (marketsData && marketsData.markets) ? marketsData.markets.length : 0,
-        badge:  'synthetic'
-      },
-      {
-        name:   'CSV Import',
-        file:   '(user upload)',
-        type:   'External listing data',
-        date:   _dataSource === 'csv' ? 'Loaded' : 'Not loaded',
-        records: _dataSource === 'csv' ? _currentRecords.length : 0,
-        badge:  _dataSource === 'csv' ? 'csv' : 'none'
-      }
-    ];
-
-    datasets.forEach(function (ds) {
-      var card = make('div', 'reit-status-card');
-
-      var name = make('div', 'reit-status-card__name');
-      name.textContent = ds.name;
-      card.appendChild(name);
-
-      var file = make('div', 'reit-status-card__file');
-      file.textContent = ds.file;
-      card.appendChild(file);
-
-      var row = make('div', 'reit-status-card__row');
-      var typeEl = make('span', 'reit-status-card__type');
-      typeEl.textContent = ds.type;
-      row.appendChild(typeEl);
-      var badge = make('span', 'reit-badge reit-badge--' + ds.badge);
-      badge.textContent = ds.badge === 'none' ? 'not loaded' : ds.badge;
-      row.appendChild(badge);
-      card.appendChild(row);
-
-      var meta = make('div', 'reit-status-card__meta');
-      meta.textContent = ds.date + ' · ' + ds.records + ' record' + (ds.records !== 1 ? 's' : '');
-      card.appendChild(meta);
-
-      grid.appendChild(card);
-    });
-
-    container.appendChild(grid);
-  }
-
-  /* ── Data input controls ──────────────────────────────────── */
-  function buildInputControls(container) {
-    container.innerHTML = '';
-
-    var section = make('div', 'reit-section');
-
-    var heading = make('h3');
-    heading.textContent = 'Data Input Options';
-    section.appendChild(heading);
-
-    var desc = make('p', 'reit-text-muted');
-    desc.textContent = 'Choose a data source. The synthetic snapshot is always available. CSV upload enables the cleaning pipeline.';
-    section.appendChild(desc);
-
-    var controlRow = make('div', 'reit-control-row');
-
-    // Button: Use synthetic snapshot
-    var btnSynthetic = make('button', 'reit-btn reit-btn--primary');
-    btnSynthetic.textContent = 'Use Synthetic Snapshot';
-    btnSynthetic.setAttribute('type', 'button');
-    btnSynthetic.setAttribute('aria-label', 'Load the built-in synthetic dataset');
-    btnSynthetic.addEventListener('click', function () { loadSynthetic(); });
-    controlRow.appendChild(btnSynthetic);
-
-    // File input: CSV upload (hidden, triggered by button)
-    var fileInput = document.createElement('input');
-    fileInput.type        = 'file';
-    fileInput.accept      = '.csv';
-    fileInput.id          = 'reit-csv-file-input';
-    fileInput.style.display = 'none';
-    fileInput.setAttribute('aria-label', 'Upload a CSV file');
-    fileInput.addEventListener('change', function (ev) { handleCSVUpload(ev); });
-    controlRow.appendChild(fileInput);
-
-    var btnCSV = make('button', 'reit-btn reit-btn--secondary');
-    btnCSV.textContent = 'Upload CSV';
-    btnCSV.setAttribute('type', 'button');
-    btnCSV.setAttribute('aria-label', 'Upload a CSV file of listing data');
-    btnCSV.addEventListener('click', function () { fileInput.click(); });
-    controlRow.appendChild(btnCSV);
-
-    // Button: Download CSV template
-    var btnTemplate = make('button', 'reit-btn reit-btn--outline');
-    btnTemplate.textContent = 'Download CSV Template';
-    btnTemplate.setAttribute('type', 'button');
-    btnTemplate.setAttribute('aria-label', 'Download a CSV template with the required column headers');
-    btnTemplate.addEventListener('click', function () { downloadCSVTemplate(); });
-    controlRow.appendChild(btnTemplate);
-
-    // Button: Restore previous (from stateManager)
-    var btnRestore = make('button', 'reit-btn reit-btn--outline');
-    btnRestore.textContent = 'Restore Previous Session';
-    btnRestore.setAttribute('type', 'button');
-    btnRestore.setAttribute('aria-label', 'Restore data from the previous browser session');
-    btnRestore.addEventListener('click', function () { restorePreviousSession(); });
-    controlRow.appendChild(btnRestore);
-
-    section.appendChild(controlRow);
-
-    // Connector placeholder
-    var connNote = make('div', 'reit-connector-note');
-    var connBtn = make('button', 'reit-btn reit-btn--outline reit-btn--disabled');
-    connBtn.textContent = 'Refresh External Data';
-    connBtn.setAttribute('type', 'button');
-    connBtn.setAttribute('disabled', 'true');
-    connBtn.setAttribute('aria-label', 'Refresh from external data source — not available in this academic demo');
-    connNote.appendChild(connBtn);
-    var connDesc = make('span', 'reit-connector-note__desc');
-    connDesc.textContent = ' — External connector not active. In a production system this button would trigger a data refresh from PropEquity, ANAROCK or a custom feed. Architecture: see docs/ARCHITECTURE.md §7.';
-    connNote.appendChild(connDesc);
-    section.appendChild(connNote);
-
-    container.appendChild(section);
-  }
-
-  /* ── Preview table ────────────────────────────────────────── */
-  function buildPreviewTable(container, records) {
-    container.innerHTML = '';
-
-    var section = make('div', 'reit-section');
-
-    var heading = make('h3');
-    heading.textContent = 'Data Preview — ' + records.length + ' record' + (records.length !== 1 ? 's' : '');
-    section.appendChild(heading);
-
-    if (!records.length) {
-      var empty = make('p', 'reit-text-muted');
-      empty.textContent = 'No records loaded. Choose a data source above.';
-      section.appendChild(empty);
-      container.appendChild(section);
-      return;
-    }
-
-    var wrap = make('div', 'reit-table-scroll');
-    var table = document.createElement('table');
-    table.className = 'reit-table';
-    table.setAttribute('role', 'grid');
-    table.setAttribute('aria-label', 'Data preview table');
-
-    // Header
+  /** A table, optionally inside a collapsed <details>, with a caption. */
+  function table(caption, headers, rows, opts) {
+    opts = opts || {};
+    var t = make('table', 'reit-table' + (opts.compact ? ' reit-table--compact' : ''));
+    if (opts.id) { t.id = opts.id; }
+    var cap = make('caption', 'reit-table-caption', caption);
+    t.appendChild(cap);
     var thead = document.createElement('thead');
-    var hrow  = document.createElement('tr');
-    PREVIEW_COLUMNS.forEach(function (col) { hrow.appendChild(th(col.label, 'col')); });
-    thead.appendChild(hrow);
-    table.appendChild(thead);
-
-    // Body
-    var tbody = document.createElement('tbody');
-    records.forEach(function (rec) {
-      var row = document.createElement('tr');
-      var statusClass = '';
-      if (rec.validationStatus === 'rejected') statusClass = 'reit-row--rejected';
-      else if (rec.validationStatus === 'warning') statusClass = 'reit-row--warning';
-      if (statusClass) row.className = statusClass;
-
-      PREVIEW_COLUMNS.forEach(function (col) {
-        var val = rec[col.key];
-        var display;
-        if (val === true)          display = 'Yes';
-        else if (val === false)    display = 'No';
-        else if (col.key === 'askingPriceINR' || col.key === 'monthlyRentINR') {
-          display = typeof val === 'number' && !isNaN(val) ? '₹' + Math.round(val).toLocaleString('en-IN') : '—';
-        } else if (col.key === 'pricePerSqFt' || col.key === 'rentPerSqFt') {
-          display = typeof val === 'number' && !isNaN(val) ? '₹' + val.toFixed(0) : '—';
-        } else if (col.key === 'areaSqFt') {
-          display = typeof val === 'number' && !isNaN(val) ? val.toFixed(0) : '—';
-        } else {
-          display = val !== null && val !== undefined ? String(val) : '—';
-        }
-        row.appendChild(td(display));
+    var hr = document.createElement('tr');
+    headers.forEach(function (h) { hr.appendChild(th(h, 'col')); });
+    thead.appendChild(hr);
+    t.appendChild(thead);
+    var tb = document.createElement('tbody');
+    rows.forEach(function (r) {
+      var tr = document.createElement('tr');
+      if (r.cls) { tr.className = r.cls; }
+      (r.cells || r).forEach(function (c, i) {
+        if (i === 0 && opts.rowHeader) { var h = th(c, 'row'); tr.appendChild(h); }
+        else { tr.appendChild(td(c)); }
       });
-      tbody.appendChild(row);
+      tb.appendChild(tr);
     });
-    table.appendChild(tbody);
-    wrap.appendChild(table);
-    section.appendChild(wrap);
-    container.appendChild(section);
+    t.appendChild(tb);
+    var scroll = make('div', 'reit-table-scroll');
+    scroll.appendChild(t);
+    if (!opts.collapsed) { return scroll; }
+    var d = make('details', 'reit-expandable');
+    d.appendChild(make('summary', null, opts.summary || ('Show the table (' + rows.length + ' rows)')));
+    d.appendChild(scroll);
+    return d;
   }
 
-  /* ── Cleaning report ──────────────────────────────────────── */
-  function buildCleaningReport(container, report) {
-    container.innerHTML = '';
-    if (!report) return;
+  /* ── 1. Portfolio Holdings ────────────────────────────────── */
+  function buildHoldings(run) {
+    var s = section(1, 'Portfolio Holdings — ' + run.portfolio.assetCount + ' rows',
+      'The ' + (run.portfolio.source === 'custom' ? 'custom' : 'sample') + ' portfolio the analysis uses: ' +
+      run.portfolio.assetCount + ' holdings, ' + fmtCr(run.portfolio.totalValueRs) + ' value, ' +
+      fmtCr(run.portfolio.annualRentRs, 3) + ' annual rent, ' + fmtPct(run.portfolio.weightedYield) +
+      ' weighted gross yield. Synthetic: no real property, tenant or lease.', 'dc-h-holdings');
+    var rows = run.assets.map(function (a) {
+      return [a.assetId, a.assetName, a.city, a.assetType, fmtCr(a.propertyValue),
+              fmtCr(a.annualRent, 3), fmtPct(a.propertyValue ? a.annualRent / a.propertyValue : null),
+              typeof a.occupancyRate === 'number' ? (a.occupancyRate * 100).toFixed(1) + '%' : '—'];
+    });
+    s.appendChild(table('Holdings in the active portfolio',
+      ['Asset ID', 'Name', 'City', 'Asset type', 'Value', 'Annual rent', 'Gross yield', 'Occupancy'], rows,
+      { rowHeader: true }));
+    return s;
+  }
 
-    var section = make('div', 'reit-section');
-    var heading = make('h3');
-    heading.textContent = 'Cleaning Pipeline Report';
-    section.appendChild(heading);
+  /* ── 2. Market Segment Aggregates ─────────────────────────── */
+  function buildSegments(run, markets) {
+    var s = section(2, 'Market Segment Aggregates — ' + markets.length + ' rows',
+      'One row per candidate market segment. Every figure is the MEDIAN of that segment’s simulated ' +
+      'market observations (section 3). These are the rows the scoring engine ranks.', 'dc-h-segments');
 
-    // Summary row
+    s.appendChild(make('p', 'reit-note',
+      'Notional 1,000 sq ft columns: the segment’s median value and median monthly rent per sq ft, ' +
+      'each multiplied by a representative 1,000 sq ft. They put every segment on the same footing for ' +
+      'comparison and in the same shape as an imported listing file, so the cleaning pipeline in section 5 ' +
+      'can process them. They are normalised representative amounts, not listings or prices of any real unit.'));
+
+    var byId = {};
+    run.ranked.forEach(function (m) { byId[m.marketId] = m; });
+    var rows = markets.map(function (m) {
+      var r = byId[m.marketId] || {};
+      var g = r.governance || Governance.evaluate(m);
+      return [m.marketId, m.city, m.locality, m.propertyType,
+              rs(m.medianCapitalValuePerSqFt), '₹' + m.medianMonthlyRentPerSqFt.toFixed(2),
+              rs(m.medianCapitalValuePerSqFt * 1000), rs(m.medianMonthlyRentPerSqFt * 1000),
+              fmtPct(m.medianMonthlyRentPerSqFt * 12 / m.medianCapitalValuePerSqFt),
+              String(m.observationCount), m.confidenceGrade || '—',
+              g.eligible ? '✓ Passes' : '✗ Fails',
+              AppMeta.sourceTypeLabel(m.sourceType),
+              r.externalCalibrationStatus || 'Unverified'];
+    });
+    s.appendChild(table('Market segment aggregates (segment medians of simulated observations)',
+      ['Segment', 'City', 'Locality', 'Type', 'Median value ₹/sq ft', 'Median rent ₹/sq ft/month',
+       'Notional value (1,000 sq ft)', 'Notional monthly rent (1,000 sq ft)', 'Gross yield',
+       'Simulated observations', 'Assumption Support Grade', 'Simulation-support screen',
+       'Assumption basis', 'External calibration'],
+      rows, { collapsed: true, compact: true, id: 'dc-segment-table',
+              summary: 'Show all ' + markets.length + ' segment rows' }));
+
+    s.appendChild(buildGroupStats(markets));
+    return s;
+  }
+
+  /* City and city × property-type statistics, with the CI unit stated. */
+  function buildGroupStats(markets) {
+    var wrap = make('div');
+    wrap.appendChild(make('h3', null, 'Statistics across segment medians, by group'));
+    wrap.appendChild(make('p', 'reit-note',
+      'The unit in both tables is the MICRO-MARKET: each row summarises the medians of the segments in the ' +
+      'group. "Micro-markets" counts those segments; "Simulated observations" counts the draws behind them. ' +
+      'The 95% confidence interval is bootstrapped across segment medians (CI unit: ' + Stats.CI_UNIT + '), ' +
+      Stats.BOOTSTRAP_N + ' resamples, seed ' + Stats.BOOTSTRAP_SEED + ', and needs at least ' + Stats.MIN_OBS_CI +
+      ' micro-markets. Observation-level spread for each segment is the P10–P90 range on the Market Screener.'));
+
+    var cRows = Stats.cityStats(markets).map(function (c) {
+      return [c.city, String(c.segmentCount), String(c.totalObservations), c.propertyTypes.join(', '),
+              c.medianCapitalValue != null ? rs(c.medianCapitalValue) : '—',
+              Stats.fmtPct(c.minYield) + ' – ' + Stats.fmtPct(c.maxYield), Stats.fmtPct(c.medianYield),
+              c.hasSampleSizeWarning ? '⚠ yes' : 'no'];
+    });
+    wrap.appendChild(table('By city (unit: micro-market)',
+      ['City', 'Micro-markets', 'Simulated observations', 'Property types', 'Median value ₹/sq ft',
+       'Gross yield range', 'Median gross yield', 'Any segment under 30 observations'], cRows,
+      { rowHeader: true, compact: true }));
+
+    var sRows = Stats.segmentStats(markets, true).map(function (g) {
+      var y = g.grossYield;
+      return [g.city + ' — ' + g.propertyType, String(g.count), String(g.totalObservations),
+              Stats.fmtPct(y.median), y.ciUnit,
+              y.ci ? Stats.fmtPct(y.ci.lo) + ' – ' + Stats.fmtPct(y.ci.hi) : 'Not computed',
+              y.ciUnavailableReason || '—', y.iqr != null ? Stats.fmtPct(y.iqr) : '—',
+              g.hasSampleSizeWarning ? '⚠ yes' : 'no'];
+    });
+    wrap.appendChild(table('By city × property type (unit: micro-market)',
+      ['Group', 'Micro-markets', 'Simulated observations', 'Median gross yield (of segment medians)',
+       'CI unit', 'CI result', 'CI unavailable reason', 'Gross yield IQR', 'Any segment under 30 observations'],
+      sRows, { rowHeader: true, compact: true, collapsed: true, id: 'dc-group-table',
+               summary: 'Show the city × property-type table (' + sRows.length + ' groups)' }));
+    return wrap;
+  }
+
+  /* ── 3. Simulated Observation Dataset ─────────────────────── */
+  function buildObservations(run, markets) {
+    var total = markets.reduce(function (t, m) { return t + (m.observationCount || 0); }, 0);
+    var s = section(3, 'Simulated Observation Dataset — ' + AppMeta.num(total) + ' rows',
+      'Seeded draws from the project’s generator (version ' + ((markets[0] && markets[0].derivedFrom &&
+      markets[0].derivedFrom.generatorVersion) || '—') + '), ' + Math.min.apply(null, markets.map(function (m) { return m.observationCount; })) +
+      '–' + Math.max.apply(null, markets.map(function (m) { return m.observationCount; })) + ' per segment. They are simulated ' +
+      'market observations — not properties, listings or transactions. More draws narrow a segment’s ' +
+      'median around the ASSUMED distribution; they are not market evidence.', 'dc-h-observations');
+
+    var byType = {};
+    markets.forEach(function (m) { byType[m.propertyType] = (byType[m.propertyType] || 0) + m.observationCount; });
+    s.appendChild(table('Simulated observations by property type',
+      ['Property type', 'Simulated observations'],
+      Object.keys(byType).sort().map(function (k) { return [k, AppMeta.num(byType[k])]; }), { rowHeader: true }));
+
+    var actions = make('div', 'reit-control-row');
+    if (!view.obsPreview) {
+      var b = make('button', 'reit-btn reit-btn--outline', view.obsPreviewPending ? 'Loading…' : 'Load a 100-row preview');
+      b.type = 'button';
+      b.disabled = view.obsPreviewPending;
+      b.addEventListener('click', loadObsPreview);
+      actions.appendChild(b);
+    }
+    var dl = make('a', 'reit-btn reit-btn--outline', 'Open the full dataset (JSON, 1.1 MB)');
+    dl.href = 'data/observations.json';
+    dl.target = '_blank';
+    dl.rel = 'noopener';
+    actions.appendChild(dl);
+    s.appendChild(actions);
+
+    if (view.obsPreview) {
+      var rows = view.obsPreview.map(function (o) {
+        return [o.obs_id, o.market_id, o.city, o.locality, o.property_type,
+                o.gross_yield_pct.toFixed(2) + '%', o.rental_growth_pct.toFixed(2) + '%',
+                '₹' + o.monthly_rent_psf.toFixed(2), rs(o.sale_price_psf), o.occupancy_pct.toFixed(1) + '%'];
+      });
+      s.appendChild(table('First 100 of ' + AppMeta.num(total) + ' simulated market observations',
+        ['Observation', 'Segment', 'City', 'Locality', 'Type', 'Gross yield', 'Rental growth',
+         'Rent ₹/sq ft/month', 'Value ₹/sq ft', 'Occupancy'], rows,
+        { collapsed: true, compact: true, id: 'dc-obs-preview', summary: 'Show the 100-row preview' }));
+    }
+    return s;
+  }
+
+  function loadObsPreview() {
+    view.obsPreviewPending = true;
+    render();
+    fetch('data/observations.json').then(function (r) { return r.json(); }).then(function (j) {
+      view.obsPreview = (j.observations || []).slice(0, 100);
+      view.obsPreviewPending = false;
+      render();
+    }).catch(function (e) {
+      view.obsPreviewPending = false;
+      toast('Could not load the observation dataset: ' + e.message, 'error');
+      render();
+    });
+  }
+
+  /* ── 4. Source / Calibration Register ─────────────────────── */
+  function buildRegister(run) {
+    var meta = AnalysisRun.data().metaDoc;
+    var sv = meta && meta.sourceVerification;
+    var s = section(4, 'Source / Calibration Register' + (sv ? ' — ' + sv.rows.length + ' rows' : ''),
+      'The sources the project’s assumptions cite, and what verification found. External calibration ' +
+      'is derived from this register alone — never from simulation count or grade.', 'dc-h-register');
+    if (!sv) {
+      s.appendChild(make('p', 'reit-text-muted', 'The register summary (data/meta.json) could not be loaded.'));
+      return s;
+    }
+    var counts = {};
+    run.ranked.forEach(function (m) { counts[m.externalCalibrationStatus] = (counts[m.externalCalibrationStatus] || 0) + 1; });
+    s.appendChild(make('p', 'reit-rec-caveat',
+      'External calibration of the ' + run.ranked.length + ' segments: ' +
+      Object.keys(counts).map(function (k) { return counts[k] + ' ' + k; }).join(', ') + '. ' + sv.summary));
+    s.appendChild(table('Cited sources and verification outcome',
+      ['Source', 'Publisher', 'Cited document', 'Outcome', 'Classification'],
+      sv.rows.map(function (r) { return [r.id, r.publisher, r.title, r.outcome, r.classification]; }),
+      { rowHeader: true, compact: true }));
+    var p = make('p', 'reit-text-muted');
+    p.appendChild(document.createTextNode('Method and full findings: '));
+    var a = make('a', null, AppMeta.EXTERNAL_CALIBRATION.reportPath);
+    a.href = AppMeta.docUrl(AppMeta.EXTERNAL_CALIBRATION.reportPath);
+    a.target = '_blank';
+    a.rel = 'noopener';
+    p.appendChild(a);
+    s.appendChild(p);
+    return s;
+  }
+
+  /* ── 5. Data Quality and Cleaning Results ─────────────────── */
+  function buildQuality() {
+    var s = section(5, 'Data Quality and Cleaning Results',
+      'Import a CSV of listing-style records to run the cleaning pipeline: column check, name ' +
+      'standardisation, unit conversion, impossible-value rejection, duplicate and outlier flags. ' +
+      'Imported files are checked here only; they never change the market segments or the analysis.',
+      'dc-h-quality');
+
+    var row = make('div', 'reit-control-row');
+    var fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.csv';
+    fileInput.id = 'reit-csv-file-input';
+    fileInput.className = 'reit-sr-only';
+    fileInput.setAttribute('aria-label', 'Choose a CSV file to clean');
+    fileInput.addEventListener('change', handleCSVUpload);
+    row.appendChild(fileInput);
+
+    var up = make('button', 'reit-btn reit-btn--primary', 'Import CSV');
+    up.type = 'button';
+    up.addEventListener('click', function () { fileInput.click(); });
+    row.appendChild(up);
+
+    var tpl = make('button', 'reit-btn reit-btn--outline', 'Download CSV template');
+    tpl.type = 'button';
+    tpl.addEventListener('click', downloadCSVTemplate);
+    row.appendChild(tpl);
+
+    if (view.cleaningReport) {
+      var clr = make('button', 'reit-btn reit-btn--outline', 'Clear the imported file');
+      clr.type = 'button';
+      clr.addEventListener('click', function () {
+        view.csvRecords = []; view.cleaningReport = null; view.csvFileName = null; render();
+      });
+      row.appendChild(clr);
+    }
+    s.appendChild(row);
+    s.appendChild(make('p', 'reit-text-muted',
+      'Test files: tests/fixtures/markets-valid.csv (all rows accepted) and tests/fixtures/markets-invalid.csv ' +
+      '(every row rejected, each for one stated reason).'));
+
+    if (!view.cleaningReport) {
+      s.appendChild(make('p', 'reit-text-muted', 'No file imported in this session.'));
+      return s;
+    }
+    s.appendChild(buildCleaningReport(view.cleaningReport));
+    var rows = view.csvRecords.map(function (r) {
+      return { cls: r.validationStatus === 'rejected' ? 'reit-row--rejected' : (r.validationStatus === 'warning' ? 'reit-row--warning' : ''),
+               cells: [r.recordId, r.city, r.locality, r.propertyType,
+                       typeof r.areaSqFt === 'number' ? r.areaSqFt.toFixed(0) : r.areaSqFt,
+                       typeof r.askingPriceINR === 'number' ? rs(r.askingPriceINR) : r.askingPriceINR,
+                       typeof r.monthlyRentINR === 'number' ? rs(r.monthlyRentINR) : r.monthlyRentINR,
+                       r.duplicateFlag ? 'Yes' : 'No', r.outlierFlag ? 'Yes' : 'No',
+                       r.validationStatus === 'rejected' ? '✗ Rejected' : r.validationStatus === 'warning' ? '⚠ Warning' : '✓ OK',
+                       r.exclusionReason || '—'] };
+    });
+    s.appendChild(table('Imported rows after cleaning' + (view.csvFileName ? ' — ' + view.csvFileName : ''),
+      ['Record', 'City', 'Locality', 'Type', 'Area (sq ft)', 'Asking price', 'Monthly rent',
+       'Duplicate', 'Outlier', 'Status', 'Reason'], rows,
+      { collapsed: rows.length > 20, compact: true, id: 'dc-csv-table' }));
+    return s;
+  }
+
+  function buildCleaningReport(report) {
+    var wrap = make('div');
+    wrap.appendChild(make('h3', null, 'Cleaning pipeline report'));
     var summary = make('div', 'reit-quality-summary');
-    [
-      { label: 'Total',     value: report.total,      cls: '' },
-      { label: 'OK',        value: report.ok,         cls: 'reit-quality-ok' },
-      { label: 'Rejected',  value: report.rejected,   cls: 'reit-quality-rejected' },
-      { label: 'Warnings',  value: report.warnings,   cls: 'reit-quality-warning' },
-      { label: 'Duplicates',value: report.duplicates, cls: 'reit-quality-dup' },
-      { label: 'Outliers',  value: report.outliers,   cls: 'reit-quality-outlier' }
-    ].forEach(function (item) {
-      var chip = make('div', 'reit-quality-chip ' + (item.cls || ''));
-      var num  = make('span', 'reit-quality-chip__num');
-      num.textContent = String(item.value);
-      var lbl  = make('span', 'reit-quality-chip__lbl');
-      lbl.textContent = item.label;
-      chip.appendChild(num);
-      chip.appendChild(lbl);
+    summary.setAttribute('role', 'status');
+    [['Total', report.total, ''], ['OK', report.ok, 'reit-quality-ok'],
+     ['Rejected', report.rejected, 'reit-quality-rejected'], ['Warnings', report.warnings, 'reit-quality-warning'],
+     ['Duplicates', report.duplicates, 'reit-quality-dup'], ['Outliers', report.outliers, 'reit-quality-outlier']
+    ].forEach(function (it) {
+      var chip = make('div', 'reit-quality-chip ' + it[2]);
+      chip.appendChild(make('span', 'reit-quality-chip__num', it[1]));
+      chip.appendChild(make('span', 'reit-quality-chip__lbl', it[0]));
       summary.appendChild(chip);
     });
-    section.appendChild(summary);
-
-    // Funnel chart placeholder
+    wrap.appendChild(summary);
     var chartDiv = make('div', 'reit-chart-wrap');
     chartDiv.id = 'dc-funnel-chart';
-    section.appendChild(chartDiv);
-
-    // Steps table
-    var stepsTable = document.createElement('table');
-    stepsTable.className = 'reit-table';
-    var sHead = document.createElement('thead');
-    var sHRow = document.createElement('tr');
-    ['Step', 'Status', 'Detail'].forEach(function (h) { sHRow.appendChild(th(h, 'col')); });
-    sHead.appendChild(sHRow);
-    stepsTable.appendChild(sHead);
-    var sBody = document.createElement('tbody');
-    (report.steps || []).forEach(function (step) {
-      var sRow = document.createElement('tr');
-      sRow.appendChild(td(step.step));
-      var stTd = td(step.status);
-      stTd.className = step.status === 'passed' ? 'reit-status--ok' : 'reit-status--fail';
-      sRow.appendChild(stTd);
-      sRow.appendChild(td(step.detail || ''));
-      sBody.appendChild(sRow);
-    });
-    stepsTable.appendChild(sBody);
-    section.appendChild(stepsTable);
-
-    // Download report button
-    var btnDownload = make('button', 'reit-btn reit-btn--outline');
-    btnDownload.textContent = 'Download Cleaning Report (CSV)';
-    btnDownload.setAttribute('type', 'button');
-    btnDownload.setAttribute('aria-label', 'Download the data quality report as a CSV file');
-    btnDownload.addEventListener('click', function () { downloadCleaningReport(report); });
-    section.appendChild(btnDownload);
-
-    container.appendChild(section);
-
-    // Render funnel chart (after the DOM is attached)
-    if (typeof Charts !== 'undefined') {
-      Charts.renderFunnelChart('dc-funnel-chart', report);
-    }
+    wrap.appendChild(chartDiv);
+    wrap.appendChild(table('Cleaning steps', ['Step', 'Status', 'Detail'],
+      (report.steps || []).map(function (st) {
+        return [st.step, st.status === 'passed' ? '✓ passed' : '✗ ' + st.status, st.detail || ''];
+      }), { rowHeader: true }));
+    var dl = make('button', 'reit-btn reit-btn--outline', 'Download cleaning report (CSV)');
+    dl.type = 'button';
+    dl.addEventListener('click', function () { downloadCleaningReport(report); });
+    wrap.appendChild(dl);
+    setTimeout(function () {
+      if (typeof Charts !== 'undefined' && document.getElementById('dc-funnel-chart')) {
+        Charts.renderFunnelChart('dc-funnel-chart', report);
+      }
+    }, 0);
+    return wrap;
   }
 
-  /* ── Load synthetic data ──────────────────────────────────── */
-  function loadSynthetic() {
-    fetch('data/markets.json')
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        _currentRecords = syntheticRecordsFromMarkets(data.markets || []);
-        _dataSource     = 'synthetic';
-        _cleaningReport = {
-          total: _currentRecords.length, ok: _currentRecords.length,
-          rejected: 0, warnings: 0, duplicates: 0, outliers: 0,
-          missingColumns: [], areaUnit: 'sqft',
-          steps: [{ step: 'syntheticLoad', status: 'passed', detail: 'Built-in synthetic dataset loaded — no cleaning required.' }]
-        };
-        renderAll();
-        if (typeof UiHelpers !== 'undefined') UiHelpers.showToast('Synthetic dataset loaded (' + _currentRecords.length + ' segments)', 'success');
-      })
-      .catch(function (err) {
-        if (typeof UiHelpers !== 'undefined') UiHelpers.showToast('Failed to load markets.json: ' + err.message, 'error');
-      });
-  }
-
-  /* ── Handle CSV upload ────────────────────────────────────── */
   function handleCSVUpload(ev) {
     var file = ev.target.files && ev.target.files[0];
-    if (!file) return;
+    if (!file) { return; }
     var reader = new FileReader();
-    reader.onload = function (e) {
-      try {
-        var text = e.target.result;
-        var rows = DataCleaner.parseCSV(text);
-        var result = DataCleaner.cleanRecords(rows);
-        _currentRecords = result.records;
-        _cleaningReport = result.report;
-        _dataSource     = 'csv';
-        renderAll();
-        if (typeof UiHelpers !== 'undefined') {
-          UiHelpers.showToast(
-            'CSV imported: ' + result.report.total + ' rows · ' +
-            result.report.ok + ' OK · ' +
-            result.report.rejected + ' rejected · ' +
-            result.report.outliers + ' outliers',
-            result.report.rejected > 0 ? 'warning' : 'success'
-          );
-        }
-      } catch (err) {
-        if (typeof UiHelpers !== 'undefined') UiHelpers.showToast('CSV parse error: ' + err.message, 'error');
-      }
-    };
+    reader.onload = function (e) { importCSVText(String(e.target.result), file.name); };
     reader.readAsText(file);
-    // Reset input so same file can be re-uploaded
     ev.target.value = '';
   }
 
-  /* ── Download CSV template ────────────────────────────────── */
-  function downloadCSVTemplate() {
-    var csv = DataCleaner.generateCSVTemplate();
-    var blob = new Blob([csv], { type: 'text/csv' });
-    var url  = URL.createObjectURL(blob);
-    var a    = document.createElement('a');
-    a.href   = url;
-    a.download = 'reit-target-template.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    if (typeof UiHelpers !== 'undefined') UiHelpers.showToast('CSV template downloaded', 'success');
+  /** Clean CSV text and show the result. Exposed for the acceptance tests. */
+  function importCSVText(text, name) {
+    try {
+      var result = DataCleaner.cleanRecords(DataCleaner.parseCSV(text));
+      view.csvRecords = result.records;
+      view.cleaningReport = result.report;
+      view.csvFileName = name || 'imported.csv';
+      render();
+      toast('CSV cleaned: ' + result.report.total + ' rows · ' + result.report.ok + ' OK · ' +
+            result.report.rejected + ' rejected', result.report.rejected > 0 ? 'warn' : 'success');
+      return result.report;
+    } catch (err) {
+      toast('CSV could not be parsed: ' + err.message, 'error');
+      return null;
+    }
   }
 
-  /* ── Download cleaning report ─────────────────────────────── */
+  function saveBlob(text, name) {
+    var blob = new Blob([text], { type: 'text/csv' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadCSVTemplate() {
+    saveBlob(DataCleaner.generateCSVTemplate(), 'reit-target-template.csv');
+    toast('CSV template downloaded', 'success');
+  }
+
   function downloadCleaningReport(report) {
     var lines = ['Step,Status,Detail'];
-    (report.steps || []).forEach(function (s) {
-      lines.push([s.step, s.status, (s.detail || '').replace(/,/g, ';')].join(','));
+    (report.steps || []).forEach(function (st) {
+      lines.push([st.step, st.status, (st.detail || '').replace(/,/g, ';')].join(','));
     });
-    lines.push('');
-    lines.push('Metric,Count');
-    ['total','ok','rejected','warnings','duplicates','outliers'].forEach(function (k) {
+    lines.push('', 'Metric,Count');
+    ['total', 'ok', 'rejected', 'warnings', 'duplicates', 'outliers'].forEach(function (k) {
       lines.push(k + ',' + report[k]);
     });
-    var blob = new Blob([lines.join('\n')], { type: 'text/csv' });
-    var url  = URL.createObjectURL(blob);
-    var a    = document.createElement('a');
-    a.href   = url;
-    a.download = 'reit-cleaning-report.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    if (typeof UiHelpers !== 'undefined') UiHelpers.showToast('Cleaning report downloaded', 'success');
+    saveBlob(lines.join('\n'), 'reit-cleaning-report.csv');
   }
 
-  /* ── Restore previous session ─────────────────────────────── */
-  function restorePreviousSession() {
-    if (typeof ReitState === 'undefined') {
-      if (typeof UiHelpers !== 'undefined') UiHelpers.showToast('State manager not available', 'error');
-      return;
-    }
-    var state = ReitState.load();
-    if (!state) {
-      if (typeof UiHelpers !== 'undefined') UiHelpers.showToast('No previous session found', 'warning');
-      return;
-    }
-    if (typeof UiHelpers !== 'undefined') {
-      UiHelpers.showToast('Previous session restored (run ' + (state.runId || 'unknown') + ')', 'success');
-    }
-    // Reload synthetic data (previous session state is mainly weights/target, not raw records)
-    loadSynthetic();
-  }
-
-  /* ── Render all page sections ─────────────────────────────── */
-
-  /* ── Stage 4: Segment-level statistics section ───────────── */
-  function cRow_append(row, text) {
-    var cell = make('td');
-    cell.textContent = String(text == null ? '—' : text);
-    row.appendChild(cell);
-  }
-
-  function buildStatsSection(container, markets) {
-    if (!container) return;
-    container.innerHTML = '';
-    if (!markets || markets.length === 0) {
-      var msg0 = make('p', 'reit-muted'); msg0.textContent = 'No market data.'; container.appendChild(msg0); return;
-    }
-
-    var wrap = make('div', 'reit-section');
-    var h3 = make('h3'); h3.textContent = 'Segment Statistics'; wrap.appendChild(h3);
-
-    // Portfolio summary chips
-    var pStats = Stats.portfolioStats(markets);
-    var summaryWrap = make('div', 'reit-stats-summary');
-    var summaryItems = [
-      { label: 'Segments',              value: pStats.count },
-      { label: 'Cities',                value: pStats.cityCount },
-      { label: 'Property Types',        value: pStats.typeCount },
-      { label: 'Total Observations',    value: pStats.totalObservations },
-      { label: 'Median Gross Yield',    value: Stats.fmtPct(pStats.grossYield && pStats.grossYield.median) },
-      { label: 'Yield Range',           value: pStats.grossYield
-          ? Stats.fmtPct(pStats.grossYield.min) + ' – ' + Stats.fmtPct(pStats.grossYield.max) : '—' },
-      { label: 'Median Capital ₹/sq ft', value: pStats.capitalValue
-          ? '₹' + Math.round(pStats.capitalValue.median).toLocaleString('en-IN') : '—' },
-      { label: 'Sample-size Warnings',  value: pStats.sampleSizeWarnings > 0
-          ? pStats.sampleSizeWarnings + ' segment(s) <30 obs' : 'None' }
-    ];
-    summaryItems.forEach(function (item) {
-      var chip = make('div', 'reit-stat-chip');
-      var lbl = make('span', 'reit-stat-chip__label'); lbl.textContent = item.label;
-      var val = make('span', 'reit-stat-chip__value'); val.textContent = item.value;
-      chip.appendChild(lbl); chip.appendChild(val); summaryWrap.appendChild(chip);
-    });
-    wrap.appendChild(summaryWrap);
-
-    // City-level table
-    var cH4 = make('h4'); cH4.textContent = 'By City'; wrap.appendChild(cH4);
-    var cStats = Stats.cityStats(markets);
-    var cScroll = make('div', 'reit-table-scroll');
-    var cTable = make('table', 'reit-table reit-table--compact');
-    var cHead = make('thead'); var cHRow = make('tr');
-    ['City','Segments','Types','Observations','Median Capital ₹/sq ft','Yield Range','Median Yield','⚠'].forEach(function(h){ cHRow.appendChild(th(h,'col')); });
-    cHead.appendChild(cHRow); cTable.appendChild(cHead);
-    var cBody = make('tbody');
-    cStats.forEach(function (c) {
-      var row = make('tr', c.hasSampleSizeWarning ? 'reit-row--warning' : '');
-      [c.city, c.segmentCount, c.propertyTypes.join(', '), c.totalObservations,
-       c.medianCapitalValue != null ? '₹' + Math.round(c.medianCapitalValue).toLocaleString('en-IN') : '—',
-       (c.minYield != null && c.maxYield != null) ? Stats.fmtPct(c.minYield) + ' – ' + Stats.fmtPct(c.maxYield) : '—',
-       Stats.fmtPct(c.medianYield),
-       c.hasSampleSizeWarning ? '⚠ <30 obs' : '✓'
-      ].forEach(function(v){ cRow_append(row,v); });
-      cBody.appendChild(row);
-    });
-    cTable.appendChild(cBody); cScroll.appendChild(cTable); wrap.appendChild(cScroll);
-
-    // Segment-level detail table
-    var sH4 = make('h4'); sH4.textContent = 'By Segment (City × Property Type)'; wrap.appendChild(sH4);
-    var note = make('p', 'reit-muted reit-small');
-    note.textContent = 'Statistics across records within each city × property-type group. ' +
-      '95% CI: ' + Stats.BOOTSTRAP_N + ' bootstrap resamples, seed ' + Stats.BOOTSTRAP_SEED + '. ' +
-      'Segments with <' + Stats.MIN_OBS_WARNING + ' observations flagged ⚠.';
-    wrap.appendChild(note);
-
-    var segStats = Stats.segmentStats(markets, true);
-    var sScroll = make('div', 'reit-table-scroll');
-    var sTable = make('table', 'reit-table reit-table--compact');
-    var sHead = make('thead'); var sHRow = make('tr');
-    ['City','Type','n','Obs','Median Yield','95% CI','Yield IQR',
-     'Cap ₹/sqft (med)','Rent ₹/sqft (med)','Growth','Demand','Risk','⚠'].forEach(function(h){ sHRow.appendChild(th(h,'col')); });
-    sHead.appendChild(sHRow); sTable.appendChild(sHead);
-    var sBody = make('tbody');
-    segStats.forEach(function (s) {
-      var row = make('tr', s.hasSampleSizeWarning ? 'reit-row--warning' : '');
-      var ci = s.grossYield && s.grossYield.ci;
-      var ciText = ci ? Stats.fmtPct(ci.lo) + ' – ' + Stats.fmtPct(ci.hi) : 'n<' + Stats.MIN_OBS_CI;
-      var yIqr = s.grossYield && s.grossYield.iqr != null ? Stats.fmtPct(s.grossYield.iqr) : '—';
-      [s.city, s.propertyType, s.count, s.totalObservations,
-       Stats.fmtPct(s.grossYield && s.grossYield.median), ciText, yIqr,
-       s.capitalValue && s.capitalValue.median != null ? '₹' + Math.round(s.capitalValue.median).toLocaleString('en-IN') : '—',
-       s.monthlyRent && s.monthlyRent.median != null ? '₹' + s.monthlyRent.median.toFixed(0) : '—',
-       Stats.fmtPct(s.rentalGrowth && s.rentalGrowth.median),
-       s.demandScore && s.demandScore.median != null ? s.demandScore.median.toFixed(0) : '—',
-       s.riskScore && s.riskScore.median != null ? s.riskScore.median.toFixed(0) : '—',
-       s.hasSampleSizeWarning ? '⚠' : ''
-      ].forEach(function(v){ cRow_append(row,v); });
-      sBody.appendChild(row);
-    });
-    sTable.appendChild(sBody); sScroll.appendChild(sTable); wrap.appendChild(sScroll);
-    container.appendChild(wrap);
-  }
-
-
-  /* ── Stage 8: System Check ────────────────────────────────── */
-  function buildSystemCheck(container) {
-    var h = make('h3');
-    h.textContent = 'System Check';
-    container.appendChild(h);
-
-    var note = make('p', 'reit-text-muted');
-    note.textContent = 'Runtime validation of all core engines and the shared analysis state. '
-      + 'All checks must pass before running the Agent Output analysis.';
-    container.appendChild(note);
-
-    var btn = make('button', 'reit-btn reit-btn--primary');
+  /* ── System Check ─────────────────────────────────────────── */
+  function buildSystemCheck() {
+    var s = section(null, 'System Check',
+      'Runs the production engines against the current data and the shared analysis run: HHI, scoring, ' +
+      'projections, the cleaning pipeline, the shared run, the canonical counts and the pre-generated ' +
+      'commentary. Each check shows what it expected and what it got. Running it changes nothing you saved.',
+      'dc-h-check');
+    var btn = make('button', 'reit-btn reit-btn--primary', '▶  Run System Check');
     btn.type = 'button';
-    btn.textContent = '▶  Run System Check';
-    container.appendChild(btn);
+    btn.id = 'dc-run-check';
+    btn.addEventListener('click', runSystemCheck);
+    s.appendChild(btn);
 
-    var resultDiv = make('div', 'reit-system-check-results');
-    resultDiv.id = 'dc-system-check-result';
-    container.appendChild(resultDiv);
-
-    btn.addEventListener('click', function () {
-      runSystemCheck(resultDiv);
-    });
-  }
-
-  function runSystemCheck(container) {
-    container.innerHTML = '';
-    var checks = [
-      {
-        id: 'CHK-01', label: 'HHI engine loads and computes',
-        fn: function () {
-          if (typeof HHIEngine === 'undefined') { return { ok: false, detail: 'HHIEngine not loaded' }; }
-          var assets = [
-            { value: 100e7, annualRent: 7e7, city: 'Mumbai', propertyType: 'Office' },
-            { value: 50e7,  annualRent: 3e7, city: 'Pune',   propertyType: 'Retail' }
-          ];
-          var h = HHIEngine.cityHHI(assets);
-          if (typeof h !== 'number' || isNaN(h) || h <= 0) {
-            return { ok: false, detail: 'cityHHI returned ' + h };
-          }
-          return { ok: true, detail: 'cityHHI = ' + h.toFixed(4) };
-        }
-      },
-      {
-        id: 'CHK-02', label: 'Scoring engine loads and validates weights',
-        fn: function () {
-          if (typeof ScoringEngine === 'undefined') { return { ok: false, detail: 'ScoringEngine not loaded' }; }
-          var v = ScoringEngine.validateWeights(ScoringEngine.PRESETS.balanced);
-          if (!v.valid) { return { ok: false, detail: v.errors.join('; ') }; }
-          var wSum = Object.keys(ScoringEngine.PRESETS.balanced)
-            .filter(function (k) { return k.indexOf('Weight') !== -1; })
-            .reduce(function (s, k) { return s + ScoringEngine.PRESETS.balanced[k]; }, 0);
-          return { ok: true, detail: 'Balanced weights sum = ' + (wSum * 100).toFixed(1) + '%' };
-        }
-      },
-      {
-        id: 'CHK-03', label: 'Projection engine computes post-investment value correctly',
-        fn: function () {
-          if (typeof Projection === 'undefined') { return { ok: false, detail: 'Projection not loaded' }; }
-          var proj = Projection.projectAll({
-            currentPortfolioValueRs: 500e7,
-            currentAnnualRentRs:     33.275e7,
-            investmentRs:            100e7,
-            newMarketGrossYield:     0.0914
-          });
-          var v0 = proj.base[0].portfolioValue / 1e7;
-          var r0 = proj.base[0].annualRent / 1e7;
-          var valueOk = Math.abs(v0 - 600) < 0.01;
-          var rentOk  = Math.abs(r0 - 42.415) < 0.001;
-          if (!valueOk) { return { ok: false, detail: 'Expected ₹600 Cr, got ₹' + v0.toFixed(3) + ' Cr' }; }
-          if (!rentOk)  { return { ok: false, detail: 'Expected ₹42.415 Cr rent, got ₹' + r0.toFixed(3) + ' Cr' }; }
-          return { ok: true, detail: 'Value = ₹' + v0.toFixed(0) + ' Cr, Gross Rent = ₹' + r0.toFixed(3) + ' Cr' };
-        }
-      },
-      {
-        id: 'CHK-04', label: 'DataCleaner pipeline loads and rejects no-records silently',
-        fn: function () {
-          if (typeof DataCleaner === 'undefined') { return { ok: false, detail: 'DataCleaner not loaded' }; }
-          if (typeof DataCleaner.clean !== 'function') {
-            return { ok: false, detail: 'DataCleaner.clean is not a function' };
-          }
-          return { ok: true, detail: 'DataCleaner.clean is available' };
-        }
-      },
-      {
-        id: 'CHK-05', label: 'Shared state (ReitState) persists and loads',
-        fn: function () {
-          if (typeof ReitState === 'undefined') { return { ok: false, detail: 'ReitState not loaded' }; }
-          var testState = { runId: 'chk-05', createdAt: Date.now(), stale: false, test: true };
-          ReitState.save(testState);
-          var loaded = ReitState.load();
-          if (!loaded || loaded.runId !== 'chk-05') {
-            return { ok: false, detail: 'State did not round-trip through localStorage' };
-          }
-          return { ok: true, detail: 'localStorage round-trip OK (key: ' + ReitState.LS_KEY + ')' };
-        }
-      },
-      {
-        id: 'CHK-06', label: 'Markets data file contains at least 10 market records',
-        fn: function () {
-          return new Promise(function (resolve) {
-            fetch('data/markets.json').then(function (r) { return r.json(); })
-              .then(function (d) {
-                var n = (d.markets || []).length;
-                resolve(n >= 10
-                  ? { ok: true,  detail: n + ' market records loaded' }
-                  : { ok: false, detail: 'Only ' + n + ' market records (need ≥ 10)' });
-              }).catch(function (e) {
-                resolve({ ok: false, detail: 'Fetch failed: ' + e.message });
-              });
-          });
-        }
-      },
-      {
-        id: 'CHK-07', label: 'Portfolio data file contains at least 3 assets',
-        fn: function () {
-          return new Promise(function (resolve) {
-            fetch('data/portfolio.json').then(function (r) { return r.json(); })
-              .then(function (d) {
-                var n = (d.assets || []).length;
-                resolve(n >= 3
-                  ? { ok: true,  detail: n + ' portfolio assets loaded' }
-                  : { ok: false, detail: 'Only ' + n + ' assets (need ≥ 3)' });
-              }).catch(function (e) {
-                resolve({ ok: false, detail: 'Fetch failed: ' + e.message });
-              });
-          });
-        }
-      },
-      {
-        id: 'CHK-08', label: 'HHI simulation returns before/after values for a test market',
-        fn: function () {
-          if (typeof HHIEngine === 'undefined') { return { ok: false, detail: 'HHIEngine not loaded' }; }
-          var assets = [
-            { value: 300e7, annualRent: 21e7, city: 'Mumbai', propertyType: 'Office' },
-            { value: 200e7, annualRent: 14e7, city: 'Pune',   propertyType: 'Retail' }
-          ];
-          var market = {
-            medianCapitalValuePerSqFt: 10000,
-            medianMonthlyRentPerSqFt:  80,
-            city: 'Chennai', propertyType: 'Warehouse'
-          };
-          var sim = HHIEngine.simulateInvestment(assets, market, 100e7);
-          if (!sim || !sim.before || !sim.after) {
-            return { ok: false, detail: 'simulateInvestment returned unexpected structure' };
-          }
-          var valueOk = Math.abs(sim.after.totalValue - sim.before.totalValue - 100e7) < 1000;
-          return {
-            ok: valueOk,
-            detail: 'Before: ₹' + (sim.before.totalValue/1e7).toFixed(0)
-              + ' Cr → After: ₹' + (sim.after.totalValue/1e7).toFixed(0) + ' Cr'
-          };
-        }
-      },
-      {
-        id: 'CHK-09', label: 'Weight presets are internally consistent (5 factors, sum to 100%)',
-        fn: function () {
-          if (typeof ScoringEngine === 'undefined') { return { ok: false, detail: 'ScoringEngine not loaded' }; }
-          var allOk = true, details = [];
-          Object.keys(ScoringEngine.PRESETS).forEach(function (key) {
-            var p = ScoringEngine.PRESETS[key];
-            var v = ScoringEngine.validateWeights(p);
-            if (!v.valid) { allOk = false; details.push(key + ': ' + v.errors.join(', ')); }
-            else { details.push(key + ': ✓'); }
-          });
-          return { ok: allOk, detail: details.join('  |  ') };
-        }
-      }
-    ];
-
-    var ul = make('ul', 'reit-system-check-list');
-    container.appendChild(ul);
-
-    var remaining = checks.length;
-    var passed = 0;
-    var failed = 0;
-    var summary = make('div', 'reit-system-check-summary');
-    var summaryText = document.createTextNode('Running…');
-    summary.appendChild(summaryText);
-    container.appendChild(summary);
-
-    function renderCheckResult(check, result) {
-      var li = make('li', 'reit-chk-item reit-chk-' + (result.ok ? 'pass' : 'fail'));
-      var badge = make('span', 'reit-chk-badge');
-      badge.textContent = result.ok ? '✓' : '✗';
-      var idSpan = make('span', 'reit-chk-id');
-      idSpan.textContent = check.id;
-      var labelSpan = make('span', 'reit-chk-label');
-      labelSpan.textContent = check.label;
-      var detailSpan = make('span', 'reit-chk-detail');
-      detailSpan.textContent = result.detail || '';
-      li.appendChild(badge);
-      li.appendChild(idSpan);
-      li.appendChild(labelSpan);
-      li.appendChild(detailSpan);
-      ul.appendChild(li);
-      if (result.ok) { passed++; } else { failed++; }
-      remaining--;
-      if (remaining === 0) {
-        summaryText.nodeValue = passed + ' / ' + checks.length + ' checks passed'
-          + (failed ? ' — ' + failed + ' FAILED' : ' — All OK');
-        summary.className = 'reit-system-check-summary ' + (failed ? 'reit-chk-summary-fail' : 'reit-chk-summary-pass');
-      }
+    var res = make('div', 'reit-system-check-results');
+    res.id = 'dc-system-check-result';
+    res.setAttribute('aria-live', 'polite');
+    if (view.checkResults) {
+      var passed = view.checkResults.filter(function (r) { return r.ok; }).length;
+      var total = view.checkResults.length;
+      var sum = make('p', 'reit-system-check-summary ' + (passed === total ? 'reit-chk-summary-pass' : 'reit-chk-summary-fail'),
+        (passed === total ? '✓ ' : '✗ ') + passed + ' / ' + total + ' checks passed' +
+        (passed === total ? '' : ' — ' + (total - passed) + ' failed; see the details below'));
+      res.appendChild(sum);
+      var ul = make('ul', 'reit-system-check-list');
+      view.checkResults.forEach(function (r) {
+        var li = make('li', 'reit-chk-item reit-chk-' + (r.ok ? 'pass' : 'fail'));
+        li.appendChild(make('span', 'reit-chk-badge', r.ok ? '✓ Pass' : '✗ Fail'));
+        li.appendChild(make('span', 'reit-chk-id', r.id));
+        li.appendChild(make('span', 'reit-chk-label', r.label));
+        li.appendChild(make('span', 'reit-chk-detail', r.detail));
+        ul.appendChild(li);
+      });
+      res.appendChild(ul);
     }
-
-    checks.forEach(function (check) {
-      try {
-        var result = check.fn();
-        if (result && typeof result.then === 'function') {
-          result.then(function (r) { renderCheckResult(check, r); })
-                .catch(function (e) { renderCheckResult(check, { ok: false, detail: String(e) }); });
-        } else {
-          renderCheckResult(check, result || { ok: false, detail: 'No result returned' });
-        }
-      } catch (e) {
-        renderCheckResult(check, { ok: false, detail: 'Exception: ' + e.message });
-      }
-    });
+    s.appendChild(res);
+    return s;
   }
 
-  function renderAll() {
-    var container = el('datacentre-content');
-    if (!container) return;
-    container.innerHTML = '';
+  function runSystemCheck() {
+    var data = AnalysisRun.data();
+    var storage = null;
+    try { storage = window.localStorage; } catch (e) { storage = null; }
+    fetch('data/agent-cache.json', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; })
+      .then(function (cacheDoc) {
+        view.checkResults = SystemCheck.run({
+          HHIEngine: HHIEngine, ScoringEngine: ScoringEngine, Projection: Projection,
+          DataCleaner: DataCleaner, ScenarioKey: ScenarioKey, AnalysisRun: AnalysisRun, AppMeta: AppMeta,
+          run: AnalysisRun.current(), marketsDoc: data.marketsDoc, sampleAssets: data.sampleAssets,
+          metaDoc: data.metaDoc, cacheDoc: cacheDoc, storage: storage
+        });
+        render();
+        var b = document.getElementById('dc-run-check');
+        if (b) { b.focus(); }
+      });
+  }
 
-    // Dataset status cards
-    var cardsSection = make('div', 'reit-section');
-    var cardsHeading = make('h3');
-    cardsHeading.textContent = 'Dataset Status';
-    cardsSection.appendChild(cardsHeading);
-    var cardsGrid = make('div');
-    cardsGrid.id = 'dc-status-cards';
-    cardsSection.appendChild(cardsGrid);
-    container.appendChild(cardsSection);
-
-    // Input controls
-    var controlsSection = make('div');
-    controlsSection.id = 'dc-input-controls';
-    container.appendChild(controlsSection);
-
-    // Preview table
-    var previewSection = make('div');
-    previewSection.id = 'dc-preview-table';
-    container.appendChild(previewSection);
-
-    // Segment statistics
-    var statsSection = make('div');
-    statsSection.id = 'dc-stats-section';
-    container.appendChild(statsSection);
-
-    // Cleaning report
-    var reportSection = make('div');
-    reportSection.id = 'dc-cleaning-report';
-    container.appendChild(reportSection);
-
-    // System Check
-    var sysCheckSection = make('div', 'reit-section');
-    sysCheckSection.id = 'dc-system-check';
-    container.appendChild(sysCheckSection);
-    buildSystemCheck(sysCheckSection);
-
-    // Fetch and render status cards
-    var portfolioData = null, marketsData = null;
-    var loaded = 0;
-    function checkBoth() {
-      loaded++;
-      if (loaded === 2) {
-        buildStatusCards(el('dc-status-cards'), portfolioData, marketsData);
-        buildInputControls(el('dc-input-controls'));
-        buildPreviewTable(el('dc-preview-table'), _currentRecords);
-        if (typeof Stats !== 'undefined' && marketsData && marketsData.markets) {
-          buildStatsSection(el('dc-stats-section'), marketsData.markets);
-        }
-        buildCleaningReport(el('dc-cleaning-report'), _cleaningReport);
-      }
+  /* ── Render ───────────────────────────────────────────────── */
+  function render() {
+    var root = document.getElementById(ROOT_ID);
+    if (!root) { return; }
+    root.innerHTML = '';
+    if (view.error) {
+      var e = make('p', 'error-msg', view.error);
+      e.setAttribute('role', 'alert');
+      root.appendChild(e);
+      return;
     }
-    fetch('data/portfolio.json').then(function (r) { return r.json(); })
-      .then(function (d) { portfolioData = d; checkBoth(); }).catch(function () { checkBoth(); });
-    fetch('data/markets.json').then(function (r) { return r.json(); })
-      .then(function (d) { marketsData = d; checkBoth(); }).catch(function () { checkBoth(); });
+    if (!view.loaded) {
+      var l = make('p', 'loading-msg', 'Loading the data layers…');
+      l.setAttribute('role', 'status');
+      root.appendChild(l);
+      return;
+    }
+    var run = AnalysisRun.current();
+    var markets = AnalysisRun.data().marketsDoc.markets;
+    root.appendChild(make('p', 'reit-note',
+      'Five analytical levels, kept apart: the portfolio, the 50 market-segment aggregates, the ' +
+      AppMeta.num(run.dataset.observationCount) + ' simulated observations behind them, the source register, ' +
+      'and data-quality results for imported files. All data is synthetic.'));
+    root.appendChild(buildHoldings(run));
+    root.appendChild(buildSegments(run, markets));
+    root.appendChild(buildObservations(run, markets));
+    root.appendChild(buildRegister(run));
+    root.appendChild(buildQuality());
+    root.appendChild(buildSystemCheck());
   }
 
-  /* ── Initialise when page is shown ───────────────────────── */
   function init() {
-    // Load synthetic data by default on first visit
-    if (!_currentRecords.length) {
-      loadSynthetic();
-    } else {
-      renderAll();
-    }
+    render();
+    AnalysisRun.ready().then(function () {
+      view.loaded = true;
+      render();
+    }).catch(function (err) {
+      view.error = 'Could not load the dataset: ' + err.message + '. Reload the page to try again.';
+      render();
+    });
+    AnalysisRun.subscribe(function () { if (view.loaded) { render(); } });
   }
 
-  /* ── Page visibility hook ─────────────────────────────────── */
-  // istTime.js registers page show/hide via hash change; we hook in here
-  document.addEventListener('DOMContentLoaded', function () {
-    // Listen for hash changes to re-render when page is revisited
-    window.addEventListener('hashchange', function () {
-      if (window.location.hash === '#datacentre') {
-        renderAll();
-      }
-    });
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 
-    // Auto-init if currently on datacentre page
-    if (window.location.hash === '#datacentre' || window.location.hash === '') {
-      // defer to let the router run first
-      setTimeout(init, 50);
-    }
-
-    // Hook into the SPA router: detect when #datacentre becomes active
-    var observer = new MutationObserver(function () {
-      var dcPage = document.getElementById('page-datacentre');
-      if (dcPage && dcPage.classList.contains('page-active') && !_currentRecords.length) {
-        init();
-      }
-    });
-    var main = document.getElementById('main-content');
-    if (main) observer.observe(main, { subtree: true, attributes: true, attributeFilter: ['class'] });
-  });
-
-  /* ── Public API ───────────────────────────────────────────── */
   window.DataCentre = {
-    init:            init,
-    getCurrentRecords: function () { return _currentRecords; },
-    getCleaningReport: function () { return _cleaningReport; }
+    importCSVText:     importCSVText,
+    runSystemCheck:    runSystemCheck,
+    getCheckResults:   function () { return view.checkResults; },
+    getCleaningReport: function () { return view.cleaningReport; }
   };
 
 }());

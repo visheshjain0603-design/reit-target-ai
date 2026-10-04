@@ -14,9 +14,12 @@
   "methodologyVersion": "1.0.0",
   "dataIsSynthetic": true,
   "syntheticNotice": "All data in this application is synthetic and was created for academic demonstration only. It does not describe any real property, tenant, transaction or market, and must not be used for any investment decision.",
-  "publicUrl": "https://visheshjain0603-design.github.io/reit-target-ai/"
+  "publicUrl": "https://visheshjain0603-design.github.io/reit-target-ai/",
+  "repoName": "reit-target-ai",
+  "repoUrl": "https://github.com/visheshjain0603-design/reit-target-ai"
  },
  "governance": {
+  "name": "Simulation-support screen",
   "MIN_OBSERVATIONS": 30,
   "MIN_GRADE": "C",
   "GRADE_ORDER": [
@@ -26,9 +29,10 @@
    "D",
    "E"
   ],
-  "rationale": "Thirty observations is the conventional floor at which the sampling distribution of a mean is treated as approximately normal, and grade C is the lowest grade whose estimate rests on documented evidence rather than assumption alone. Both are descriptive conventions adopted for this project, not regulatory thresholds.",
-  "overrideLabel": "Include segments that do not meet the evidence floor",
-  "overrideNote": "Overriding shows every segment in the ranking. Segments below the floor stay marked, and the report records that the override was used."
+  "rule": "at least 30 simulated observations and Assumption Support Grade C or better",
+  "rationale": "A transparent project governance convention for simulation precision, not a regulatory or universal statistical threshold. Thirty draws keeps the P10–P90 spread of a segment's simulated medians reasonably narrow; grade C or better excludes segments whose assumptions the project itself classed as interpolated or placeholder. Passing the screen says nothing about real-market accuracy.",
+  "overrideLabel": "Ignore the simulation-support screen (make the highest raw-score market the candidate)",
+  "overrideNote": "With the screen ignored, the candidate is simply the highest raw-score market. Segments that fail the screen stay marked, and the report records that the screen was ignored."
  },
  "agents": [
   {
@@ -39,7 +43,7 @@
   {
    "key": "marketScreening",
    "label": "Market Screening Analyst",
-   "purpose": "Explains why the leading segment scored as it did, and how the runner-up differs from it."
+   "purpose": "Explains why the shortlist candidate scored as it did, and how it differs from the highest raw-score market and the next eligible candidate."
   },
   {
    "key": "portfolioRisk",
@@ -99,14 +103,212 @@
   "seed": 20260919,
   "plantedAnomalies": 24,
   "contaminationPct": 1.113,
+  "externalCalibrationStatus": "Unverified",
   "marketsBelowObsFloor": 10,
   "agentCount": 4,
   "presetCount": 4,
   "methodologyVersion": "1.0.0"
  },
+ "sourceVerification": {
+  "derivedFrom": "data-pipeline/source_register.csv (verification_status)",
+  "externalSources": 12,
+  "verified": 0,
+  "partiallySupported": 0,
+  "unverified": 12,
+  "segmentCalibration": {
+   "Unverified": 50
+  },
+  "summary": "0 of 12 cited external sources verified; 0 partially supported. A segment is Verified only when every external source it cites is verified.",
+  "outcomes": {
+   "SRC-001": "Unverified",
+   "SRC-002": "Unverified",
+   "SRC-003": "Unverified",
+   "SRC-004": "Unverified",
+   "SRC-005": "Unverified",
+   "SRC-006": "Unverified",
+   "SRC-007": "Unverified",
+   "SRC-008": "Unverified",
+   "SRC-009": "Unverified",
+   "SRC-010": "Unverified",
+   "SRC-011": "Unverified",
+   "SRC-012": "Unverified",
+   "SRC-013": "Internal"
+  },
+  "rows": [
+   {
+    "id": "SRC-001",
+    "publisher": "Embassy Office Parks REIT",
+    "title": "Embassy REIT Annual Report 2024-25",
+    "outcome": "URL corrected; publisher confirmed; document not located",
+    "classification": "Unverified"
+   },
+   {
+    "id": "SRC-002",
+    "publisher": "Mindspace Business Parks REIT",
+    "title": "Mindspace REIT Annual Report 2024-25",
+    "outcome": "Publisher confirmed; document not located",
+    "classification": "Unverified"
+   },
+   {
+    "id": "SRC-003",
+    "publisher": "Brookfield India Real Estate Trust",
+    "title": "Brookfield India REIT Annual Report 2024-25",
+    "outcome": "Unverified — access blocked",
+    "classification": "Unverified"
+   },
+   {
+    "id": "SRC-004",
+    "publisher": "Nexus Select Trust",
+    "title": "Nexus Select Trust Annual Report 2024-25",
+    "outcome": "URL corrected; publisher confirmed; document not located",
+    "classification": "Unverified"
+   },
+   {
+    "id": "SRC-005",
+    "publisher": "JLL India",
+    "title": "India Office Market Report Q4 2024",
+    "outcome": "URL corrected; publisher confirmed; document not located",
+    "classification": "Unverified"
+   },
+   {
+    "id": "SRC-006",
+    "publisher": "CBRE South Asia",
+    "title": "India Real Estate Market Outlook 2025",
+    "outcome": "Publisher confirmed; document not located",
+    "classification": "Unverified"
+   },
+   {
+    "id": "SRC-007",
+    "publisher": "Knight Frank India",
+    "title": "India Real Estate Outlook H1 2025",
+    "outcome": "Publisher confirmed; title not found; comparable series exists",
+    "classification": "Unverified"
+   },
+   {
+    "id": "SRC-008",
+    "publisher": "Colliers India",
+    "title": "Colliers India Office Market Q1 2025",
+    "outcome": "Unverified — access blocked",
+    "classification": "Unverified"
+   },
+   {
+    "id": "SRC-009",
+    "publisher": "ANAROCK Research",
+    "title": "India Residential Market Report Q4 2024",
+    "outcome": "Unverified — access blocked",
+    "classification": "Unverified"
+   },
+   {
+    "id": "SRC-010",
+    "publisher": "Cushman & Wakefield India",
+    "title": "India Office Leasing Outlook 2025",
+    "outcome": "Publisher confirmed; title not found; comparable series exists",
+    "classification": "Unverified"
+   },
+   {
+    "id": "SRC-011",
+    "publisher": "Mint / Hindustan Times Media",
+    "title": "India REIT market benchmark rentals 2024 (citing JLL)",
+    "outcome": "Unverified — no article-level citation",
+    "classification": "Unverified"
+   },
+   {
+    "id": "SRC-012",
+    "publisher": "Economic Times Real Estate",
+    "title": "Hyderabad commercial market overview citing Colliers 2024",
+    "outcome": "Unverified — no article-level citation",
+    "classification": "Unverified"
+   },
+   {
+    "id": "SRC-013",
+    "publisher": "Academic Synthetic",
+    "title": "REIT Target AI — Semi-Synthetic Assumption Set v1.0",
+    "outcome": "N/A — internal assumption set",
+    "classification": "Internal"
+   }
+  ]
+ },
+ "terminology": {
+  "terms": {
+   "attractivenessScore": {
+    "label": "Composite attractiveness score",
+    "definition": "The five-factor weighted score (rental yield, rental growth, diversification, demand, low market risk), 0–100."
+   },
+   "rawRank": {
+    "label": "Raw rank",
+    "definition": "Position among all segments by composite attractiveness score alone."
+   },
+   "highestRawScoreMarket": {
+    "label": "Highest raw-score market",
+    "definition": "Raw rank 1, whether or not it passes the simulation-support screen."
+   },
+   "simulationSupportScreen": {
+    "label": "Simulation-support screen",
+    "definition": "At least 30 simulated observations and Assumption Support Grade C or better. A project governance convention for simulation precision."
+   },
+   "eligibleRank": {
+    "label": "Eligible rank",
+    "definition": "Position among the segments that pass the simulation-support screen."
+   },
+   "shortlistCandidate": {
+    "label": "Shortlist candidate",
+    "definition": "The highest-ranked candidate passing the simulation-support screen: an exploratory model output, not an investment recommendation."
+   },
+   "nextEligibleCandidate": {
+    "label": "Next eligible candidate",
+    "definition": "Eligible rank 2."
+   },
+   "selectedTarget": {
+    "label": "Selected target",
+    "definition": "The segment every page analyses. In automatic mode it is the shortlist candidate; in manual mode it is the user's choice."
+   },
+   "manualTarget": {
+    "label": "Manually selected target",
+    "definition": "A selected target chosen by the user rather than by the screen."
+   },
+   "simulatedObservations": {
+    "label": "Simulated market observations",
+    "definition": "Seeded draws from the project's generator. Not properties, listings or transactions."
+   },
+   "supportGrade": {
+    "label": "Assumption Support Grade",
+    "definition": "The project's internal A–E classification of how a segment's assumptions were constructed and how wide a band was assumed around them. It is not an evidence grade: none of the benchmarks it refers to has been externally verified."
+   },
+   "externalCalibration": {
+    "label": "External calibration status",
+    "definition": "Verified, Partially supported or Unverified, from the source register only."
+   },
+   "knownSyntheticAnomalies": {
+    "label": "Known synthetic anomalies",
+    "definition": "Anomalies the generator inserted deliberately, recorded separately as ground truth."
+   }
+  },
+  "supportGrades": {
+   "label": "Assumption Support Grade",
+   "definition": "The project's internal A–E classification of how a segment's assumptions were constructed and how wide a band was assumed around them. It is not an evidence grade: none of the benchmarks it refers to has been externally verified.",
+   "grades": {
+    "A": "Assumptions intended to follow a named primary benchmark; narrowest assumed band (±5–8%).",
+    "B": "Assumptions intended to follow a primary or secondary benchmark with minor interpolation (±10–12%).",
+    "C": "City-level benchmark adjusted by a locality-class multiplier (±15–20%).",
+    "D": "Estimated from comparable segments; wide assumed band (±20–30%).",
+    "E": "Placeholder assumptions; widest assumed band (±30–40%)."
+   }
+  },
+  "externalCalibration": {
+   "label": "External calibration",
+   "STATUSES": [
+    "Verified",
+    "Partially supported",
+    "Unverified"
+   ],
+   "basis": "Source Verification Report: 0 of 12 cited documents located, 0 figures traced, no source upgraded to Verified.",
+   "reportPath": "docs/SOURCE_VERIFICATION_REPORT.md"
+  },
+  "candidateCaveat": "Exploratory shortlist only. External calibration remains unverified — proceed to further evidence collection and due diligence before any real decision."
+ },
  "tests": {
   "file": "tests/reit-tests.js",
-  "testIdCount": 62,
-  "assertCallCount": 524
+  "testIdCount": 68,
+  "assertCallCount": 581
  }
 }

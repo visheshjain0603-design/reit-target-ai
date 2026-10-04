@@ -48,8 +48,48 @@
     customAssets: [],        // array of asset objects (values in rupees)
     formOpen:    false,
     editingId:   null,       // null = add; string = assetId being edited
-    formErrors:  {}          // fieldId → error string
+    formErrors:  {},         // fieldId → error string
+    opener:      null,       // id of the control that opened the form, for focus return
+    focusForm:   false,      // move focus into the form on the next render
+    returnFocusTo: null      // id to focus on the next render
   };
+
+  function openForm(editingId, openerId) {
+    state.formOpen   = true;
+    state.editingId  = editingId;
+    state.formErrors = {};
+    state.opener     = openerId;
+    state.focusForm  = true;
+    var root = document.getElementById(ROOT_ID);
+    if (root) { renderAll(root); }
+  }
+
+  function closeForm() {
+    state.formOpen   = false;
+    state.editingId  = null;
+    state.formErrors = {};
+    state.returnFocusTo = state.opener;
+    state.opener = null;
+    var root = document.getElementById(ROOT_ID);
+    if (root) { renderAll(root); }
+  }
+
+  /* Focus management for the Add/Edit form: focus enters the form when it
+   * opens and returns to the control that opened it when it closes. */
+  function applyFocus(root) {
+    if (state.formOpen && state.focusForm) {
+      state.focusForm = false;
+      var first = root.querySelector(".reit-asset-form input:not([disabled]), .reit-asset-form select");
+      if (first) { first.focus(); }
+      return;
+    }
+    if (state.returnFocusTo) {
+      var t = document.getElementById(state.returnFocusTo) ||
+              root.querySelector("#pf-add-asset, #pf-start-blank");
+      state.returnFocusTo = null;
+      if (t) { t.focus(); }
+    }
+  }
 
   // ── localStorage helpers ──────────────────────────────────────
   function loadCustomFromStorage() {
@@ -64,6 +104,16 @@
   function saveCustomToStorage(assets) {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(assets)); }
     catch (e) { /* quota exceeded — silent */ }
+    notifyAnalysis();
+  }
+
+  /* The analysis uses the ACTIVE portfolio. Any change to the custom holdings
+   * or to the mode recomputes the shared run, so every page — targets, HHI,
+   * projections, agent context — follows the portfolio the user is looking at. */
+  function notifyAnalysis() {
+    if (typeof AnalysisRun !== "undefined" && AnalysisRun.portfolioChanged) {
+      AnalysisRun.portfolioChanged();
+    }
   }
 
   function loadModeFromStorage() {
@@ -74,6 +124,7 @@
   function saveModeToStorage(mode) {
     try { localStorage.setItem(STORAGE_MODE_KEY, mode); }
     catch (e) {}
+    notifyAnalysis();
   }
 
   // ── Crore ↔ rupee conversion ──────────────────────────────────
@@ -235,6 +286,19 @@
         validateSynthetic(data);
         state.sampleData = data;
         renderAll(root);
+        /* Reset Demo on the Overview returns the analysis to the sample
+         * portfolio; follow it here so the two pages cannot disagree. */
+        if (typeof AnalysisRun !== "undefined") {
+          AnalysisRun.subscribe(function () {
+            var mode = ReitState.portfolioMode();
+            if (mode !== state.mode) {
+              state.mode = mode;
+              state.formOpen = false;
+              state.editingId = null;
+              renderAll(root);
+            }
+          });
+        }
       })
       .catch(function (err) {
         showError(root, err.message || String(err));
@@ -251,6 +315,7 @@
     } else {
       renderCustom(root);
     }
+    applyFocus(root);
   }
 
   // ── Mode toggle ───────────────────────────────────────────────
@@ -332,13 +397,8 @@
     btnBlank.type = "button";
     btnBlank.className = "reit-btn reit-btn-primary";
     btnBlank.textContent = "Start Blank — Add First Asset";
-    btnBlank.addEventListener("click", function () {
-      state.formOpen  = true;
-      state.editingId = null;
-      state.formErrors = {};
-      var root = document.getElementById(ROOT_ID);
-      if (root) { renderAll(root); }
-    });
+    btnBlank.id = "pf-start-blank";
+    btnBlank.addEventListener("click", function () { openForm(null, "pf-start-blank"); });
     btnRow.appendChild(btnBlank);
 
     var btnCopy = document.createElement("button");
@@ -477,13 +537,9 @@
     btnAdd.type = "button";
     btnAdd.className = "reit-btn reit-btn-primary";
     btnAdd.textContent = "+ Add Asset";
-    btnAdd.addEventListener("click", function () {
-      state.formOpen  = true;
-      state.editingId = null;
-      state.formErrors = {};
-      var root = document.getElementById(ROOT_ID);
-      if (root) { renderAll(root); }
-    });
+    btnAdd.id = "pf-add-asset";
+    btnAdd.setAttribute("aria-expanded", state.formOpen && state.editingId === null ? "true" : "false");
+    btnAdd.addEventListener("click", function () { openForm(null, "pf-add-asset"); });
     bar.appendChild(btnAdd);
 
     var btnReset = document.createElement("button");
@@ -520,9 +576,16 @@
 
     var panel = document.createElement("div");
     panel.className = "reit-form-panel";
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "false");
+    panel.setAttribute("aria-labelledby", "pf-form-title");
+    panel.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { e.preventDefault(); closeForm(); }
+    });
 
     var title = document.createElement("h3");
     title.className = "reit-form-title";
+    title.id = "pf-form-title";
     title.textContent = isEdit ? "Edit Asset" : "Add New Asset";
     panel.appendChild(title);
 
@@ -679,13 +742,7 @@
     btnCancel.type = "button";
     btnCancel.className = "reit-btn reit-btn-secondary";
     btnCancel.textContent = "Cancel";
-    btnCancel.addEventListener("click", function () {
-      state.formOpen  = false;
-      state.editingId = null;
-      state.formErrors = {};
-      var root = document.getElementById(ROOT_ID);
-      if (root) { renderAll(root); }
-    });
+    btnCancel.addEventListener("click", closeForm);
     btnRow.appendChild(btnCancel);
 
     form.appendChild(btnRow);
@@ -805,12 +862,7 @@
     }
 
     saveCustomToStorage(state.customAssets);
-    state.formOpen  = false;
-    state.editingId = null;
-    state.formErrors = {};
-
-    var root2 = document.getElementById(ROOT_ID);
-    if (root2) { renderAll(root2); }
+    closeForm();
   }
 
   // ── KPI summary cards — Fix 1: 3dp for rent and yield ─────────
@@ -1037,6 +1089,8 @@
         btnEdit.type = "button";
         btnEdit.className = "reit-tbl-btn reit-tbl-btn-edit";
         btnEdit.textContent = "Edit";
+        btnEdit.id = "pf-edit-" + String(a.assetId).replace(/[^A-Za-z0-9_-]/g, "_");
+        btnEdit.setAttribute("aria-label", "Edit " + a.assetName);
         // IIFE to capture assetId at loop iteration
         (function (id) {
           btnEdit.addEventListener("click", function () { startEdit(id); });
@@ -1047,6 +1101,7 @@
         btnDel.type = "button";
         btnDel.className = "reit-tbl-btn reit-tbl-btn-delete";
         btnDel.textContent = "Delete";
+        btnDel.setAttribute("aria-label", "Delete " + a.assetName);
         (function (id, name) {
           btnDel.addEventListener("click", function () {
             if (window.confirm(
@@ -1070,11 +1125,7 @@
   }
 
   function startEdit(assetId) {
-    state.formOpen  = true;
-    state.editingId = assetId;
-    state.formErrors = {};
-    var root = document.getElementById(ROOT_ID);
-    if (root) { renderAll(root); }
+    openForm(assetId, "pf-edit-" + String(assetId).replace(/[^A-Za-z0-9_-]/g, "_"));
   }
 
   function deleteAsset(assetId) {

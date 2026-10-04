@@ -46,6 +46,19 @@
 
   function isNum(v) { return typeof v === "number" && isFinite(v); }
 
+  /* The agent context states quoted figures as fixed-decimal strings so their
+   * display precision survives JSON. Read them back as numbers here. */
+  function n(v) {
+    if (typeof v === "string" && v.trim() !== "" && isFinite(Number(v))) { return Number(v); }
+    return v;
+  }
+  function pfNumbers(pf) {
+    if (!pf) { return null; }
+    return { totalValueCr: n(pf.totalValueCr), annualRentCr: n(pf.annualRentCr),
+             weightedYieldPct: n(pf.weightedYieldPct), cityHHI: n(pf.cityHHI),
+             assetTypeHHI: n(pf.assetTypeHHI) };
+  }
+
   function check(id, label, passed, detail) {
     return { id: id, label: label, passed: !!passed, detail: detail };
   }
@@ -147,7 +160,7 @@
    */
   function checkHHIConsistency(context, assets, hhiEngine) {
     var label = "Portfolio HHI figures reproduce";
-    var pf = (context && context.portfolio) || null;
+    var pf = pfNumbers(context && context.portfolio);
     if (!pf || !assets || !assets.length || !hhiEngine) {
       return check("hhi", label, false, "Portfolio, assets or HHI engine unavailable.");
     }
@@ -173,7 +186,7 @@
    */
   function checkYieldIdentity(context) {
     var label = "Weighted yield equals rent ÷ value";
-    var pf = (context && context.portfolio) || null;
+    var pf = pfNumbers(context && context.portfolio);
     if (!pf || !isNum(pf.totalValueCr) || !isNum(pf.annualRentCr) || !isNum(pf.weightedYieldPct)) {
       return check("yieldIdentity", label, false, "Portfolio value, rent or yield missing.");
     }
@@ -226,7 +239,10 @@
     "Scenario projections apply flat growth rates; no correlation structure or Monte Carlo simulation.",
     "Market estimates are medians of a seeded simulation, not observed transaction prices.",
     "No regulatory review against the SEBI (Real Estate Investment Trusts) Regulations, 2014.",
-    "Language-model commentary interprets figures computed elsewhere; it neither verifies nor recalculates them."
+    "Language-model commentary interprets figures computed elsewhere; it neither verifies nor recalculates them.",
+    "External calibration is Unverified: none of the cited source documents was located and no figure was traced to a source (docs/SOURCE_VERIFICATION_REPORT.md).",
+    "More simulated observations narrow a segment's estimate around the project's assumed distribution; they are not market evidence. The simulation-support screen is a project convention, not a statistical or regulatory threshold.",
+    "The shortlist candidate is an exploratory model output, not an investment recommendation; further evidence collection and due diligence would be required."
   ];
 
   // ─── Public entry point ───────────────────────────────────────────────────

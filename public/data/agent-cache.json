@@ -1,20 +1,24 @@
 {
- "note": "Pre-generated Gemini agent responses, one scenario per weight preset at the Market Screener's defaults. Served only when the local proxy is unreachable AND the on-screen scenario key matches exactly. Labelled as cached in the interface — these are NOT live calls.",
- "builtAt": "2026-10-04T11:53:43.313Z",
- "format": "scenarios-v1",
+ "note": "Pre-generated Gemini agent responses, one scenario per weight preset at the application's canonical defaults. Served only when the page is not using the live proxy AND the scenario key matches exactly. Every reply passed agentOutputCheck.js before it was written. Labelled as stored text in the interface — these are NOT live calls.",
+ "builtAt": "2026-10-04T13:08:33.237Z",
+ "format": "scenarios-v2",
  "methodologyVersion": "1.0.0",
+ "contextVersion": "2",
  "agentKeys": [
   "dataStatistical",
   "marketScreening",
   "portfolioRisk",
   "orchestrator"
  ],
+ "apiCalls": 17,
  "scenarios": {
-  "6ee9810b": {
+  "60e51559": {
    "label": "Balanced preset",
    "preset": "balanced",
+   "targetId": "MKT-016",
    "descriptor": {
     "methodologyVersion": "1.0.0",
+    "contextVersion": "2",
     "dataset": {
      "generatorVersion": "2.0.0",
      "totalObservations": 2156,
@@ -30,12 +34,14 @@
      "demandWeight": 0.2,
      "diversWeight": 0.2,
      "growthWeight": 0.25,
-     "label": null,
      "riskWeight": 0.1,
      "yieldWeight": 0.25
     },
     "investmentCr": 50,
     "selectedTargetId": "MKT-016",
+    "selectionMode": "auto",
+    "governanceOverride": false,
+    "recommendedCandidateId": "MKT-016",
     "topRanked": [
      {
       "marketId": "MKT-036",
@@ -62,114 +68,120 @@
    "agents": {
     "dataStatistical": {
      "output": {
-      "overallQuality": "fair",
-      "dataSummary": "This dataset consists of 2,156 simulated market observations across 8 cities and 3 property types. All data is SYNTHETIC and was generated for academic illustration. The portfolio exhibits a weighted yield of 6.655% across 10 assets. We prioritize median and interquartile range (IQR) metrics over means and standard deviations to mitigate the influence of skewness and extreme values inherent in the simulated distributions.",
-      "sampleSizeWarnings": [
-       "Ahmedabad: both segments rest on fewer than 30 observations (smallest 26).",
-       "Chennai: 1 of 5 segments rests on fewer than 30 observations (smallest 26).",
-       "Delhi NCR: 1 of 9 segments rests on fewer than 30 observations (smallest 26).",
-       "Hyderabad: 1 of 6 segments rests on fewer than 30 observations (smallest 26).",
-       "Kolkata: all 3 segments rest on fewer than 30 observations (smallest 26).",
-       "Pune: 2 of 8 segments rest on fewer than 30 observations (smallest 26)."
+      "datasetSummary": "The market-segment dataset is a synthetic collection of 50 candidate market segments, containing 2156 simulated observations. These figures are synthetic and do not represent real market values.",
+      "simulationSupportNotes": [
+       "There are 10 segments that fall below the simulation-support screen threshold of 30 simulated observations.",
+       "The distribution of these segments by city is: Ahmedabad 2, Hyderabad 1, Pune 2, Chennai 1, Kolkata 3, and Delhi NCR 1.",
+       "The smallest number of simulated observations for any segment is 26."
       ],
       "dispersionNotes": [
-       "The portfolio-wide gross yield median is 7.90% with an IQR of 1.73%, indicating moderate spread.",
-       "Capital values show significant dispersion, with a median of 10,687 and an IQR of 12,503, suggesting a wide range of asset scales.",
-       "City-level median yields vary from 7.03% in Delhi NCR to 9.45% in Ahmedabad, reflecting distinct local market characteristics."
+       "The median of segment gross yields is 7.90%.",
+       "The range of segment gross yields spans from a minimum of 2.66% to a maximum of 9.87%."
       ],
-      "keyFindings": [
-       "The highest-scoring segments (Chennai, Pune, Delhi NCR, Ahmedabad) were bypassed for recommendation due to failing the evidence floor of 30 observations or confidence grade C.",
-       "The recommended segment (Gurugram — Cyber Hub) provides a stable yield of 7.03% and meets the required evidence threshold with 73 observations.",
-       "Portfolio simulation shows that adding the recommended asset shifts the city HHI from 0.413 to 0.3496, indicating improved geographic diversification."
+      "segmentOutlierNotes": [
+       "Segment-median outliers are defined using Tukey 1.5×IQR fences applied to segment median gross yield and capital value within cities having at least 4 segments.",
+       "In Delhi NCR, there is 1 yield outlier segment.",
+       "In Mumbai, there is 1 yield outlier segment.",
+       "In Pune, there is 1 capital value outlier segment."
       ],
-      "outlierNotes": [
-       "Yield outliers were identified in Delhi NCR and Mumbai.",
-       "A capital value outlier was detected in Pune.",
-       "Outlier detection is inconclusive for Ahmedabad and Kolkata due to insufficient data volume."
+      "knownAnomalyNote": "There are 24 known synthetic anomalies deliberately inserted by the generator, representing a contamination of 1.113%.",
+      "caveats": [
+       "All data is synthetic and does not describe real properties, markets, or transactions.",
+       "Simulation support is not evidence; it is a project governance convention for simulation precision.",
+       "External calibration is Unverified for every segment."
       ],
-      "statisticalCaveats": [
-       "The discrepancy between pooled portfolio figures and city-specific figures is attributed to the high concentration of assets in specific markets (HHI 0.413).",
-       "Confidence grades are heavily influenced by sample size; segments with fewer than 30 observations are automatically assigned lower confidence grades, limiting their utility for high-stakes modeling."
-      ],
-      "disclaimer": "ALL data is SYNTHETIC and was generated for academic illustration. This analysis does not constitute investment advice."
+      "disclaimer": "This is an academic demonstration system and does not constitute investment advice."
      },
      "model": "gemini-3.1-flash-lite",
-     "cachedAt": "2026-10-04T11:52:56.693Z",
-     "isCached": true
+     "cachedAt": "2026-10-04T13:08:15.641Z",
+     "isCached": true,
+     "checkedBy": "agentOutputCheck.js",
+     "checkPassed": true
     },
     "marketScreening": {
      "output": {
-      "topPickExplanation": "The recommended segment, Gurugram — Cyber Hub, was selected because it is the highest-scoring segment that meets the mandatory evidence floor of 30 observations and a confidence grade of C or better. While other segments like Ambattur (Chennai) and Baner (Pune) achieved higher composite scores, they were bypassed due to insufficient data volume (26 observations) and lower confidence grades.",
-      "dominantFactor": "Demand Strength",
-      "runnerUpComparison": "The runner-up, Ambattur (Chennai), is stronger than the recommended segment on the Rental Growth factor, which contributed 22.92 to its score compared to 14.92 for the recommended segment.",
+      "candidateExplanation": "The selected target, Gurugram — Cyber Hub, Delhi NCR, achieved its score through a balanced performance across all factors, with its strongest contribution coming from demand. It holds a raw rank 5 and an eligible rank 1.",
+      "dominantFactor": "demand",
+      "comparisonWithAlternative": "The selected target is compared to the highest raw-score alternative, Ambattur, Chennai. While the alternative has a higher composite score of 72.45, it failed the simulation-support screen, whereas the selected target passed with high simulation support.",
+      "screenOutcome": "The segments with higher raw scores—Ambattur, Chennai; Baner, Pune; Noida — Sector 62, Delhi NCR; and GIFT City, Ahmedabad—were excluded because they failed the simulation-support screen. Specifically, Ambattur, Chennai, Baner, Pune, and GIFT City, Ahmedabad failed due to having only 26 simulated observations and an Assumption Support Grade D, while Noida — Sector 62, Delhi NCR failed due to an Assumption Support Grade D.",
       "factorInsights": [
-       "The recommended segment excels in Demand Strength, contributing 18.25 to its total score.",
-       "Rental Yield and Rental Growth are the primary drivers for the top-ranked but ineligible segments.",
-       "The recommended segment provides a balanced profile with a strong risk mitigation score of 7.40.",
-       "Geographic diversification is improved by this selection, shifting the city HHI from 0.413 to 0.3496."
+       "The selected target has a demand factor score of 91.27.",
+       "The rental yield factor score for the selected target is 60.55.",
+       "The rental growth factor score for the selected target is 59.69.",
+       "The diversification factor score for the selected target is 60.00.",
+       "The low market risk factor score for the selected target is 74.00."
       ],
       "watchPoints": [
-       "The recommended segment has a lower Rental Yield (7.03%) compared to the top-ranked ineligible segments.",
-       "The portfolio currently shows high concentration in specific markets (HHI 0.413), necessitating continued focus on geographic spread.",
-       "Sample size remains a critical governance constraint for several high-scoring markets."
+       "External calibration is Unverified for all segments.",
+       "The simulation-support screen is a governance convention for precision, not a guarantee of real-market accuracy.",
+       "Monitor the 1.113% contamination rate from known synthetic anomalies.",
+       "Future analysis should incorporate further evidence collection beyond these simulated market observations."
       ],
-      "evidenceNote": "The recommended segment is supported by 73 observations and a confidence grade of B, satisfying the academic governance requirement of at least 30 observations and a grade of C or better.",
-      "disclaimer": "ALL data is SYNTHETIC and was generated for academic illustration. This analysis does not constitute investment advice."
+      "disclaimer": "This is an academic demonstration system and does not constitute investment advice."
      },
      "model": "gemini-3.1-flash-lite",
-     "cachedAt": "2026-10-04T11:52:59.049Z",
-     "isCached": true
+     "cachedAt": "2026-10-04T13:08:15.648Z",
+     "isCached": true,
+     "checkedBy": "agentOutputCheck.js",
+     "checkPassed": true
     },
     "portfolioRisk": {
      "output": {
-      "cityHHIInterpretation": "The investment improves geographic diversification, moving the city HHI from 0.413 to 0.3496.",
-      "typeHHIInterpretation": "The investment increases asset type concentration, moving the type HHI from 0.6316 to 0.6588.",
-      "residualConcentration": "Despite the improvement in geographic spread, the portfolio remains concentrated in both city (0.3496) and asset type (0.6588) metrics, as both remain above the 0.25 threshold.",
-      "yieldImpact": "The investment is projected to increase the portfolio's weighted yield from 6.655% to 6.689%.",
-      "scenarioInterpretation": "The projections show a marginal improvement in yield and geographic diversification, assuming the selected asset performs in line with its historical demand and risk scores.",
+      "cityConcentration": "The city HHI was 0.4130 before the investment and is 0.3496 after.",
+      "assetTypeConcentration": "The asset-type HHI was 0.6316 before the investment and is 0.6588 after.",
+      "residualConcentration": "Following the investment, the city HHI remains at 0.3496 and the asset-type HHI remains at 0.6588.",
+      "yieldImpact": "The portfolio weighted yield was 6.655% before the investment and is 6.689% after.",
+      "scenarioInterpretation": "Assuming flat growth, no leverage, tax, fees or transaction costs, the three-year projections show a potential portfolio value ranging from ₹618.68 Cr in a conservative scenario to ₹772.71 Cr in an optimistic scenario, with a base scenario projection of ₹692.84 Cr.",
       "projectionCaveats": [
-       "Assumes flat growth rates",
-       "Assumes no leverage",
-       "Assumes no transaction costs",
-       "Assumes no tax"
+       "Projections assume flat growth rates.",
+       "Projections assume no leverage, tax, fees or transaction costs.",
+       "Effective yield applies the scenario occupancy.",
+       "All data is synthetic and does not describe real properties, markets or transactions."
       ],
-      "overallAssessment": "The investment provides a net benefit to geographic diversification and yield, though the portfolio remains highly concentrated by asset type. All data is SYNTHETIC.",
-      "disclaimer": "ALL data is SYNTHETIC and was generated for academic illustration. This analysis does not constitute investment advice."
+      "overallAssessment": "The investment in the selected target results in a decrease in city concentration from 0.4130 to 0.3496, while asset-type concentration increases slightly from 0.6316 to 0.6588. Both metrics remain above the 0.25 benchmark, indicating that the portfolio remains concentrated in these dimensions despite the diversification effect of the new acquisition.",
+      "disclaimer": "This is an academic demonstration system and does not constitute investment advice."
      },
      "model": "gemini-3.1-flash-lite",
-     "cachedAt": "2026-10-04T11:53:01.036Z",
-     "isCached": true
+     "cachedAt": "2026-10-04T13:08:15.649Z",
+     "isCached": true,
+     "checkedBy": "agentOutputCheck.js",
+     "checkPassed": true
     },
     "orchestrator": {
      "output": {
-      "selectedTarget": "Gurugram — Cyber Hub",
-      "investmentAmount": "₹50 Cr",
-      "compositeScore": 67.71,
-      "expectedYieldPct": 7.03,
-      "evidenceBasis": "The recommendation is based on the highest-scoring segment that meets the mandatory governance floor of 30 observations and a confidence grade of C or better. While segments like Ambattur (Chennai) and Baner (Pune) achieved higher composite scores, they were bypassed due to insufficient data volume (26 observations) and lower confidence grades.",
-      "cityHHIEffect": "Improved geographic diversification, reducing city HHI from 0.413 to 0.3496.",
-      "assetTypeHHIEffect": "Increased asset type concentration, moving the type HHI from 0.6316 to 0.6588.",
-      "whyTopRanked": "The segment excels in Demand Strength (contributing 18.25 to the score) and provides a balanced risk mitigation profile, making it the most reliable choice under the current governance constraints.",
-      "importantRisks": [
-       "The dataset is entirely synthetic and does not represent real market values or transactions.",
-       "Several high-scoring market segments were excluded due to insufficient sample sizes (below 30 observations), which may limit the breadth of the analysis.",
-       "The portfolio remains highly concentrated in both city and asset type metrics, exceeding the 0.25 HHI threshold.",
-       "Projections assume flat growth rates and do not account for leverage, taxes, or transaction costs."
+      "recommendationSummary": "The selected target is Gurugram — Cyber Hub, Delhi NCR, which is the shortlist candidate.",
+      "screeningBasis": "The selected target passed the simulation-support screen with 73 simulated observations and an Assumption Support Grade B. Higher raw-score segments were excluded: Ambattur, Chennai (raw rank 1), Baner, Pune (raw rank 2), and GIFT City, Ahmedabad (raw rank 4) failed due to having only 26 simulated observations and an Assumption Support Grade D, while Noida — Sector 62, Delhi NCR (raw rank 3) failed due to an Assumption Support Grade D.",
+      "concentrationEffect": "The city HHI decreased from 0.4130 to 0.3496, while the asset-type HHI increased from 0.6316 to 0.6588.",
+      "keyStrengths": [
+       "High demand factor score of 91.27",
+       "High simulation support with 73 simulated observations",
+       "Assumption Support Grade B",
+       "Low market risk factor score of 74.00"
       ],
-      "syntheticDisclaimer": "This is an ACADEMIC DEMONSTRATION using SYNTHETIC data and is NOT investment advice.",
-      "disclaimer": "This analysis is for educational purposes only. It does not constitute financial, investment, or legal advice. All data points are simulated."
+      "importantRisks": [
+       "All data is synthetic and does not describe real properties, markets, or transactions.",
+       "Simulation support is a project governance convention for precision, not a guarantee of real-market accuracy.",
+       "External calibration remains Unverified for all segments.",
+       "The portfolio remains concentrated in city and asset-type dimensions, with HHI metrics above the 0.25 benchmark."
+      ],
+      "nextSteps": "External calibration remains unverified and further evidence collection and due diligence are required before any real decision.",
+      "disclaimer": "This is an academic demonstration system and does not constitute investment advice."
      },
      "model": "gemini-3.1-flash-lite",
-     "cachedAt": "2026-10-04T11:53:03.419Z",
-     "isCached": true
+     "cachedAt": "2026-10-04T13:08:15.652Z",
+     "isCached": true,
+     "checkedBy": "agentOutputCheck.js",
+     "checkPassed": true
     }
    }
   },
-  "e09e66a9": {
+  "abc2191a": {
    "label": "Income Focused preset",
    "preset": "incomeFocused",
+   "targetId": "MKT-024",
    "descriptor": {
     "methodologyVersion": "1.0.0",
+    "contextVersion": "2",
     "dataset": {
      "generatorVersion": "2.0.0",
      "totalObservations": 2156,
@@ -185,12 +197,14 @@
      "demandWeight": 0.2,
      "diversWeight": 0.15,
      "growthWeight": 0.1,
-     "label": null,
      "riskWeight": 0.1,
      "yieldWeight": 0.45
     },
     "investmentCr": 50,
     "selectedTargetId": "MKT-024",
+    "selectionMode": "auto",
+    "governanceOverride": false,
+    "recommendedCandidateId": "MKT-024",
     "topRanked": [
      {
       "marketId": "MKT-038",
@@ -217,114 +231,118 @@
    "agents": {
     "dataStatistical": {
      "output": {
-      "overallQuality": "fair",
-      "dataSummary": "This dataset consists of 2,156 simulated market observations across 8 cities and 3 property types. All data is SYNTHETIC and was generated for academic illustration. The portfolio exhibits a weighted yield of 6.655% across 10 assets. We utilize median and interquartile range (IQR) for dispersion analysis because they are more robust to the skewness present in capital values and yield distributions than mean and standard deviation.",
-      "sampleSizeWarnings": [
-       "Ahmedabad: both segments rest on fewer than 30 observations (smallest 26).",
-       "Chennai: 1 segment rests on fewer than 30 observations (smallest 26).",
-       "Delhi NCR: 1 segment rests on fewer than 30 observations (smallest 26).",
-       "Hyderabad: 1 segment rests on fewer than 30 observations (smallest 26).",
-       "Kolkata: all 3 segments rest on fewer than 30 observations (smallest 26).",
-       "Pune: 2 segments rest on fewer than 30 observations (smallest 26)."
+      "datasetSummary": "The market-segment dataset is a synthetic collection of 50 candidate market segments, containing 2156 simulated observations. These figures are synthetic and do not describe real properties, markets, or transactions.",
+      "simulationSupportNotes": [
+       "Across the dataset, 10 segments fall below the simulation-support screen threshold of 30 simulated observations.",
+       "The smallest number of simulated observations for any segment is 26.",
+       "Segments below the observation threshold are distributed by city as follows: Ahmedabad 2, Hyderabad 1, Pune 2, Chennai 1, Kolkata 3, and Delhi NCR 1."
       ],
       "dispersionNotes": [
-       "The portfolio-wide gross yield median is 7.90% with an IQR of 1.73%, indicating moderate spread.",
-       "Capital values show significant dispersion with a median of 10,687 and an IQR of 12,503, suggesting high variability in asset pricing.",
-       "City-level median yields vary from 7.03% in Delhi NCR to 9.45% in Ahmedabad, highlighting regional performance differences."
+       "The median of segment gross yields is 7.90%.",
+       "The range of segment gross yields spans from a minimum of 2.66% to a maximum of 9.87%."
       ],
-      "keyFindings": [
-       "The highest-scoring market (Ahmedabad, GIFT City) achieved a score of 75.4 but was bypassed for recommendation due to insufficient evidence (26 observations).",
-       "The recommended target, Aerocity (Delhi NCR), was selected because it met the 30-observation evidence floor despite a lower total score of 68.18.",
-       "Pooled portfolio yield (6.655%) differs from individual city medians (e.g., 9.45% for Ahmedabad), reflecting the impact of asset-type weighting and portfolio concentration."
+      "segmentOutlierNotes": [
+       "Segment-median outliers are defined by Tukey 1.5×IQR fences applied to segment median gross yield and capital value within cities having at least 4 segments.",
+       "In Delhi NCR, there is 1 yield outlier segment.",
+       "In Mumbai, there is 1 yield outlier segment.",
+       "In Pune, there is 1 capital value outlier segment."
       ],
-      "outlierNotes": [
-       "Yield outliers were identified in Delhi NCR and Mumbai.",
-       "A capital value outlier was detected in Pune.",
-       "Outlier detection is flagged as insufficient for Ahmedabad and Kolkata due to low observation counts."
+      "knownAnomalyNote": "There are 24 known synthetic anomalies inserted deliberately by the generator, representing a contamination of 1.113%.",
+      "caveats": [
+       "The data is SYNTHETIC; nothing here describes a real property, market or transaction.",
+       "Simulation support is not evidence; more simulated observations narrow the estimate around the project's assumed distribution but do not show that figures are true of any real market.",
+       "Thirty simulated observations is a project governance convention, not a statistical guarantee.",
+       "External calibration is Unverified for every segment."
       ],
-      "statisticalCaveats": [
-       "All data is SYNTHETIC and was generated for academic illustration.",
-       "Segments with fewer than 30 observations are considered under-powered for reliable statistical inference.",
-       "The governance model prioritizes evidence thresholds over raw scores, which may lead to the selection of lower-scoring segments."
-      ],
-      "disclaimer": "This analysis is for academic demonstration purposes only and does not constitute investment advice."
+      "disclaimer": "This is an academic demonstration system and does not constitute investment advice."
      },
      "model": "gemini-3.1-flash-lite",
-     "cachedAt": "2026-10-04T11:53:07.128Z",
-     "isCached": true
+     "cachedAt": "2026-10-04T13:08:15.653Z",
+     "isCached": true,
+     "checkedBy": "agentOutputCheck.js",
+     "checkPassed": true
     },
     "marketScreening": {
      "output": {
-      "topPickExplanation": "The recommended segment, Aerocity (Delhi NCR), was selected because it satisfied the mandatory evidence floor of 30 observations and a confidence grade of C. While it is not the highest-scoring segment in the dataset, it is the highest-scoring one that meets our rigorous governance criteria for statistical reliability.",
-      "dominantFactor": "Demand Strength",
-      "runnerUpComparison": "The highest-scoring segment (GIFT City, Ahmedabad) outperforms the recommendation primarily due to a significantly higher rental yield score. However, the runner-up is stronger on rental yield, whereas the recommendation is notably stronger on demand strength and low market risk.",
+      "candidateExplanation": "The selected target, Aerocity, Delhi NCR, achieved its score through a balanced performance across all factors, with its strongest contribution coming from rental yield at 27.06. It also benefited significantly from a high demand score of 95.24 and a low market risk score of 74.10, which together provided a robust composite score of 68.18.",
+      "dominantFactor": "rental yield",
+      "comparisonWithAlternative": "The selected target has a raw rank 8 and eligible rank 1, whereas the highest raw-score alternative, GIFT City, Ahmedabad, has a raw rank 1 but failed the simulation-support screen entirely.",
+      "screenOutcome": "The segments listed in higher raw-score exclusions failed the simulation-support screen due to insufficient simulated observations, an inadequate Assumption Support Grade, or both, as per the project governance convention requiring at least 30 simulated observations and a grade of C or better.",
       "factorInsights": [
-       "The recommendation excels in demand strength, contributing 19.05 points to its total score.",
-       "Rental yield remains the primary driver for the top-ranked segments, though the recommendation balances this with a more stable risk profile.",
-       "Diversification benefit is consistent across the top segments, providing a stable contribution to the composite score.",
-       "Rental growth scores vary significantly, with the runner-up (Chennai) showing stronger growth potential than the recommendation."
+       "The rental yield factor score for the selected target is 60.12.",
+       "The demand factor score for the selected target is 95.24.",
+       "The low market risk factor score for the selected target is 74.10.",
+       "The rental growth factor score for the selected target is 56.68.",
+       "The diversification factor score for the selected target is 60.00."
       ],
       "watchPoints": [
-       "The recommendation has a lower rental yield compared to the top-ranked segments, which may impact short-term income targets.",
-       "The governance model prioritizes data robustness over raw yield, which may result in selecting segments with more conservative growth profiles.",
-       "Future performance should be monitored against the 30-observation threshold to ensure continued statistical validity."
+       "External calibration is Unverified for the selected target.",
+       "Monitor the P10 to P90 gross yield range of 6.64% to 7.46% for future updates.",
+       "Ensure ongoing monitoring of the 75 simulated observations to maintain simulation precision."
       ],
-      "evidenceNote": "The recommended segment is not the highest-scoring one; the highest-scoring segment (GIFT City, Ahmedabad) was bypassed because it only had 26 observations and a confidence grade of D, failing to meet the required thresholds of 30 observations and grade C.",
-      "disclaimer": "All data is SYNTHETIC and was generated for academic illustration purposes only; this analysis does not constitute investment advice."
+      "disclaimer": "This is an academic demonstration system and does not constitute investment advice. The data is SYNTHETIC; nothing here describes a real property, market or transaction."
      },
      "model": "gemini-3.1-flash-lite",
-     "cachedAt": "2026-10-04T11:53:09.925Z",
-     "isCached": true
+     "cachedAt": "2026-10-04T13:08:15.656Z",
+     "isCached": true,
+     "checkedBy": "agentOutputCheck.js",
+     "checkPassed": true
     },
     "portfolioRisk": {
      "output": {
-      "cityHHIInterpretation": "The investment improves city-level diversification, with the HHI decreasing from 0.413 to 0.3496.",
-      "typeHHIInterpretation": "The investment increases asset-type concentration, with the HHI rising from 0.6316 to 0.6588.",
-      "residualConcentration": "Despite the improvement in city-level HHI, the portfolio remains concentrated in both city (0.3496) and asset type (0.6588) metrics, as both values remain above the 0.25 threshold.",
-      "yieldImpact": "The investment is projected to increase the portfolio's weighted yield from 6.655% to 6.686%.",
-      "scenarioInterpretation": "The projections indicate a marginal improvement in portfolio yield while simultaneously shifting the risk profile toward a more concentrated asset-type exposure.",
+      "cityConcentration": "The city HHI was 0.4130 before the investment and is 0.3496 after.",
+      "assetTypeConcentration": "The asset-type HHI was 0.6316 before the investment and is 0.6588 after.",
+      "residualConcentration": "After the investment, the city HHI is 0.3496 and the asset-type HHI is 0.6588.",
+      "yieldImpact": "The portfolio weighted yield was 6.655% before the investment and is 6.686% after.",
+      "scenarioInterpretation": "The three-year projections, based on assumptions of flat growth rates and no leverage, tax, fees or transaction costs, show a potential portfolio value ranging from ₹618.68 Cr in a conservative scenario to ₹772.71 Cr in an optimistic scenario, with a base scenario projection of ₹692.84 Cr.",
       "projectionCaveats": [
-       "Assumes flat growth rates",
-       "Assumes no leverage",
-       "Assumes no transaction costs",
-       "Assumes no tax impact"
+       "Flat growth rates.",
+       "No leverage, tax, fees or transaction costs.",
+       "Effective yield applies the scenario occupancy."
       ],
-      "overallAssessment": "The investment provides a modest yield enhancement and better geographic spread, but it exacerbates the existing concentration in asset types, which remains a significant structural risk.",
-      "disclaimer": "All data is SYNTHETIC and was generated for academic illustration purposes only; this analysis does not constitute investment advice."
+      "overallAssessment": "The investment in the selected target, Aerocity, Delhi NCR, results in a reduction of city concentration from 0.4130 to 0.3496, while asset-type concentration shifts from 0.6316 to 0.6588. These figures are synthetic and do not describe real properties, markets, or transactions.",
+      "disclaimer": "This is an academic demonstration system and does not constitute investment advice. The data is SYNTHETIC; nothing here describes a real property, market or transaction."
      },
      "model": "gemini-3.1-flash-lite",
-     "cachedAt": "2026-10-04T11:53:12.232Z",
-     "isCached": true
+     "cachedAt": "2026-10-04T13:08:15.657Z",
+     "isCached": true,
+     "checkedBy": "agentOutputCheck.js",
+     "checkPassed": true
     },
     "orchestrator": {
      "output": {
-      "selectedTarget": "Aerocity, Delhi NCR (MKT-024)",
-      "investmentAmount": "₹50 Cr",
-      "compositeScore": 68.18,
-      "expectedYieldPct": 6.686,
-      "evidenceBasis": "The recommendation is based on the governance requirement for a minimum of 30 observations and a confidence grade of C. While MKT-038 (GIFT City, Ahmedabad) achieved a higher composite score of 75.4, it was bypassed due to having only 26 observations and a confidence grade of D.",
-      "cityHHIEffect": "The investment improves geographic diversification, reducing the city-level HHI from 0.413 to 0.3496.",
-      "assetTypeHHIEffect": "The investment increases asset-type concentration, raising the HHI from 0.6316 to 0.6588.",
-      "whyTopRanked": "Aerocity is the highest-scoring segment that satisfies the mandatory statistical evidence floor, balancing strong demand scores with a stable risk profile.",
-      "importantRisks": [
-       "The dataset is entirely synthetic and generated for academic demonstration, meaning it does not reflect real-world market conditions.",
-       "Several high-scoring segments were excluded due to insufficient sample sizes (below 30 observations), which limits the statistical reliability of the ranking.",
-       "The portfolio remains highly concentrated in specific asset types (HHI 0.6588), exceeding the 0.25 threshold for diversification."
+      "recommendationSummary": "The selected target is Aerocity, Delhi NCR, which serves as the shortlist candidate for this exploratory model.",
+      "screeningBasis": "Aerocity, Delhi NCR passed the simulation-support screen with 75 simulated observations and an Assumption Support Grade of C. Higher raw-score segments were excluded for failing the screen: GIFT City, Ahmedabad (raw rank 1) failed on both simulated observations and Assumption Support Grade; Ambattur, Chennai (raw rank 2) failed on both; SG Highway, Ahmedabad (raw rank 3) failed on simulated observations; Salt Lake Sector V, Kolkata (raw rank 4) failed on simulated observations; Baner, Pune (raw rank 5) failed on both; Noida — Sector 62, Delhi NCR (raw rank 6) failed on Assumption Support Grade; and Park Street, Kolkata (raw rank 7) failed on both.",
+      "concentrationEffect": "The investment reduces city HHI from 0.4130 to 0.3496 and shifts asset-type HHI from 0.6316 to 0.6588.",
+      "keyStrengths": [
+       "High demand score of 95.24",
+       "Low market risk score of 74.10",
+       "Balanced performance across all factors with a composite score of 68.18"
       ],
-      "syntheticDisclaimer": "This is an ACADEMIC DEMONSTRATION using SYNTHETIC data. All figures, rankings, and projections are generated for illustrative purposes and do not represent actual market performance.",
-      "disclaimer": "This output is for academic demonstration purposes only and does not constitute investment advice."
+      "importantRisks": [
+       "The data is SYNTHETIC; nothing here describes a real property, market or transaction.",
+       "Simulation support is not evidence; 75 simulated observations narrow the estimate around the project's assumed distribution but do not show that the figures are true of any real market.",
+       "External calibration remains Unverified for the selected target.",
+       "The shortlist candidate is an exploratory model output, not an investment recommendation."
+      ],
+      "nextSteps": "External calibration remains unverified and further evidence collection and due diligence are required before any real decision.",
+      "disclaimer": "This is an academic demonstration system and does not constitute investment advice."
      },
      "model": "gemini-3.1-flash-lite",
-     "cachedAt": "2026-10-04T11:53:14.740Z",
-     "isCached": true
+     "cachedAt": "2026-10-04T13:08:15.660Z",
+     "isCached": true,
+     "checkedBy": "agentOutputCheck.js",
+     "checkPassed": true
     }
    }
   },
-  "e9da9b22": {
+  "7ba66b74": {
    "label": "Growth Focused preset",
    "preset": "growthFocused",
+   "targetId": "MKT-012",
    "descriptor": {
     "methodologyVersion": "1.0.0",
+    "contextVersion": "2",
     "dataset": {
      "generatorVersion": "2.0.0",
      "totalObservations": 2156,
@@ -340,12 +358,14 @@
      "demandWeight": 0.2,
      "diversWeight": 0.2,
      "growthWeight": 0.4,
-     "label": null,
      "riskWeight": 0.1,
      "yieldWeight": 0.1
     },
     "investmentCr": 50,
     "selectedTargetId": "MKT-012",
+    "selectionMode": "auto",
+    "governanceOverride": false,
+    "recommendedCandidateId": "MKT-012",
     "topRanked": [
      {
       "marketId": "MKT-012",
@@ -372,113 +392,120 @@
    "agents": {
     "dataStatistical": {
      "output": {
-      "overallQuality": "fair",
-      "dataSummary": "This dataset comprises 2,156 simulated market observations across 8 cities and 3 property types. All data is SYNTHETIC and was generated for academic illustration. The portfolio exhibits a median gross yield of 7.90% and a median capital value of 10,687 Cr, with an interquartile range (IQR) of 12,503 Cr for capital values, indicating significant dispersion in asset pricing.",
-      "sampleSizeWarnings": [
-       "Ahmedabad: both segments rest on fewer than 30 observations (smallest 26).",
-       "Chennai: 1 segment rests on fewer than 30 observations (smallest 26).",
-       "Delhi NCR: 1 segment rests on fewer than 30 observations (smallest 26).",
-       "Hyderabad: 1 segment rests on fewer than 30 observations (smallest 26).",
-       "Kolkata: all 3 segments rest on fewer than 30 observations (smallest 26).",
-       "Pune: 2 segments rest on fewer than 30 observations (smallest 26)."
+      "datasetSummary": "The market-segment dataset is a synthetic collection of 50 candidate market segments, containing 2156 simulated market observations. These figures are synthetic and do not describe real properties, markets, or transactions.",
+      "simulationSupportNotes": [
+       "Across the dataset, 10 segments fall below the simulation-support screen threshold of 30 simulated observations.",
+       "The smallest segment has 26 simulated observations.",
+       "By city, the counts of segments failing the observation threshold are: Ahmedabad 2, Hyderabad 1, Pune 2, Chennai 1, Kolkata 3, and Delhi NCR 1."
       ],
       "dispersionNotes": [
-       "Median and IQR are used for central tendency and spread because they are more robust to the skewness observed in capital values and yields than mean and standard deviation.",
-       "The portfolio-wide gross yield IQR is 0.0173, suggesting moderate consistency in yield performance despite the wide range of capital values."
+       "The median of segment gross yields is 7.90%.",
+       "The range of segment gross yields spans from a minimum of 2.66% to a maximum of 9.87%."
       ],
-      "keyFindings": [
-       "The highest-scoring market segment (Hyderabad, Banjara Hills) meets the evidence floor with 47 observations.",
-       "Pooled portfolio yield (6.655%) differs from the median yield of individual segments (7.898%), reflecting the impact of asset weighting and city-specific concentration.",
-       "Growth-focused metrics highlight a strong performance in annual growth across top-ranked segments, peaking at 8.3% in Chennai."
+      "segmentOutlierNotes": [
+       "Segment-median outliers are defined using Tukey 1.5×IQR fences applied to segment median gross yields and capital values within cities having at least 4 segments.",
+       "In Delhi NCR, there is 1 yield outlier segment.",
+       "In Mumbai, there is 1 yield outlier segment.",
+       "In Pune, there is 1 capital value outlier segment."
       ],
-      "outlierNotes": [
-       "Outliers were identified in Delhi NCR (yield), Mumbai (yield), and Pune (capital value).",
-       "Segments with insufficient data (Ahmedabad and Kolkata) were excluded from formal outlier detection."
+      "knownAnomalyNote": "There are 24 known synthetic anomalies inserted deliberately by the generator, representing a contamination of 1.113%.",
+      "caveats": [
+       "All data is synthetic; nothing here describes real property, markets, or transactions.",
+       "Simulation support is not evidence; more simulated observations narrow the estimate around the project's assumed distribution but do not validate the figures.",
+       "The simulation-support screen is a project governance convention, not a statistical guarantee.",
+       "External calibration is Unverified for every segment."
       ],
-      "statisticalCaveats": [
-       "All data is SYNTHETIC and generated for academic illustration; it does not represent real-world market values.",
-       "Sample size weaknesses in 6 of the 8 cities may lead to higher volatility in segment-level scoring.",
-       "This analysis is for academic demonstration purposes only and does not constitute investment advice."
-      ],
-      "disclaimer": "ALL data is SYNTHETIC and was generated for academic illustration. This analysis is not investment advice."
+      "disclaimer": "This is an academic demonstration system and does not constitute investment advice."
      },
      "model": "gemini-3.1-flash-lite",
-     "cachedAt": "2026-10-04T11:53:17.711Z",
-     "isCached": true
+     "cachedAt": "2026-10-04T13:08:15.661Z",
+     "isCached": true,
+     "checkedBy": "agentOutputCheck.js",
+     "checkPassed": true
     },
     "marketScreening": {
      "output": {
-      "topPickExplanation": "The Residential segment in Banjara Hills, Hyderabad, is the top-ranked recommendation with a composite score of 77.36. It achieved this position primarily by maximizing the demand strength factor, which contributed 20 points to the total score, and by providing strong growth and diversification benefits within the growth-focused weighting model.",
-      "dominantFactor": "Demand Strength",
-      "runnerUpComparison": "The runner-up, Residential in New Town (Rajarhat), Kolkata, scored 73.52. While it trails the top pick, it is stronger in the rental yield factor, contributing 2.58 points compared to the top pick's 0 points in that category.",
+      "candidateExplanation": "Banjara Hills, Hyderabad achieved a raw rank 1 and eligible rank 1 due to its high performance in growth and demand factors. It contributes 33.77 to the composite score through rental growth, 20.00 through demand, and 17.25 through diversification, reflecting a strong alignment with the growth-focused preset.",
+      "dominantFactor": "rental growth",
+      "comparisonWithAlternative": "Banjara Hills, Hyderabad is the selected target with a raw rank 1, whereas the next eligible candidate, Gurugram — Cyber Hub, Delhi NCR, holds a raw rank 8 and an eligible rank 2.",
+      "screenOutcome": "There are no segments with a higher raw rank than the selected target, as it is the highest raw-score market.",
       "factorInsights": [
-       "Rental yield was heavily de-prioritized in this growth-focused model, resulting in a 0 contribution for the top pick.",
-       "Rental growth remains a primary driver, with the top pick contributing 33.77 points from this factor.",
-       "Diversification benefit provided a solid 17.25 points to the top pick's score by improving the portfolio's city and asset type HHI.",
-       "Low market risk contributed 6.35 points to the top pick, reflecting its relative stability in the current simulation."
+       "The selected target shows a rental growth factor score of 84.42.",
+       "The demand factor score for the selected target is 100.00.",
+       "The diversification factor score for the selected target is 86.24.",
+       "The next eligible candidate exhibits a rental yield factor score of 60.55."
       ],
       "watchPoints": [
-       "The top pick has a low gross yield of 2.66%, which may impact short-term cash flow despite high growth potential.",
-       "Sample size warnings exist for several cities, including Hyderabad, which may introduce volatility in future scoring.",
-       "The simulation shows a reduction in portfolio weighted yield from 6.655% to 6.292% upon adding this asset."
+       "External calibration is Unverified for all segments.",
+       "The simulation-support screen is a project governance convention, not a statistical guarantee.",
+       "Monitor the impact of the selected target on portfolio concentration, as the city HHI is projected to shift from 0.4130 to 0.3595."
       ],
-      "evidenceNote": "The recommended segment (MKT-012) is the highest-scoring segment and meets the evidence floor with 47 observations and a confidence grade of C.",
-      "disclaimer": "ALL data is SYNTHETIC and was generated for academic illustration. This analysis is not investment advice."
+      "disclaimer": "This is an academic demonstration system and does not constitute investment advice. All data is synthetic; nothing here describes real property, markets, or transactions."
      },
      "model": "gemini-3.1-flash-lite",
-     "cachedAt": "2026-10-04T11:53:22.539Z",
-     "isCached": true
+     "cachedAt": "2026-10-04T13:08:15.663Z",
+     "isCached": true,
+     "checkedBy": "agentOutputCheck.js",
+     "checkPassed": true
     },
     "portfolioRisk": {
      "output": {
-      "cityHHIInterpretation": "The investment improves city-level diversification, reducing the HHI from 0.413 to 0.3595.",
-      "typeHHIInterpretation": "The investment improves asset-type diversification, reducing the HHI from 0.6316 to 0.5438.",
-      "residualConcentration": "Despite the improvements, the portfolio remains concentrated in both city (0.3595) and asset type (0.5438) metrics, as both remain above the 0.25 threshold.",
-      "yieldImpact": "The investment results in a reduction of the weighted yield from 6.655% to 6.292%.",
-      "scenarioInterpretation": "The projections assume flat growth rates, no leverage, no transaction costs, and no tax. They show that while the portfolio gains exposure to high-growth potential, it sacrifices immediate cash flow yield to achieve better geographic and asset-class distribution.",
+      "cityConcentration": "The city HHI shifts from 0.4130 before the investment to 0.3595 after.",
+      "assetTypeConcentration": "The asset-type HHI shifts from 0.6316 before the investment to 0.5438 after.",
+      "residualConcentration": "Following the investment, the city HHI remains at 0.3595 and the asset-type HHI remains at 0.5438.",
+      "yieldImpact": "The portfolio weighted yield changes from 6.655% before the investment to 6.292% after.",
+      "scenarioInterpretation": "The three-year projections, assuming flat growth rates and no leverage, tax, fees or transaction costs, show a range of outcomes. In the conservative scenario, the portfolio value reaches ₹618.68 Cr with an annual rent of ₹37.82 Cr. The base scenario projects a portfolio value of ₹692.84 Cr with an annual rent of ₹41.22 Cr. The optimistic scenario indicates a portfolio value of ₹772.71 Cr with an annual rent of ₹46.06 Cr.",
       "projectionCaveats": [
-       "Assumes flat growth rates",
-       "Excludes leverage",
-       "Excludes transaction costs",
-       "Excludes tax implications"
+       "All data is synthetic; nothing here describes real property, markets, or transactions.",
+       "Projections assume flat growth rates.",
+       "Projections assume no leverage, tax, fees or transaction costs.",
+       "Simulation support is not evidence; more simulated observations narrow the estimate around the project's assumed distribution but do not validate the figures.",
+       "The simulation-support screen is a project governance convention, not a statistical guarantee.",
+       "External calibration is Unverified for every segment."
       ],
-      "overallAssessment": "The investment successfully moves the portfolio toward a more diversified state, though it remains concentrated. The trade-off involves accepting lower current yield in exchange for higher growth and improved risk distribution.",
-      "disclaimer": "ALL data is SYNTHETIC and was generated for academic illustration. This analysis is not investment advice."
+      "overallAssessment": "The investment in the selected target, Banjara Hills, Hyderabad, results in a reduction of both city and asset-type concentration, moving the portfolio toward a more diversified state, although both metrics remain above the 0.25 benchmark for concentration.",
+      "disclaimer": "This is an academic demonstration system and does not constitute investment advice."
      },
      "model": "gemini-3.1-flash-lite",
-     "cachedAt": "2026-10-04T11:53:24.978Z",
-     "isCached": true
+     "cachedAt": "2026-10-04T13:08:15.665Z",
+     "isCached": true,
+     "checkedBy": "agentOutputCheck.js",
+     "checkPassed": true
     },
     "orchestrator": {
      "output": {
-      "selectedTarget": "MKT-012 (Residential, Banjara Hills, Hyderabad)",
-      "investmentAmount": "₹50 Cr",
-      "compositeScore": 77.36,
-      "expectedYieldPct": 2.66,
-      "evidenceBasis": "The selected target is the highest-scoring segment and meets the required evidence floor of 30 observations with a confidence grade of C (47 observations total).",
-      "cityHHIEffect": "Reduces portfolio city HHI from 0.413 to 0.3595, improving geographic diversification.",
-      "assetTypeHHIEffect": "Reduces portfolio asset-type HHI from 0.6316 to 0.5438, improving asset-class distribution.",
-      "whyTopRanked": "The segment maximizes the demand strength factor (contributing 20 points) and aligns with the growth-focused weighting model by providing strong annual growth and diversification benefits.",
-      "importantRisks": [
-       "The dataset is entirely synthetic and does not represent real-world market values.",
-       "Sample size limitations exist in 6 of 8 cities, which may introduce volatility in segment-level scoring.",
-       "The investment results in a reduction of the portfolio's weighted yield from 6.655% to 6.292%.",
-       "The portfolio remains concentrated in both city and asset type metrics, as both HHI figures remain above the 0.25 threshold."
+      "recommendationSummary": "The selected target is Banjara Hills, Hyderabad, which serves as the shortlist candidate.",
+      "screeningBasis": "Banjara Hills, Hyderabad achieved raw rank 1 and eligible rank 1. No other segments were excluded for having a higher raw score because it is the highest raw-score market. Other segments with lower raw scores were excluded from the eligible list for failing the simulation-support screen: New Town (Rajarhat), Kolkata, Ambattur, Chennai, and Baner, Pune failed on both simulated observations and Assumption Support Grade, while Yelahanka, Bengaluru failed on Assumption Support Grade.",
+      "concentrationEffect": "The investment shifts the city HHI from 0.4130 to 0.3595 and the asset-type HHI from 0.6316 to 0.5438.",
+      "keyStrengths": [
+       "Highest raw rank 1 among all 50 candidate segments.",
+       "Strong performance in rental growth with a factor score of 84.42.",
+       "Exceptional demand factor score of 100.00.",
+       "Diversification factor score of 86.24."
       ],
-      "syntheticDisclaimer": "This is an ACADEMIC DEMONSTRATION using SYNTHETIC data. It does not represent real market values or actual investment opportunities.",
-      "disclaimer": "This analysis is for academic demonstration purposes only and does not constitute investment advice."
+      "importantRisks": [
+       "All data is synthetic; nothing here describes real property, markets, or transactions.",
+       "The simulation-support screen is a project governance convention, not a statistical guarantee; simulation support is not evidence.",
+       "External calibration remains Unverified for all segments."
+      ],
+      "nextSteps": "External calibration remains unverified and further evidence collection and due diligence are required before any real decision.",
+      "disclaimer": "This is an academic demonstration system and does not constitute investment advice."
      },
      "model": "gemini-3.1-flash-lite",
-     "cachedAt": "2026-10-04T11:53:28.980Z",
-     "isCached": true
+     "cachedAt": "2026-10-04T13:08:33.218Z",
+     "isCached": true,
+     "checkedBy": "agentOutputCheck.js",
+     "checkPassed": true
     }
    }
   },
-  "5218d44f": {
+  "f7884bb9": {
    "label": "Diversification Focused preset",
    "preset": "diversFocused",
+   "targetId": "MKT-012",
    "descriptor": {
     "methodologyVersion": "1.0.0",
+    "contextVersion": "2",
     "dataset": {
      "generatorVersion": "2.0.0",
      "totalObservations": 2156,
@@ -494,12 +521,14 @@
      "demandWeight": 0.15,
      "diversWeight": 0.45,
      "growthWeight": 0.15,
-     "label": null,
      "riskWeight": 0.1,
      "yieldWeight": 0.15
     },
     "investmentCr": 50,
     "selectedTargetId": "MKT-012",
+    "selectionMode": "auto",
+    "governanceOverride": false,
+    "recommendedCandidateId": "MKT-012",
     "topRanked": [
      {
       "marketId": "MKT-049",
@@ -526,108 +555,107 @@
    "agents": {
     "dataStatistical": {
      "output": {
-      "overallQuality": "fair",
-      "dataSummary": "This dataset contains 2,156 simulated market observations across 8 cities and 3 asset types. All data is SYNTHETIC and was generated for academic illustration. The portfolio exhibits a median gross yield of 7.9% with an interquartile range (IQR) of 1.73%. We prioritize median and IQR over mean and standard deviation because the distribution of capital values and yields is skewed, making the median a more robust measure of central tendency and the IQR a more reliable indicator of dispersion that is less sensitive to extreme values.",
-      "sampleSizeWarnings": [
-       "Ahmedabad: all 2 segments rest on fewer than 30 observations (smallest 26).",
-       "Chennai: 1 segment rests on fewer than 30 observations (smallest 26).",
-       "Delhi NCR: 1 segment rests on fewer than 30 observations (smallest 26).",
-       "Hyderabad: 1 segment rests on fewer than 30 observations (smallest 26).",
-       "Kolkata: all 3 segments rest on fewer than 30 observations (smallest 26).",
-       "Pune: 2 segments rest on fewer than 30 observations (smallest 26)."
+      "datasetSummary": "The market-segment dataset is a synthetic collection of 50 candidate market segments, containing 2156 simulated market observations. It is an academic demonstration and does not describe real properties, markets, or transactions.",
+      "simulationSupportNotes": [
+       "There are 10 segments that fall below the simulation-support screen threshold of 30 simulated observations.",
+       "The distribution of these segments by city is: Ahmedabad 2, Hyderabad 1, Pune 2, Chennai 1, Kolkata 3, and Delhi NCR 1.",
+       "The smallest number of simulated observations for any segment is 26."
       ],
       "dispersionNotes": [
-       "The portfolio-wide median capital value is 10,687 with an IQR of 12,503, indicating significant spread in asset pricing.",
-       "Yield dispersion is tighter, with a portfolio-wide median of 7.9% and an IQR of 1.73%.",
-       "City-level median yields vary from 7.03% in Delhi NCR to 9.45% in Ahmedabad, suggesting localized market variance."
+       "The median of segment gross yields is 7.90%.",
+       "The range of segment gross yields across the dataset is 2.66% to 9.87%."
       ],
-      "keyFindings": [
-       "The highest-scoring segment (Kolkata, New Town) was bypassed for recommendation due to insufficient evidence (26 observations).",
-       "The recommended segment (Hyderabad, Banjara Hills) provides a balanced profile with a 72.82 total score and meets the minimum evidence threshold of 30 observations.",
-       "Pooled portfolio yield (6.655%) differs from individual city medians (e.g., 7.83% in Hyderabad) due to the weighting of specific assets within the portfolio versus the broader market segments."
+      "segmentOutlierNotes": [
+       "Segment-median outliers are defined by Tukey 1.5×IQR fences applied to segment median gross yield and capital value within cities having at least 4 segments.",
+       "Outliers were identified in Delhi NCR (1 yield outlier), Mumbai (1 yield outlier), and Pune (1 capital value outlier)."
       ],
-      "outlierNotes": [
-       "Yield outliers were identified in Delhi NCR and Mumbai.",
-       "A capital value outlier was identified in Pune.",
-       "Outlier detection is flagged as insufficient for Ahmedabad and Kolkata due to low observation counts."
+      "knownAnomalyNote": "There are 24 known synthetic anomalies inserted deliberately by the generator, representing a contamination of 1.113%.",
+      "caveats": [
+       "The data is SYNTHETIC and does not describe real properties, markets, or transactions.",
+       "Simulation support is not evidence; it is a project governance convention to narrow the estimate around an assumed distribution.",
+       "External calibration is Unverified for every segment.",
+       "Thirty simulated observations is a project governance convention, not a statistical guarantee."
       ],
-      "statisticalCaveats": [
-       "All data is SYNTHETIC and was generated for academic illustration.",
-       "Segments with fewer than 30 observations are considered under-powered, which may lead to unreliable statistical inferences for those specific localities.",
-       "The recommendation engine applies an evidence floor that may prioritize segments with higher observation counts over those with higher raw scores."
-      ],
-      "disclaimer": "This analysis is for academic demonstration purposes only and does not constitute investment advice."
+      "disclaimer": "This is an academic demonstration system and does not constitute investment advice."
      },
      "model": "gemini-3.1-flash-lite",
-     "cachedAt": "2026-10-04T11:53:32.454Z",
-     "isCached": true
+     "cachedAt": "2026-10-04T13:08:33.223Z",
+     "isCached": true,
+     "checkedBy": "agentOutputCheck.js",
+     "checkPassed": true
     },
     "marketScreening": {
      "output": {
-      "topPickExplanation": "The recommended segment, Banjara Hills (Hyderabad), achieved a composite score of 72.82. It was selected because it provides a strong balance across the five factors while meeting the mandatory evidence threshold of 30 observations, unlike the higher-scoring Kolkata segment which failed the evidence test.",
-      "dominantFactor": "Diversification benefit",
-      "runnerUpComparison": "The runner-up, T Nagar (Chennai), is stronger on the rental yield factor, contributing 8.87 to its score compared to 0 for the recommended segment, though it falls behind in overall composite attractiveness.",
+      "candidateExplanation": "The selected target, Banjara Hills, Hyderabad, achieved its score through a strong emphasis on diversification and demand. It holds a raw rank 2 and an eligible rank 1. Its composite score of 72.82 reflects high factor scores in demand (100.00), diversification (86.24), and rental growth (84.42), which effectively offset its lower rental yield contribution.",
+      "dominantFactor": "diversification",
+      "comparisonWithAlternative": "The selected target is compared to New Town (Rajarhat), Kolkata, which is the highest raw-score alternative. While the alternative has a higher composite score of 73.32, it failed the simulation-support screen, whereas the selected target passed with 47 simulated observations and an Assumption Support Grade of C.",
+      "screenOutcome": "The segment New Town (Rajarhat), Kolkata, which held raw rank 1, was excluded because it had only 26 simulated observations (screen requires 30) and an Assumption Support Grade D (screen requires C or better), failing the simulation-support screen on both counts.",
       "factorInsights": [
-       "Rental yield: The recommended segment shows a yield contribution of 0, reflecting its focus on growth and demand over immediate income.",
-       "Rental growth: This is a key driver for the recommendation, contributing 12.66 to the total score.",
-       "Diversification benefit: This factor provided the largest contribution to the score (38.81), aligning with the Diversification Focused preset.",
-       "Demand strength: Contributed 15.0 to the score, reflecting high market interest in the Banjara Hills locality.",
-       "Low market risk: Contributed 6.35 to the score, indicating moderate stability."
+       "The selected target's rental yield factor score is 0.00.",
+       "The selected target's rental growth factor score is 84.42.",
+       "The selected target's diversification factor score is 86.24.",
+       "The selected target's demand factor score is 100.00.",
+       "The selected target's low market risk factor score is 63.50."
       ],
       "watchPoints": [
-       "The recommended segment has a low gross yield of 2.66%, which may impact short-term cash flow.",
-       "The segment relies heavily on growth and demand metrics rather than yield.",
-       "The portfolio-wide weighted yield is projected to decrease slightly from 6.655% to 6.292% following this investment."
+       "External calibration is Unverified for all segments; further due diligence is required.",
+       "The simulation-support screen is a project governance convention, not a statistical guarantee of real-market accuracy.",
+       "Monitor the concentration metrics, as the city HHI changed by -0.0535 and asset type HHI by -0.0878 following this selection."
       ],
-      "evidenceNote": "The Kolkata segment (MKT-049) scored higher (73.32) but was not recommended because it only had 26 observations, falling below the required floor of 30 and the minimum confidence grade of C.",
-      "disclaimer": "ALL data is SYNTHETIC and generated for academic demonstration purposes only; this does not constitute investment advice."
+      "disclaimer": "This is an academic demonstration system and does not constitute investment advice. The data is SYNTHETIC and does not describe real properties, markets, or transactions."
      },
      "model": "gemini-3.1-flash-lite",
-     "cachedAt": "2026-10-04T11:53:37.575Z",
-     "isCached": true
+     "cachedAt": "2026-10-04T13:08:33.229Z",
+     "isCached": true,
+     "checkedBy": "agentOutputCheck.js",
+     "checkPassed": true
     },
     "portfolioRisk": {
      "output": {
-      "cityHHIInterpretation": "The investment in Hyderabad (Banjara Hills) improves the city-level HHI from 0.413 to 0.3595, moving the portfolio toward a less concentrated state, though it remains in the concentrated category.",
-      "typeHHIInterpretation": "The asset type HHI improves from 0.6316 to 0.5438, reflecting a reduction in concentration, though the portfolio remains highly concentrated by property type.",
-      "residualConcentration": "Despite the improvements, both city (0.3595) and asset type (0.5438) HHI metrics remain above the 0.25 threshold, indicating that the portfolio remains concentrated in specific geographies and property types.",
-      "yieldImpact": "The portfolio's weighted yield is projected to decrease from 6.655% to 6.292% as a result of this investment.",
-      "scenarioInterpretation": "The projections show that the investment prioritizes growth and demand over immediate income, resulting in a lower overall portfolio yield while successfully improving the diversification profile.",
+      "cityConcentration": "The city HHI was 0.4130 before the investment and is 0.3595 after.",
+      "assetTypeConcentration": "The asset-type HHI was 0.6316 before the investment and is 0.5438 after.",
+      "residualConcentration": "Following the investment, the city HHI is 0.3595 and the asset-type HHI is 0.5438.",
+      "yieldImpact": "The portfolio weighted yield was 6.655% before the investment and is 6.292% after.",
+      "scenarioInterpretation": "The three-year projections show that under flat growth, no leverage, tax, fees or transaction costs, the portfolio value is projected to reach ₹618.68 Cr in the conservative scenario, ₹692.84 Cr in the base scenario, and ₹772.71 Cr in the optimistic scenario.",
       "projectionCaveats": [
-       "Assumes flat growth rates",
-       "Assumes no leverage",
-       "Assumes no transaction costs",
-       "Assumes no tax implications"
+       "The data is SYNTHETIC and does not describe real properties, markets, or transactions.",
+       "Projections assume flat growth rates.",
+       "Projections assume no leverage, tax, fees or transaction costs.",
+       "Effective yield applies the scenario occupancy."
       ],
-      "overallAssessment": "The investment provides a meaningful improvement in diversification, reducing both city and asset type concentration, though the portfolio remains concentrated. The trade-off is a reduction in the aggregate portfolio yield.",
-      "disclaimer": "ALL data is SYNTHETIC and generated for academic demonstration purposes only; this does not constitute investment advice."
+      "overallAssessment": "The investment in the selected target contributes to a reduction in portfolio concentration, as evidenced by the decrease in both city HHI and asset-type HHI. This shift reflects a move toward a more diversified portfolio structure within the parameters of this academic demonstration.",
+      "disclaimer": "This is an academic demonstration system and does not constitute investment advice. The data is SYNTHETIC and does not describe real properties, markets, or transactions."
      },
      "model": "gemini-3.1-flash-lite",
-     "cachedAt": "2026-10-04T11:53:41.145Z",
-     "isCached": true
+     "cachedAt": "2026-10-04T13:08:33.233Z",
+     "isCached": true,
+     "checkedBy": "agentOutputCheck.js",
+     "checkPassed": true
     },
     "orchestrator": {
      "output": {
-      "selectedTarget": "Banjara Hills, Hyderabad (MKT-012)",
-      "investmentAmount": "₹50 Cr",
-      "compositeScore": 72.82,
-      "expectedYieldPct": 6.292,
-      "evidenceBasis": "The segment MKT-049 (Kolkata) achieved a higher composite score of 73.32 but was excluded due to failing the evidence floor (26 observations vs 30 required). MKT-012 was selected as the highest-scoring segment that met the minimum confidence grade of C and the 30-observation threshold.",
-      "cityHHIEffect": "The city-level HHI improves from 0.413 to 0.3595, indicating a reduction in geographic concentration.",
-      "assetTypeHHIEffect": "The asset-type HHI improves from 0.6316 to 0.5438, indicating a reduction in property-type concentration.",
-      "whyTopRanked": "The segment provides a strong balance across the five weighted factors, with a primary contribution from diversification benefits (38.81) and demand strength (15.0), aligning with the Diversification Focused investment strategy.",
-      "importantRisks": [
-       "The dataset is entirely synthetic and does not represent real market conditions, transactions, or property values.",
-       "Several segments, including those in Kolkata and Ahmedabad, suffer from low observation counts, which may lead to unreliable statistical inferences.",
-       "The recommended segment has a low gross yield of 2.66%, which may negatively impact short-term cash flow.",
-       "The portfolio remains concentrated in specific geographies and property types even after the proposed investment."
+      "recommendationSummary": "The selected target is Banjara Hills, Hyderabad, which is the shortlist candidate.",
+      "screeningBasis": "Banjara Hills, Hyderabad was selected because it passed the simulation-support screen with 47 simulated observations and an Assumption Support Grade of C. The highest raw-score market, New Town (Rajarhat), Kolkata, was excluded because it had only 26 simulated observations (screen requires 30) and an Assumption Support Grade D (screen requires C or better), failing the screen on both counts.",
+      "concentrationEffect": "The investment reduces portfolio concentration, with the city HHI decreasing from 0.4130 to 0.3595 and the asset-type HHI decreasing from 0.6316 to 0.5438.",
+      "keyStrengths": [
+       "High demand factor score of 100.00",
+       "Strong diversification factor score of 86.24",
+       "High rental growth factor score of 84.42",
+       "Passes the simulation-support screen with 47 simulated observations"
       ],
-      "syntheticDisclaimer": "This is an ACADEMIC DEMONSTRATION on SYNTHETIC data and is NOT investment advice.",
-      "disclaimer": "This analysis is for academic demonstration purposes only and does not constitute investment advice. All projections assume flat growth rates and do not account for taxes, leverage, or transaction costs."
+      "importantRisks": [
+       "The data is SYNTHETIC and does not describe real properties, markets, or transactions.",
+       "Simulation support is not evidence; it is a project governance convention to narrow the estimate around an assumed distribution.",
+       "External calibration is Unverified for every segment."
+      ],
+      "nextSteps": "External calibration remains unverified and further evidence collection and due diligence are required before any real decision.",
+      "disclaimer": "This is an academic demonstration system and does not constitute investment advice."
      },
      "model": "gemini-3.1-flash-lite",
-     "cachedAt": "2026-10-04T11:53:43.313Z",
-     "isCached": true
+     "cachedAt": "2026-10-04T13:08:33.237Z",
+     "isCached": true,
+     "checkedBy": "agentOutputCheck.js",
+     "checkPassed": true
     }
    }
   }

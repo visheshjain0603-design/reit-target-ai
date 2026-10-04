@@ -304,9 +304,9 @@
 
     var strip = el("div", "reit-output-stats");
     [
-      ["Observations", fmtInt(stats.totalObservations)],
+      ["Simulated Market Observations", fmtInt(stats.totalObservations)],
       ["Variables Analysed", String((stats.variables || []).length)],
-      ["Known Anomalies", fmtInt(gt.planted) + " (" + fmt(gt.contaminationPct, 2) + "%)"],
+      ["Known Synthetic Anomalies", fmtInt(gt.planted) + " (" + fmt(gt.contaminationPct, 2) + "%)"],
       ["Generator Seed", String(stats.seed)]
     ].forEach(function (p) {
       var box = el("div", "reit-output-stat");
@@ -327,8 +327,10 @@
 
     s.appendChild(interpretation(
       fmtInt((ss.belowThreshold || []).length) + " of " + fmtInt(ss.totalMarkets) + " market segments hold " +
-      "fewer than " + fmtInt(ss.threshold) + " observations, so their estimates are less precise than the rest. " +
-      "The " + fmtInt(gt.planted) + " known anomalies were introduced deliberately by the generator and their " +
+      "fewer than " + fmtInt(ss.threshold) + " simulated observations, so their medians are less precise around " +
+      "the assumed distribution than the rest. More draws improve that precision; they do not make any figure " +
+      "more accurate about a real market. " +
+      "The " + fmtInt(gt.planted) + " known synthetic anomalies were introduced deliberately by the generator and their " +
       "identities held in a separate file, which is what makes the detector scoring further down measurable " +
       "rather than asserted.", stats.totalObservations));
 
@@ -610,7 +612,8 @@
 
     var defn = el("p", "reit-note");
     defn.appendChild(document.createTextNode("The generator introduced " + fmtInt(gt.planted) +
-      " anomalies and recorded which records they were in a separate file the detectors never read. "));
+      " known synthetic anomalies and recorded which simulated observations they were in a separate file the " +
+      "detectors never read. "));
     defn.appendChild(term("Precision", DEFINITIONS.precision));
     defn.appendChild(document.createTextNode(" and "));
     defn.appendChild(term("recall", DEFINITIONS.recall));
@@ -639,7 +642,12 @@
                    fmt(sc.precision, 3), fmt(sc.recall, 3), fmt(sc.f1, 3)],
           best && best.key === k ? "reit-row-best" : null);
     });
-    s.appendChild(t.wrap);
+    /* The full detector table (including the Mahalanobis variants) is
+     * advanced material: collapsed by default, with the headline result
+     * stated in the interpretation below it. */
+    s.appendChild(expandable("Show every detector's precision, recall and F1 (including Mahalanobis)", function () {
+      return t.wrap;
+    }));
 
     var pooled = (od.detectors.tukeyPooled || {}).score;
     var strat  = (od.detectors.tukeyStratified || {}).score;
@@ -680,13 +688,25 @@
         "methods behave correctly on data with known structure, not that they would perform so on real data.",
       "Statistical detectability and business materiality are different things. With samples this large, " +
         "weak associations become statistically visible while still explaining very little.",
-      "Market-segment estimates rest on between 26 and 76 observations each. Segments at the lower end carry " +
-        "materially wider uncertainty, flagged throughout.",
-      "Calibration of the generator is partly unverified against its cited sources. See the source " +
+      "Market-segment estimates rest on between " + obsRange()[0] + " and " +
+        obsRange()[1] + " simulated observations each. Segments at the lower end " +
+        "have wider simulated spreads around their assumptions, flagged throughout — a statement about " +
+        "simulation precision, not about market evidence.",
+      "External calibration of the generator is Unverified: none of its cited source documents was located and " +
+        "no figure was traced. See the source " +
         "verification report for current status."
     ].forEach(function (t) { ul.appendChild(el("li", null, t)); });
     s.appendChild(ul);
     return s;
+  }
+
+  /* Smallest and largest simulated-observation counts, from the data — never typed. */
+  function obsRange() {
+    var d = (typeof AnalysisRun !== "undefined" && AnalysisRun.data && AnalysisRun.data()) || null;
+    var ms = d && d.marketsDoc ? d.marketsDoc.markets : [];
+    if (!ms.length) { return ["—", "—"]; }
+    var n = ms.map(function (m) { return m.observationCount || 0; });
+    return [fmtInt(Math.min.apply(null, n)), fmtInt(Math.max.apply(null, n))];
   }
 
   // ─── Scatter with per-class fits ──────────────────────────────────────────
@@ -888,9 +908,12 @@
     if (loading) { return; }
     loading = true;
     build(container);
-    fetch(DATA_URL, { cache: "no-store" })
-      .then(function (r) { if (!r.ok) { throw new Error("HTTP " + r.status); } return r.json(); })
-      .then(function (j) { stats = j; loading = false; build(container); })
+    Promise.all([
+      fetch(DATA_URL, { cache: "no-store" })
+        .then(function (r) { if (!r.ok) { throw new Error("HTTP " + r.status); } return r.json(); }),
+      (typeof AnalysisRun !== "undefined" ? AnalysisRun.ready().catch(function () { return null; }) : null)
+    ])
+      .then(function (res) { stats = res[0]; loading = false; build(container); })
       .catch(function (e) { loadError = e.message || String(e); loading = false; build(container); });
   }
 
