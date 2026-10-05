@@ -1,0 +1,23 @@
+{
+ "what": "Stored commentary appears only for an exactly matching configuration and disappears when an input changes (static mode)",
+ "date": "2026-10-05",
+ "browser": "WebKit (WKWebView, macOS 15.5)",
+ "served": "python3 -m http.server equivalent on port 8778 (static mode, proxy not contacted)",
+ "script": "tests/browser/staleCommentaryTest.js",
+ "results": {
+  "buttonAtDefault": "Show Pre-generated Analysis",
+  "atDefault": [
+   "STORED-LABELLED",
+   "STORED-LABELLED",
+   "STORED-LABELLED",
+   "STORED-LABELLED"
+  ],
+  "keyShown": "d881ea78",
+  "cardsAfterChange": 0,
+  "publishedAfterChange": null,
+  "currentKey": "d2a69bbf",
+  "buttonAfterChange": "Run Agent Analysis | disabled=true",
+  "messageAfterChange": "differs from the stored analysis by: investment amount.",
+  "reportAfterChange": "No agent commentary for this run."
+ }
+}

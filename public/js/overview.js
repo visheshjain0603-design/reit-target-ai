@@ -5,6 +5,7 @@
  * Answers four questions in order, before any detail:
  *
  *   1. What is this, and what is the data?        (canonical facts)
+ *      Who is it for, and what does it help them do? (AppMeta.CUSTOMER)
  *   2. What does the current analysis show?       (the shared run)
  *   3. Where do I look next?                      (the route map)
  *   4. What must I not do with it?                (the limits)
@@ -127,6 +128,7 @@
 
     root.innerHTML = "";
     root.appendChild(buildWhatThisIs());
+    root.appendChild(buildCustomer());
     root.appendChild(buildCurrentRun(AnalysisRun.current()));
     root.appendChild(buildRouteMap());
     root.appendChild(buildLimits());
@@ -165,6 +167,58 @@
     prov.appendChild(link("docs/CANONICAL_FACTS.md", AppMeta.docUrl("docs/CANONICAL_FACTS.md"), true));
     prov.appendChild(document.createTextNode(" in the repository."));
     s.appendChild(prov);
+    return s;
+  }
+
+  // ─── 1b. Who it is for ─────────────────────────────────────────────────────
+
+  /* The customer, the business problem and the six use cases, read from
+   * AppMeta.CUSTOMER — the same words the README and the report carry in a
+   * generated block. Each use case links to the pages where it is done. */
+  var PAGE_NAMES = {
+    overview: "Overview", portfolio: "Portfolio", screener: "Market Screener",
+    diversification: "Diversification", agents: "Agent Output", report: "Decision Report"
+  };
+
+  function buildCustomer() {
+    var C = AppMeta.CUSTOMER;
+    var s = section("Who it is for", null, "ov-customer", "customer");
+
+    var grid = el("div", "reit-ov-customer");
+    var dl = el("dl", "reit-ov-customer-facts");
+    dl.appendChild(el("dt", null, "Primary user"));
+    dl.appendChild(el("dd", null, C.primaryUser));
+    dl.appendChild(el("dt", null, "Business problem"));
+    dl.appendChild(el("dd", null, C.businessProblem));
+    grid.appendChild(dl);
+
+    var uc = el("div", "reit-ov-usecases");
+    var h = el("h3", null, "Core use cases");
+    h.id = "ov-usecases-heading";
+    uc.appendChild(h);
+    var ol = el("ol", "reit-ov-usecase-list");
+    ol.setAttribute("aria-labelledby", h.id);
+    C.useCases.forEach(function (u) {
+      var li = el("li");
+      li.appendChild(el("span", "reit-ov-usecase-text", u.text));
+      var where = el("span", "reit-ov-usecase-pages");
+      u.pages.forEach(function (p, i) {
+        if (i > 0) { where.appendChild(document.createTextNode(", ")); }
+        if (p === "agents" && !AppMeta.agentsAvailable()) {
+          where.appendChild(el("span", null, PAGE_NAMES[p] + " (local copy only)"));
+          return;
+        }
+        var a = el("a", null, PAGE_NAMES[p] || p);
+        a.href = "#" + p;
+        where.appendChild(a);
+      });
+      li.appendChild(where);
+      ol.appendChild(li);
+    });
+    uc.appendChild(ol);
+    grid.appendChild(uc);
+
+    s.appendChild(grid);
     return s;
   }
 
@@ -392,15 +446,21 @@
        "distributions, stratified correlation, regression and known-anomaly detection."],
       ["agents", "Agent Output",
        view.counts.agentCount + " Gemini agents interpreting the selected target's figures, plus the " +
-       "deterministic checks that gate the Orchestrator."],
+       "deterministic checks that gate the Orchestrator." +
+       (AppMeta.agentsAvailable() ? "" : " Available on a local copy only; this public site shows the deterministic analysis.")],
       ["datacentre", "Data Centre",
        "Holdings, segment aggregates, the simulated observations, the source register and data quality."],
       ["report", "Decision Report",
        "The whole chain in one printable document."]
     ].forEach(function (r) {
       var li = document.createElement("li");
-      var a = el("a", "reit-ov-route-link", r[1]);
-      a.href = "#" + r[0];
+      var a;
+      if (r[0] === "agents" && !AppMeta.agentsAvailable()) {
+        a = el("span", "reit-ov-route-link", r[1] + " (local copy only)");
+      } else {
+        a = el("a", "reit-ov-route-link", r[1]);
+        a.href = "#" + r[0];
+      }
       li.appendChild(a);
       li.appendChild(el("span", "reit-ov-route-desc", r[2]));
       list.appendChild(li);

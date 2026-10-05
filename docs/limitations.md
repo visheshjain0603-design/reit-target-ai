@@ -6,36 +6,53 @@
 This document states what the project cannot establish, and why. It is meant to
 be read alongside every result the application shows.
 
-The application carries a fixed list of ten limitations in
-`public/js/validator.js` (`LIMITATIONS`). The list is shown on the Agent Output
-page under "Stated limitations of this analysis", passed to the Investment
-Orchestrator, and does not depend on any model or network call. Each item is
-expanded below, together with limitations the list does not cover. Headline
-figures are carried by the generated block and by `docs/CANONICAL_FACTS.md`
-rather than typed here.
+The application carries a fixed list of limitations in
+`public/js/validator.js` (`LIMITATIONS`). It is shown on the Overview, on the
+Agent Output page under "Stated limitations of this analysis" and in the
+Decision Report, is passed to the Investment Orchestrator, and does not depend
+on any model or network call. The list below is generated from that same array
+by `data-pipeline/scripts/buildMeta.js`, as it is in the project report, and the
+test suite fails if the Markdown copies drift from the application. The Word and
+PDF exports are made from the Markdown and were checked against it when they were
+produced; a later hand edit to an export would not be caught by the tests. Each item is expanded in
+the sections that follow, together with limitations the list does not cover.
 
 ---
 
 ## The application's fixed list
 
-| # | Statement in the application (`validator.js`) | Section |
-|---|---|---|
-| 1 | All data is synthetic. No observation corresponds to a real property, tenant or transaction. | 1.1 |
-| 2 | Gross yield only — no management fees, vacancy allowance, tax, leverage or transaction costs. | 4.1 |
-| 3 | HHI is computed on book value, not on a mark-to-market valuation. | 4.2 |
-| 4 | Scenario projections apply flat growth rates; no correlation structure or Monte Carlo simulation. | 4.5 |
-| 5 | Market estimates are medians of a seeded simulation, not observed transaction prices. | 1.1, 2.1 |
-| 6 | No regulatory review against the SEBI (Real Estate Investment Trusts) Regulations, 2014. | 8.1 |
-| 7 | Language-model commentary interprets figures computed elsewhere; it neither verifies nor recalculates them. | 6 |
-| 8 | External calibration is Unverified: none of the cited source documents was located and no figure was traced to a source (docs/SOURCE_VERIFICATION_REPORT.md). | 3 |
-| 9 | More simulated observations narrow a segment's estimate around the project's assumed distribution; they are not market evidence. The simulation-support screen is a project convention, not a statistical or regulatory threshold. | 2 |
-| 10 | The shortlist candidate is an exploratory model output, not an investment recommendation; further evidence collection and due diligence would be required. | 2.3, 8.3 |
+<!-- canonical:BEGIN stated-limitations -->
+1. All data is synthetic. No observation corresponds to a real property, tenant or transaction.
+2. Gross yield only — no management fees, vacancy allowance, tax, leverage or transaction costs.
+3. HHI is computed on book value, not on a mark-to-market valuation.
+4. Scenario projections apply flat growth rates; no correlation structure or Monte Carlo simulation. They are illustrative what-if paths, not forecasts.
+5. Market estimates are medians of a seeded simulation, not observed transaction prices.
+6. No regulatory review against the SEBI (Real Estate Investment Trusts) Regulations, 2014.
+7. Language-model commentary interprets figures computed elsewhere; it neither verifies nor recalculates them.
+8. External calibration is Unverified: none of the cited source documents was located and no figure was traced to a source (docs/SOURCE_VERIFICATION_REPORT.md).
+9. More simulated observations make a segment's estimated median more precise around the project's assumed distribution; they do not narrow the P10–P90 spread of the observations and are not market evidence. The simulation-support screen is a project convention, not a statistical or regulatory threshold.
+10. The shortlist candidate is an exploratory model output, not an investment recommendation; further evidence collection and due diligence would be required.
+11. The public site does not offer the Agent Output page or any AI commentary; the Gemini agents run only on a local copy — live for any settings with the local proxy and a Gemini API key, or as stored commentary for the four presets at their defaults.
+<!-- canonical:END stated-limitations -->
+
+| Item | Expanded in |
+|---|---|
+| 1, 5 | 1.1, 2.1 |
+| 2 | 4.1 |
+| 3 | 4.2 |
+| 4 | 4.5 |
+| 6 | 8.1 |
+| 7 | 6 |
+| 8 | 3 |
+| 9 | 2 |
+| 10 | 2.3, 8.3 |
+| 11 | 6.5 |
 
 ## Simulation support and external calibration at a glance
 
 <!-- canonical:BEGIN screen-and-calibration -->
 - **Composite attractiveness score** — the five weighted factors. Never changed by the screen.
-- **Simulation support** — simulated observations behind a segment's medians, their P10–P90 spread, and the project's own Assumption Support Grade (A–E). A transparent project governance convention for simulation precision, not a regulatory or universal statistical threshold. Thirty draws keeps the P10–P90 spread of a segment's simulated medians reasonably narrow; grade C or better excludes segments whose assumptions the project itself classed as interpolated or placeholder. Passing the screen says nothing about real-market accuracy.
+- **Simulation support** — simulated observations behind a segment's medians, their P10–P90 spread, and the project's own Assumption Support Grade (A–E). A transparent project convention chosen by the authors, not a regulatory or universal statistical threshold. More draws make a segment's estimated median more precise; they do not narrow the P10–P90 spread of its simulated observations. Thirty is a chosen minimum, not a proven sufficient sample. Grade C or better excludes the assumption sets the authors graded D (estimated from comparable segments) or E (placeholder). Passing the screen says nothing about real-market accuracy.
 - **Simulation-support screen** — at least 30 simulated observations and Assumption Support Grade C or better. 25 of 50 segments pass.
 - **External calibration** — from the source register only: 0 of 12 cited external sources verified; 0 partially supported. A segment is Verified only when every external source it cites is verified. Every segment is Unverified.
 - **Wording** — the model output is a *shortlist candidate*: "Exploratory shortlist only. External calibration remains unverified — proceed to further evidence collection and due diligence before any real decision."
@@ -62,12 +79,19 @@ it real: the relationships are design decisions, and the levels are assumptions
 (Section 3). The sample portfolio (`public/data/portfolio.json`) is a fixed
 synthetic file.
 
-### 1.2 A single snapshot, with no history
+### 1.2 Generated, not collected
+
+No figure was scraped, downloaded or fetched from a live market source, and the
+application has no data feed. The assumption ranges the generator draws from
+were written by the project; some were intended to follow published benchmarks,
+none of which has been located (Section 3).
+
+### 1.3 A single snapshot, with no history
 
 The data describes one date. There is no time series, no seasonality and no
 market cycle; each segment's rental growth is a single assumed rate.
 
-### 1.3 Limited coverage
+### 1.4 Limited coverage
 
 The segment universe is small beside a real investable market and covers three
 property types only. A real screen would draw on transaction databases,
@@ -80,9 +104,12 @@ regulatory and REIT disclosures and far more micro-markets.
 ### 2.1 More simulated draws are not evidence
 
 The simulated observations are draws from distributions the project specified.
-More draws make a segment's median converge on the median of its assumed
-distribution, and narrow the P10–P90 spread around it. That reduces simulation
-noise; it does nothing about whether the assumption is right. If an assumed
+More draws make a segment's estimated median converge on the median of its
+assumed distribution — the interval for the estimated median tightens — but they
+do not narrow the P10–P90 spread of the simulated observations, which describes
+the assumed distribution itself (`docs/SCREEN_SENSITIVITY.md` measures both). That
+reduces simulation noise in the median; it does nothing about whether the
+assumption is right. If an assumed
 level is wrong, more draws estimate the wrong level more precisely. Simulation
 support is therefore reported separately from external calibration on every
 page, and the two are never combined into one quality figure.
@@ -93,7 +120,10 @@ The A–E grade is the project's own classification of how each segment's
 assumption set was constructed — which kind of benchmark it was meant to follow
 and how wide a band was assumed around it (`AppMeta.SUPPORT_GRADES`). None of
 the benchmarks it refers to has been located, so it is not an evidence grade
-and says nothing about real-market accuracy. For compatibility, the data field
+and says nothing about real-market accuracy. It is an author-assigned simulation
+convention: it was not derived from data and nothing validates it. It is also
+separate from the legacy `sourceType` label, whose "placeholder" value appears on
+segments graded B to E (`docs/data-documentation.md`, Section 4.4). For compatibility, the data field
 that holds it is still named `confidenceGrade` in `markets.json`; the
 application, the agent context and the report all use the label Assumption
 Support Grade.
@@ -101,13 +131,17 @@ Support Grade.
 ### 2.3 The simulation-support screen is a convention
 
 The screen requires at least 30 simulated observations and Assumption Support
-Grade C or better. Both thresholds were chosen, not derived. They are a
-transparent project governance convention for simulation precision, not a
-regulatory or universal statistical threshold, and the sampling-theory rule of
-thumb about samples of thirty does not apply to medians of assumed
-distributions. The screen has a hard edge: under the Income Focused preset, a
-segment graded C is excluded for being one simulated observation short. Moving
-either threshold would change the shortlist candidate under some presets.
+Grade C or better. Both thresholds were chosen by the authors, not derived. They
+are a transparent project convention, not a regulatory or universal statistical
+threshold; thirty is a chosen minimum, not a sample size shown to be sufficient,
+and the sampling-theory rule of thumb about samples of thirty does not apply to
+medians of assumed distributions. The screen has a hard edge, and moving either
+threshold changes the shortlist candidate under some presets: with 25
+observations Income Focused shortlists SG Highway, Ahmedabad (raw rank 3), and
+with grade B or better every preset shortlists Gurugram — Cyber Hub
+(`docs/SCREEN_SENSITIVITY.md`). Because the generator gave fewer draws and lower
+grades to the higher-yield growth and peripheral segments, these outcomes reflect
+how the synthetic data was built, not anything about real markets.
 
 The screen changes no score and no rank. The highest raw-score market is always
 shown with the reason it failed; the user can ignore the screen or select any
@@ -137,6 +171,18 @@ What remains defensible without any document is the structure of the data —
 for example, that yields are set by property type, locality class and city
 tier. What is not established is that the levels resemble Indian market levels.
 
+A second pass on 5 October 2026 compared fourteen individual assumptions with
+figures quoted in documents that could be read (`data-pipeline/benchmark_checks.csv`;
+none of them is the document the register cites). Four were consistent, two
+partly consistent, six showed the assumption below the located figure, one above
+it and one is context only — most
+clearly Bandra Kurla Complex office rent, where the project's whole range
+(₹170–210 per sq ft per month) lies below the quoted district range (₹229–427),
+and Wakad residential values, about 40% below. One Pocharam asset was 0%
+occupied against an assumed 55–82% occupancy for the locality. The assumptions
+were not changed to match, so these differences remain in the data and in every
+result built on it.
+
 ---
 
 ## 4. Financial model
@@ -146,8 +192,11 @@ tier. What is not established is that the levels resemble Indian market levels.
 Gross yield is monthly rent × 12 divided by capital value. It ignores management
 fees, vacancy, capital expenditure, insurance, taxes (GST, stamp duty, TDS on
 rent), leverage and transaction costs. Net operating income and a true
-capitalisation rate cannot be computed from the data, so every yield in the
-project overstates what an investor would receive.
+capitalisation rate cannot be computed from the data. On the same property, gross
+yield is therefore higher than the net yield an investor would receive. Comparing
+gross yields across segments is fair only to the extent that those costs are
+similar between them; where costs differ (for example between residential and
+office), a ranking by gross yield can differ from a ranking by net yield.
 
 ### 4.2 HHI on book value, with descriptive bands
 
@@ -187,6 +236,10 @@ capital-growth and occupancy assumptions to the whole portfolio. They are not
 derived from the selected segment's own modelled growth, so the projections
 compare scenarios rather than segments. There is no correlation structure, no
 Monte Carlo simulation, no leverage, tax, fees or transaction costs.
+
+The projections are illustrative what-if paths under stated assumptions, not
+forecasts: nothing in the model predicts how any real market will move, and the
+scenarios are not probabilities.
 
 Each scenario's occupancy rate affects only the occupancy-adjusted figures.
 Gross yield is rent over value by definition and ignores vacancy; Effective
@@ -300,16 +353,22 @@ inactive.
 ### 7.2 The local proxy is not a hosted service
 
 `server/server.js` is a development proxy. It has no authentication and no rate
-limiting, answers requests from any origin, and listens on Node's default
-interfaces, so anyone who can reach its port can spend the key's quota. It
-should be run only on a trusted machine and network. The key lives in
-`server/.env`, which is git-ignored and never sent to the browser.
+limiting and answers requests from any origin. Since 5 October 2026 it listens on
+the loopback interface (127.0.0.1) by default, so only the same machine can reach
+it; serving it to a network is an explicit choice (`REIT_HOST=0.0.0.0`), and then
+anyone who can reach the port can spend the key's quota. The key lives in
+`server/.env`, which is git-ignored and never sent to the browser; the proxy
+sends it to Google's Gemini endpoint to authenticate each call.
 
 ### 7.3 Other application limits
 
 There is no offline support (no service worker). The CSV import on the Data
 Centre demonstrates the cleaning pipeline only; imported files never change the
-market segments or the analysis.
+market segments or the analysis. The application has no interface for loading a
+completely new market dataset; the reproducible route is the data pipeline
+(`docs/data-documentation.md`, Section 9). Area units in an imported file are
+taken only from an explicit declaration; an undeclared or conflicting unit
+rejects the row.
 
 ---
 

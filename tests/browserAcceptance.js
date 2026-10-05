@@ -274,6 +274,103 @@
     sampleBtn.click();
     await wait(150);
 
+    // ── 8a. Runbook exercises through the controls (expected values: data-pipeline/generated/runbook_expected.json) ──
+    AnalysisRun.reset();
+    await wait(200);
+    function setVal(el, v) { el.value = String(v); el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new Event("change", { bubbles: true })); }
+    async function hhiText() { await go("diversification"); return q("#hhi-content").innerText; }
+    // Exercise A: the amount moves concentration and projections, not scores.
+    await go("screener");
+    setVal(q("#screener-investment"), 75);
+    await wait(250);
+    var ra = AnalysisRun.current(), ta = AnalysisRun.selected(ra);
+    check("EX-A1", "₹75 Cr typed into the amount: same candidate and score, city HHI 0.3293, asset-type HHI 0.6711",
+          ra.investmentCr === 75 && ta.marketId === "MKT-016" && ta.totalScore.toFixed(2) === "67.71" &&
+          ra.hhi.cityAfter.toFixed(4) === "0.3293" && ra.hhi.typeAfter.toFixed(4) === "0.6711" &&
+          /0\.3293/.test(await hhiText()), ra.hhi.cityAfter.toFixed(4) + " / " + ra.hhi.typeAfter.toFixed(4));
+    await go("screener");
+    setVal(q("#w-yieldWeight"), 35);                       // 35+25+20+20+10 = 110: not applied
+    await wait(250);
+    var drafted = AnalysisRun.current();
+    check("EX-A2", "a weight total of 110% is held as a draft: shown in red, not applied to the analysis",
+          drafted.preset === "balanced" && !!q("#screener-content .reit-weight-err") &&
+          /110/.test(q("#screener-content .reit-weight-total").innerText), q("#screener-content .reit-weight-total").innerText);
+    setVal(q("#w-demandWeight"), 10);                      // now 35/25/20/10/10 = 100: applied
+    await wait(300);
+    var rc = AnalysisRun.current(), tc = AnalysisRun.selected(rc), lead = AnalysisRun.rawLeader(rc);
+    check("EX-A3", "35/25/20/10/10 applies as Custom: candidate raw rank 6 (64.64), GIFT City the raw leader (75.87) failing the screen",
+          rc.preset === "custom" && tc.marketId === "MKT-016" && tc.rank === 6 && tc.totalScore.toFixed(2) === "64.64" &&
+          /GIFT City/.test(AnalysisRun.name(lead)) && lead.totalScore.toFixed(2) === "75.87" && !lead.governance.eligible,
+          AnalysisRun.name(lead) + " " + lead.totalScore.toFixed(2) + "; candidate rank " + tc.rank);
+    var pagesA = await targetsOnPages();
+    check("EX-A4", "Overview, Screener, Diversification, Agents and Report name the same target for Exercise A",
+          Object.keys(pagesA).every(function (k) { return pagesA[k] && pagesA[k].id === "MKT-016"; }), JSON.stringify(pagesA));
+    // Invalid amount: visible feedback, nothing applied.
+    await go("screener");
+    setVal(q("#screener-investment"), -5);
+    await wait(150);
+    var note = q("#screener-investment-note");
+    check("EX-INVALID", "a negative amount is not applied and the page says why",
+          AnalysisRun.current().investmentCr === 75 && note && !note.hidden && /not a valid amount/.test(note.textContent) &&
+          q("#screener-investment").value === "75", note && note.textContent);
+    // Exercise B: a three-asset custom portfolio typed through the form; the typed ₹75 Cr is kept.
+    var origConfirm = window.confirm; window.confirm = function () { return true; };
+    await go("portfolio");
+    var cbtn = qa("#portfolio-content button").filter(function (b) { return /Custom Portfolio/.test(b.textContent); })[0];
+    cbtn.click(); await wait(200);
+    var reset = qa("#portfolio-content button").filter(function (b) { return /Reset Custom Portfolio/.test(b.textContent); })[0];
+    if (reset) { reset.click(); await wait(250); }
+    var EXB = [["EX-1", "Exercise Office A", "Mumbai", "Andheri East", "Commercial Office", 60, 4.2, 300000, 285000, "2030-03-31", "IT"],
+               ["EX-2", "Exercise Mall B", "Pune", "Kharadi", "Retail", 30, 2.1, 150000, 135000, "2029-06-30", "Retail"],
+               ["EX-3", "Exercise Homes C", "Bengaluru", "Whitefield", "Residential", 10, 0.4, 80000, 72000, "2028-12-31", "Residential"]];
+    var ids = ["f-assetId", "f-assetName", "f-city", "f-locality", "f-assetType", "f-propertyValue", "f-annualRent", "f-totalArea", "f-occupiedArea", "f-leaseExpiry", "f-tenantSector"];
+    for (var e = 0; e < EXB.length; e++) {
+      var openBtn = q("#pf-start-blank") || q("#pf-add-asset") ||
+        qa("#portfolio-content button").filter(function (b) { return /Add Asset/.test(b.textContent); })[0];
+      openBtn.click(); await wait(200);
+      ids.forEach(function (id, n) { var f = document.getElementById(id); if (f) { f.value = String(EXB[e][n]); f.dispatchEvent(new Event("input", { bubbles: true })); f.dispatchEvent(new Event("change", { bubbles: true })); } });
+      var submit = qa(".reit-asset-form button").filter(function (b) { return /^Add Asset$/.test(b.textContent.trim()); })[0];
+      submit.click(); await wait(300);
+    }
+    var rb = AnalysisRun.current();
+    check("EX-B1", "the custom portfolio is active: ₹100.00 Cr, city and asset-type HHI 0.4600 before",
+          rb.portfolio.source === "custom" && Math.round(rb.portfolio.totalValueRs / 1e7) === 100 &&
+          rb.hhi.cityBefore.toFixed(4) === "0.4600" && rb.hhi.typeBefore.toFixed(4) === "0.4600",
+          rb.portfolio.source + " " + rb.portfolio.totalValueRs / 1e7 + " " + rb.hhi.cityBefore.toFixed(4));
+    check("EX-B2", "an amount the user typed (₹75 Cr) is kept when the portfolio changes; city HHI after 0.3339",
+          rb.investmentCr === 75 && rb.hhi.cityAfter.toFixed(4) === "0.3339", rb.investmentCr + " / " + rb.hhi.cityAfter.toFixed(4));
+    AnalysisRun.update({ investmentCr: null });            // back to the default: 10% of the active portfolio
+    await wait(250);
+    var rb2 = AnalysisRun.current();
+    check("EX-B3", "with the default amount it is 10% of the custom portfolio (₹10 Cr): HHI after 0.3884 / 0.4876, year-0 rent ₹7.403 Cr",
+          rb2.investmentCr === 10 && rb2.hhi.cityAfter.toFixed(4) === "0.3884" && rb2.hhi.typeAfter.toFixed(4) === "0.4876" &&
+          (rb2.projections.year0AnnualRentRs / 1e7).toFixed(3) === "7.403", rb2.investmentCr + " " + rb2.hhi.cityAfter.toFixed(4));
+    var resetB = qa("#portfolio-content button").filter(function (b) { return /Reset Custom Portfolio/.test(b.textContent); })[0];
+    if (resetB) { await go("portfolio"); resetB = qa("#portfolio-content button").filter(function (b) { return /Reset Custom Portfolio/.test(b.textContent); })[0]; resetB.click(); await wait(250); }
+    window.confirm = origConfirm;
+    AnalysisRun.reset();
+    await wait(200);
+    check("EX-RESET", "Reset Demo after the exercises restores Balanced, ₹50 Cr, sample portfolio, automatic selection",
+          AnalysisRun.current().preset === "balanced" && AnalysisRun.current().investmentCr === 50 &&
+          AnalysisRun.current().portfolio.source === "sample" && AnalysisRun.current().selectionMode === "auto");
+
+    // ── 8b. CSV area units through the import page ──────────────────────────
+    var hdr = "city,locality,propertyType,{A},askingPriceINR,monthlyRentINR\n";
+    var small = DataCentre.importCSVText(hdr.replace("{A}", "areaSqFt") + "Mumbai,Kala Ghoda,Retail,300,9000000,45000\nPune,Camp,Retail,250,6000000,30000\n", "small-shops.csv", null);
+    var smallRows = qa("#dc-csv-table tbody tr").map(function (tr) { return tr.children[4].textContent; });
+    check("CSV-3", "a file of 300 and 250 sq ft shops keeps 300 and 250 sq ft (no unit is inferred from small numbers)",
+          small && small.ok === 2 && smallRows.join() === "300,250", smallRows.join());
+    var generic = hdr.replace("{A}", "area") + "Mumbai,Kala Ghoda,Retail,100,9000000,45000\n";
+    var noUnit = DataCentre.importCSVText(generic, "generic.csv", null);
+    var reason = (qa("#dc-csv-table tbody tr")[0] || { lastChild: { textContent: "" } }).lastChild.textContent;
+    var withM = DataCentre.importCSVText(generic, "generic.csv", "sqm");
+    var conv = (qa("#dc-csv-table tbody tr")[0] || { children: [] }).children[4];
+    check("CSV-4", "a generic area column without a unit is rejected with the reason; choosing square metres converts it once",
+          noUnit && noUnit.rejected === 1 && /area unit not stated/.test(reason) && withM && withM.ok === 1 && conv && conv.textContent === "1076",
+          reason + " | " + (conv && conv.textContent));
+    check("CSV-5", "the import page offers the unit choice and states that units are never guessed",
+          !!q("#reit-csv-area-unit") && /never guessed/.test(q("#datacentre-content").innerText));
+
     // ── 9. Tables are labelled ───────────────────────────────────────────────
     var unlabelled = [];
     for (var k = 0; k < ROUTES.length; k++) {

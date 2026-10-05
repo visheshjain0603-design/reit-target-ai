@@ -1,0 +1,1 @@
+AnalysisRun.ready().then(function(){ AnalysisRun.update({ preset: 'custom', weights: { yieldWeight: 0.35, growthWeight: 0.25, diversWeight: 0.20, demandWeight: 0.10, riskWeight: 0.10 }, investmentCr: 75 }); location.hash = 'agents'; }); 'ok'

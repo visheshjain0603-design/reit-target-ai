@@ -236,13 +236,14 @@
     "All data is synthetic. No observation corresponds to a real property, tenant or transaction.",
     "Gross yield only — no management fees, vacancy allowance, tax, leverage or transaction costs.",
     "HHI is computed on book value, not on a mark-to-market valuation.",
-    "Scenario projections apply flat growth rates; no correlation structure or Monte Carlo simulation.",
+    "Scenario projections apply flat growth rates; no correlation structure or Monte Carlo simulation. They are illustrative what-if paths, not forecasts.",
     "Market estimates are medians of a seeded simulation, not observed transaction prices.",
     "No regulatory review against the SEBI (Real Estate Investment Trusts) Regulations, 2014.",
     "Language-model commentary interprets figures computed elsewhere; it neither verifies nor recalculates them.",
     "External calibration is Unverified: none of the cited source documents was located and no figure was traced to a source (docs/SOURCE_VERIFICATION_REPORT.md).",
-    "More simulated observations narrow a segment's estimate around the project's assumed distribution; they are not market evidence. The simulation-support screen is a project convention, not a statistical or regulatory threshold.",
-    "The shortlist candidate is an exploratory model output, not an investment recommendation; further evidence collection and due diligence would be required."
+    "More simulated observations make a segment's estimated median more precise around the project's assumed distribution; they do not narrow the P10–P90 spread of the observations and are not market evidence. The simulation-support screen is a project convention, not a statistical or regulatory threshold.",
+    "The shortlist candidate is an exploratory model output, not an investment recommendation; further evidence collection and due diligence would be required.",
+    "The public site does not offer the Agent Output page or any AI commentary; the Gemini agents run only on a local copy — live for any settings with the local proxy and a Gemini API key, or as stored commentary for the four presets at their defaults."
   ];
 
   // ─── Public entry point ───────────────────────────────────────────────────

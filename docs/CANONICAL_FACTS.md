@@ -25,6 +25,21 @@ All data in this project is synthetic. Nothing below describes a real market.
 | Generator / seed / data as of | 2.0.0 / 20260919 / 2026-09-19 |
 | Institution and author | NMIMS B.Sc. Finance, Business Analytics — Vishesh Jain |
 
+## Customer, business problem and use cases
+
+**Primary user.** REIT investment analysts and acquisition committees evaluating where a proposed new investment should be allocated.
+
+**Business problem.** A REIT must balance income, growth, demand, risk and portfolio diversification when choosing its next target market, while understanding the reliability and limitations of the supporting data.
+
+**Core use cases** (and the pages where each is carried out):
+
+1. Diagnose geographic and asset-type concentration in the existing portfolio. *(Portfolio, Diversification)*
+2. Rank target markets using adjustable business priorities. *(Market Screener)*
+3. Compare the highest raw-score market with the highest-ranked market passing the simulation-support screen. *(Market Screener, Overview)*
+4. Simulate yield, concentration and scenario effects of a proposed investment. *(Diversification)*
+5. Produce deterministic validation and Gemini-assisted interpretation. *(Agent Output)*
+6. Generate a printable decision report for management discussion. *(Decision Report)*
+
 ## Dataset detail
 
 | Fact | Value |
@@ -50,10 +65,69 @@ All at the defaults: sample portfolio, ₹50.00 Cr, screen applied, automatic se
 ## Simulation support and external calibration
 
 - **Composite attractiveness score** — the five weighted factors. Never changed by the screen.
-- **Simulation support** — simulated observations behind a segment's medians, their P10–P90 spread, and the project's own Assumption Support Grade (A–E). A transparent project governance convention for simulation precision, not a regulatory or universal statistical threshold. Thirty draws keeps the P10–P90 spread of a segment's simulated medians reasonably narrow; grade C or better excludes segments whose assumptions the project itself classed as interpolated or placeholder. Passing the screen says nothing about real-market accuracy.
+- **Simulation support** — simulated observations behind a segment's medians, their P10–P90 spread, and the project's own Assumption Support Grade (A–E). A transparent project convention chosen by the authors, not a regulatory or universal statistical threshold. More draws make a segment's estimated median more precise; they do not narrow the P10–P90 spread of its simulated observations. Thirty is a chosen minimum, not a proven sufficient sample. Grade C or better excludes the assumption sets the authors graded D (estimated from comparable segments) or E (placeholder). Passing the screen says nothing about real-market accuracy.
 - **Simulation-support screen** — at least 30 simulated observations and Assumption Support Grade C or better. 25 of 50 segments pass.
 - **External calibration** — from the source register only: 0 of 12 cited external sources verified; 0 partially supported. A segment is Verified only when every external source it cites is verified. Every segment is Unverified.
 - **Wording** — the model output is a *shortlist candidate*: "Exploratory shortlist only. External calibration remains unverified — proceed to further evidence collection and due diligence before any real decision."
+
+## Stated limitations (shown in the application)
+
+1. All data is synthetic. No observation corresponds to a real property, tenant or transaction.
+2. Gross yield only — no management fees, vacancy allowance, tax, leverage or transaction costs.
+3. HHI is computed on book value, not on a mark-to-market valuation.
+4. Scenario projections apply flat growth rates; no correlation structure or Monte Carlo simulation. They are illustrative what-if paths, not forecasts.
+5. Market estimates are medians of a seeded simulation, not observed transaction prices.
+6. No regulatory review against the SEBI (Real Estate Investment Trusts) Regulations, 2014.
+7. Language-model commentary interprets figures computed elsewhere; it neither verifies nor recalculates them.
+8. External calibration is Unverified: none of the cited source documents was located and no figure was traced to a source (docs/SOURCE_VERIFICATION_REPORT.md).
+9. More simulated observations make a segment's estimated median more precise around the project's assumed distribution; they do not narrow the P10–P90 spread of the observations and are not market evidence. The simulation-support screen is a project convention, not a statistical or regulatory threshold.
+10. The shortlist candidate is an exploratory model output, not an investment recommendation; further evidence collection and due diligence would be required.
+11. The public site does not offer the Agent Output page or any AI commentary; the Gemini agents run only on a local copy — live for any settings with the local proxy and a Gemini API key, or as stored commentary for the four presets at their defaults.
+
+## Statistical findings
+
+Correlations across the 2,156 simulated market observations, pooled and within each property type:
+
+| Relationship | Expected sign | Pooled | Commercial Office | Retail | Residential | Sign reverses when pooled |
+|---|---|---|---|---|---|---|
+| Yield vs Capital Value | negative | -0.170 | -0.732 | -0.610 | -0.660 | no |
+| Yield vs Risk | positive | -0.163 | 0.605 | 0.552 | 0.667 | yes |
+| Rental Growth vs Demand | positive | 0.396 | 0.385 | 0.635 | 0.546 | no |
+| Demand vs Risk | negative | -0.652 | -0.734 | -0.762 | -0.771 | no |
+
+Linear regression of gross yield on rental growth: pooled slope -0.288 with R² 0.063; within property types R² ranges from 0.014 to 0.053.
+
+Detection of the 24 known synthetic anomalies (1.113% of observations), scored against the generator's separate ground-truth file:
+
+| Detector | Flagged | Correctly flagged | Precision | Recall | F1 |
+|---|---|---|---|---|---|
+| Tukey fences (1.5 × IQR) on gross yield, all 2,156 observations pooled | 304 | 7 | 0.023 | 0.292 | 0.043 |
+| Tukey fences (1.5 × IQR) on gross yield, applied within each of the 50 markets | 36 | 17 | 0.472 | 0.708 | 0.567 |
+| Robust (median/MAD) Mahalanobis distance over 5 standardised variables, χ² cutoff at α = 0.01 | 387 | 11 | 0.028 | 0.458 | 0.053 |
+| Robust (median/MAD) Mahalanobis over 5 standardised variables, fitted within each property type, χ² cutoff at α = 0.01 | 232 | 18 | 0.078 | 0.750 | 0.141 |
+
+Generated by `data-pipeline/scripts/buildMeta.js` from `public/data/statistics.json`. These describe the generator's construction, not a real market.
+
+## Benchmark comparisons (data-pipeline/benchmark_checks.csv)
+
+| Check | Segment | Parameter | Project assumption | Located figure (quoted) | Source | Relation |
+|---|---|---|---|---|---|---|
+| BMK-01 | Bandra Kurla Complex, Mumbai | monthly rent (Grade A office) | 170–210 (central 185) INR per sq ft per month | BKC & Off-BKC 2,460 – 4,590 (229–427) 15% 6% | Knight Frank India, India Real Estate – Office and Residential Market (January–June 2025) (H1 2025), Mumbai business-district rental table (p.59 of the extracted text) | below |
+| BMK-02 | Bandra Kurla Complex, Mumbai | annual rental growth | 4–10 (central 7) percent per year | BKC & Off-BKC … 15% 6% (12-month and 6-month change) | Knight Frank India, India Real Estate – Office and Residential Market (January–June 2025) (H1 2025), same table | below |
+| BMK-03 | Outer Ring Road, Bengaluru | monthly rent (Grade A office) | 92–125 (central 108) INR per sq ft per month | ORR 1,076 - 1,345 (100 - 125) 2% 0% | Knight Frank India, India Real Estate – Office and Residential Market (January–June 2025) (H1 2025), Bengaluru rental table (p.27) | consistent |
+| BMK-04 | Gurugram — Cyber Hub, Delhi NCR | monthly rent (Grade A office) | 105–145 (central 125) INR per sq ft per month | Gurugram Zone A 1,292-2,067 (120-192) 8% 4% | Knight Frank India, India Real Estate – Office and Residential Market (January–June 2025) (H1 2025), NCR rental table (p.67); Zone A includes DLF Cyber City | partly consistent |
+| BMK-05 | HITEC City, Hyderabad | monthly rent (Grade A office) | 60–85 (central 72) INR per sq ft per month | SBD 753- 1,023 (70 -95) 11% 3% | Knight Frank India, India Real Estate – Office and Residential Market (January–June 2025) (H1 2025), Hyderabad rental table (p.43); SBD includes HITEC City | partly consistent |
+| BMK-06 | Kharadi, Pune | monthly rent (Grade A office) | 55–78 (central 66) INR per sq ft per month | PBD East 726-1,183 (67-110) 5% 2% | Knight Frank India, India Real Estate – Office and Residential Market (January–June 2025) (H1 2025), Pune rental table (p.75); PBD East includes Kharadi | below |
+| BMK-07 | Wakad, Pune | capital value (residential) | 3840–10200 (central 6160) INR per sq ft | Wakad 108,146-141,923 (10,047-13,185) 18% 15% | Knight Frank India, India Real Estate – Office and Residential Market (January–June 2025) (H1 2025), Pune residential price movement in select locations | below |
+| BMK-08 | Undri / Pisoli, Pune | capital value (residential) | 2880–7480 (central 4480) INR per sq ft | Undri 60,461-67,641 (5,617-6,284) 2% 1% | Knight Frank India, India Real Estate – Office and Residential Market (January–June 2025) (H1 2025), Pune residential price movement in select locations | below |
+| BMK-09 | Sarjapur Road, Bengaluru | capital value (residential) | 5280–12240 (central 7840) INR per sq ft | Average Capital Value … Bengaluru 8,380 | ANAROCK Research, Indian Residential Real Estate Annual Report 2024: Beyond the Growth Trajectory (January 2025), India residential market overview table, 'Average Capital Value (INR/sqft)' (p.7) | consistent (city level only) |
+| BMK-10 | HITEC City, Hyderabad | monthly rent (office, single REIT asset) | 60–85 (central 72) INR per sq ft per month | Mindspace Madhapur 13.7 9.9 3.7 92.3% 97.2% 7.3 69.9 | Mindspace Business Parks REIT, Investor Presentation Q4 FY25 (30 April 2025), Portfolio asset table as of 31 March 2025 (p.54) | consistent (one asset) |
+| BMK-11 | Malad — Mindspace, Mumbai | monthly rent (office, single REIT asset) | 82–115 (central 98) INR per sq ft per month | Mindspace Malad 0.8 0.8 - 98.5% 98.5% 3.8 102.2 | Mindspace Business Parks REIT, Investor Presentation Q4 FY25 (30 April 2025), Portfolio asset table as of 31 March 2025 (p.54) | consistent (one asset) |
+| BMK-12 | Bandra Kurla Complex, Mumbai | monthly rent (office, single REIT asset) | 170–210 (central 185) INR per sq ft per month | The Square BKC 0.1 0.1 - 100.0% 100.0% 1.7 240.0 | Mindspace Business Parks REIT, Investor Presentation Q4 FY25 (30 April 2025), Portfolio asset table as of 31 March 2025 (p.54) | below |
+| BMK-13 | Pocharam, Hyderabad | occupancy (office, single REIT asset) | 55–82 (central 70) percent | Mindspace Pocharam 0.6 0.6 - 0.0% 0.0% - - | Mindspace Business Parks REIT, Investor Presentation Q4 FY25 (30 April 2025), Portfolio asset table as of 31 March 2025 (p.54) | above |
+| BMK-14 | Bandra Kurla Complex, Mumbai | monthly rent (office, Mumbai REIT asset outside BKC) | 170–210 (central 185) INR per sq ft per month | Express Towers 0.5 - 0.5 3.6 100% 274 300 10% | Embassy Office Parks REIT, FY2025 Earnings Materials (Q4 FY25 earnings presentation) (29 April 2025), Portfolio summary (p.47) | context only |
+
+14 comparisons: 1 above, 6 below, 4 consistent, 1 context only, 2 partly consistent. Generated from `data-pipeline/benchmark_checks.csv`, which also records each document's URL and its relationship to the source register. None of these documents is the one the register cites, so no source is verified and every segment's external calibration stays Unverified; no assumption was changed to match a figure.
 
 ## Terminology
 
@@ -69,7 +143,7 @@ All at the defaults: sample portfolio, ₹50.00 Cr, screen applied, automatic se
 | Selected target | The segment every page analyses. In automatic mode it is the shortlist candidate; in manual mode it is the user's choice. |
 | Manually selected target | A selected target chosen by the user rather than by the screen. |
 | Simulated market observations | Seeded draws from the project's generator. Not properties, listings or transactions. |
-| Assumption Support Grade | The project's internal A–E classification of how a segment's assumptions were constructed and how wide a band was assumed around them. It is not an evidence grade: none of the benchmarks it refers to has been externally verified. |
+| Assumption Support Grade | An author-assigned simulation convention: the project's internal A–E classification of how a segment's assumptions were intended to be constructed and how wide a band was assumed around them. It is not an evidence grade: none of the benchmarks it refers to has been externally verified, and it is separate from the legacy sourceType label. |
 | External calibration status | Verified, Partially supported or Unverified, from the source register only. |
 | Known synthetic anomalies | Anomalies the generator inserted deliberately, recorded separately as ground truth. |
 
@@ -78,9 +152,9 @@ All at the defaults: sample portfolio, ₹50.00 Cr, screen applied, automatic se
 | Fact | Value |
 |---|---|
 | Scoring methodology version | 1.0.0 |
-| Agent context version | 2 |
-| Assertion calls in tests/reit-tests.js | 596 |
-| Distinct test identifiers (T-nnn) in tests/reit-tests.js | 73 |
+| Agent context version | 3 |
+| Assertion calls in tests/reit-tests.js | 647 |
+| Distinct test identifiers (T-nnn) in tests/reit-tests.js | 83 |
 | Repository | https://github.com/visheshjain0603-design/reit-target-ai |
 | Live site | https://visheshjain0603-design.github.io/reit-target-ai/ |
 

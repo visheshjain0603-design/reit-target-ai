@@ -11,7 +11,38 @@
 
 **NMIMS B.Sc. Finance | Business Analytics | Theme 4 — Building Agents/Artifacts Using Generative AI | Vishesh Jain**
 
-This document records the key development decisions, rationale, and lessons learned during construction of the project.
+This document records the key development decisions, rationale, and lessons learned during construction of the project. The summary below states the main choices in one place; the dated phases after it record how they were reached, including approaches that were later replaced.
+
+---
+
+## Summary of the process
+
+**Initial problem.** A REIT choosing its next target market has to weigh income, growth, diversification, demand and risk, and an acquisition committee needs the reasoning, not only a ranking. The project set out to build a decision-support artefact in which generative AI explains a financial analysis without being trusted to perform it.
+
+**Design alternatives considered.**
+
+| Question | Alternatives | Chosen, and why |
+|---|---|---|
+| How to rank markets | A predictive model; a single metric such as yield; weighted multi-factor scoring | Weighted scoring: there is no labelled outcome to train a model on, and a committee must be able to see and change its priorities |
+| What the language model does | Rank and recommend; validate inputs; interpret only | Interpret only: a model states wrong figures fluently, so it must never be the source of one |
+| Where validation runs | A validation agent (the original design); deterministic code | Code: every check has one arithmetic answer; code is exact, offline and shows its working |
+| How pages share the analysis | Each page reads a stored snapshot; one shared run | One shared run, after the snapshot design caused pages to disagree (4 October entry) |
+| How support is reported | Folded into the score; one "quality" label; three separate concepts | Three separate concepts — attractiveness, simulation support, external calibration — so nothing is overstated |
+| Data | Scraped listings; licensed data; a seeded synthetic generator | Seeded generator: reproducible, inspectable, and anomaly detection measurable against known truth |
+
+**Why deterministic scoring.** Every score and rank must be reproducible, testable and explainable factor by factor in a viva; the same inputs always give the same output, which also lets the tests, the agent cache and the documents agree with the screen.
+
+**Why Gemini was limited to interpretation.** Early agent output stated figures that were close to, but not, the computed ones. Restricting the agents to a fixed, deterministic context with prose-only replies — and checking every reply — turns a misstatement into a detectable error.
+
+**Why the shared analysis run was introduced.** After a preset change, one page could analyse a different target from the others because each page read a stored snapshot at its own moment. Storing only inputs and computing one run removed that class of defect.
+
+**Why simulation support and external calibration were separated.** Source verification found none of the cited documents. Language that implied evidence could no longer be defended, so simulation precision (a property of the generator) and external calibration (a property of located sources) became separate statuses, and the model output became an exploratory shortlist candidate.
+
+**Major defects found and corrected.** Pages analysing different targets after a preset change; a System Check that tested the wrong field names and overwrote saved state; stored agent commentary that misquoted figures, misattributed exclusion reasons and called a dataset statistic the portfolio's; 88 test assertions written with swapped arguments that could never fail; stylesheets that left about 80 classes undefined; and a before/after HHI chart that was never drawn. Each is recorded below with its fix.
+
+**Features deliberately rejected.** More agents (an earlier six-agent chain overlapped and disagreed); a model-based validation step; more statistical tests than the analysis needs; a larger market universe; a live data feed; a market-dataset importer in the interface (the CSV import demonstrates cleaning only). Each would have added surface area without strengthening the decision the tool supports.
+
+**Final validation process.** Application test suite, data-pipeline suite and an independent analytics audit; browser acceptance at desktop and phone widths driving every page through its own controls; the ten-item System Check; a live Gemini run on a configuration with no stored commentary; seeded reproducibility in CI; and documentation whose figures, customer statement, statistics and limitations are generated from the code and checked by the test suite.
 
 ---
 
@@ -22,12 +53,14 @@ The project shares a CSS design system with a separate production application (a
 
 **Risk managed:** The production application's files (JS, JSON, Firestore config) were never opened, modified, or referenced. All new REIT files were written to a completely separate project folder. The shared CSS is a read-only dependency.
 
-### Bug: SafariWebKit rejects curly/smart quotes in string literals
-During testing, the Portfolio page was blank in Safari. The root cause was two string literals in `portfolio.js` that contained Unicode curly double-quotes (U+201C, U+201D) — likely introduced by a text editor that auto-corrected straight quotes to typographic ones. Safari's JSCore engine throws a SyntaxError on these; Chrome's V8 accepts them.
+### Bug: curly quotes broke `portfolio.js` *(explanation corrected 5 October 2026)*
+During testing, the Portfolio page was blank in Safari. Two string literals in `portfolio.js` contained Unicode curly double-quotes (U+201C, U+201D), probably introduced by an editor that auto-corrected straight quotes to typographic ones.
 
-**Fix:** Replaced with single-quoted outer delimiters and straight double-quote content characters. Verified with a Python byte-level search that no curly quotes remain anywhere in the file.
+**Fix:** Replaced with single-quoted outer delimiters and straight double-quote content characters. Verified with a byte-level search that no curly quotes remain in the file.
 
-**Lesson:** Always lint JS files for Unicode typographic quotes before browser testing, especially on Safari. Consider adding an ESLint rule (`no-irregular-whitespace` catches some cases) or a pre-commit hook.
+**Corrected explanation.** The original entry said Safari's JavaScriptCore rejects curly quotes while Chrome's V8 accepts them. That is not right, and was re-tested on 5 October 2026 in both engines (Node's V8 and macOS JavaScriptCore): a curly quote used **as a string delimiter** (`var a = “abc”;`) is a SyntaxError in both; a curly quote **inside** an ordinary straight-quoted string (`"say “hi”"`) is a valid Unicode character in both. So the defect must have been curly quotes acting as delimiters, which would have failed in any browser; the claim that Chrome accepted the file could not be verified, because the bug predates the repository's first commit.
+
+**Lesson (unchanged in substance):** check JavaScript for typographic quotes used as delimiters before browser testing; a linter or a pre-commit search catches them.
 
 ---
 
@@ -79,10 +112,10 @@ When all markets have identical values for a factor (e.g., all demand scores are
 
 ## Phase 4 — Market Screener
 
-### Decision: Real-time weight sliders with sum-to-100 enforcement
-Sliders update in real-time (on `input` event). When a slider moves, the remaining weight is proportionally redistributed among the other four sliders. This avoids the common UX problem where users move one slider and then need to manually adjust the others to sum to 100.
+### Decision: Real-time weight sliders with sum-to-100 enforcement *(superseded)*
+*Original design, kept for the record:* sliders updated in real time and, when one moved, the remaining weight was redistributed proportionally among the other four, so the total always stayed at 100%.
 
-**Edge case:** If one slider is at 100% and another is moved, the first slider drops to 0. This is tested via T08 and T09 (the engine rejects invalid weights).
+**Superseded by the current behaviour** (`public/js/marketScreen.js`): sliders move in steps of 5 and are **not** redistributed. While the five weights do not total exactly 100%, the total is shown in red with the reason, the draft is kept on the Market Screener, and nothing is applied — every page keeps the last valid analysis. At 100% the weights apply as the Custom preset. Automatic redistribution was dropped because it changed weights the user had not touched, which made it hard to set a specific weighting (such as the runbook's 35/25/20/10/10) and to explain a result. The engine still rejects invalid weights (T08, T09), and browser check EX-A2 confirms a 110% draft is not applied.
 
 ### Decision: `localStorage` for cross-page state
 When the user selects a market on the Screener page, the `marketId` and `investmentCr` are written to `localStorage`. The Diversification page reads these on mount. This produces a seamless "select then analyse" flow without requiring URL parameters (which would conflict with the hash router) or a shared global variable (which would reset on page refresh). This design caused the cross-page synchronisation defect and was replaced by the shared analysis run; see the 4 October 2026 entry. [superseded]
@@ -193,6 +226,51 @@ Every page re-renders its whole root when the shared run changes, so naive entra
 
 ### Fixed in passing
 The before/after HHI chart on the Diversification page had never been drawn: it was rendered by element id before its container was attached to the page. `charts.js` also coloured an HHI of exactly 0.25 as concentrated while every other page calls it moderate; it now uses the same bands.
+
+## 5 October 2026 — final submission preparation
+
+### Customer and use cases stated once
+The primary user, the business problem and six use cases were written into `AppMeta.CUSTOMER` and rendered on the Overview ("Who it is for"), with each use case linked to the pages that carry it out. `buildMeta.js` copies the statement into `meta.json`, and a generated block carries the same words into the README, the project report and `CANONICAL_FACTS.md`. T-173 fails if the statement or the blocks disappear; T-167 fails if a block is stale.
+
+### Limitations agree in three places
+Two items were added to the application's fixed list in `validator.js`: that scenario projections are illustrative paths, not forecasts, and that the public site serves stored commentary only for the four presets at their defaults. The list is now generated into `docs/limitations.md` and the project report from the same array, and T-174 checks that all three agree. The stored agent commentary does not depend on this list, so it remained valid.
+
+### Statistics quoted from the data, not typed
+The correlations, regression and anomaly-detector scores the report and viva guide quote are copied from `statistics.json` into `meta.json` and rendered as a generated block.
+
+### Report finalised
+`docs/project-report-draft.md` was preserved unchanged as `archive/project-report-draft-20261005.md` and finalised as `docs/project-report.md`, restructured around the customer, use cases, methodology, results, testing, limitations and AI use, with formulas and field definitions in appendices.
+
+### Demonstration material
+`docs/LIVE_DEMO_RUNBOOK.md` gives a timed demonstration and three evaluator exercises whose expected results were computed with the application's own engine; the viva guide was rewritten as fifty concise questions and answers.
+
+## 5 October 2026 — assessment finalisation pass
+
+A review of the submission raised specific issues; each was checked against the code and documents before anything changed.
+
+### CSV area units no longer inferred
+The cleaner treated every area as square metres whenever a file's median area was below 500, so a file of small shops in square feet was multiplied by 10.76. Units are now explicit: `areaSqFt` (square feet), `areaSqM` (square metres, converted once by 1 ÷ 0.3048²), or `area` with an `areaUnit` column or a unit chosen on the import page. Missing, unrecognised or conflicting units reject the row with the reason. Tests T-176 and browser checks CSV-3 to CSV-5 cover it. **Rejected alternative:** keeping a size heuristic with a warning — any threshold misreads some genuine files.
+
+### P10–P90 and the thirty-draw screen described correctly
+Some text said thirty draws keep "the P10–P90 spread of a segment's simulated medians reasonably narrow". The P10–P90 band is the spread of the simulated observations themselves; more draws make the estimated median more precise but do not narrow that spread. The wording was corrected in the screen rationale, the pages, prompt rule G, the limitations list and the documents, and two output-check rules now flag a reply that calls the band a confidence interval or says draws narrow it. `docs/SCREEN_SENSITIVITY.md` measures both quantities: within the same segments, using 25 to 60 draws leaves the spread at 0.86–0.92 percentage points while the bootstrap interval for the median narrows from 0.28 to 0.19. The prompt change made the stored commentary stale (context version 3), so it was rebuilt: 16 replies, 17 API calls.
+
+### Grades, legacy labels and sensitivity
+Fourteen segments graded B or C carry the legacy `sourceType` "synthetic_academic_placeholder", which contradicted the claim that grade C or better excludes placeholders. The fields measure different things — the grade is the authors' simulation convention; `sourceType` is a first-generation label — and the documents now say so; no grade was changed. A sensitivity analysis (25/30/40 observations × grade B or C × four presets) shows where the shortlist moves, and why the outcome follows from how the generator was built. The default stays at 30 and C.
+
+### Source provenance reconciled; benchmarks compared
+All 50 segments' methodology notes named publications that were not in their `sourceIds` and claimed calibration. The notes were rewritten from each segment's own fields (originals kept). A second verification pass read none of the 12 cited documents as cited, but compared 14 individual assumptions with figures in four related documents: 4 consistent, 2 partly consistent, 6 below the located figure (Bandra Kurla Complex office rent most clearly), 1 above and 1 context only. No assumption was changed to fit — a recalibration would need a documented method — and no status was upgraded. The test that demanded zero verified sources for ever was replaced by one that demands traced evidence whenever verification is claimed.
+
+### Agent replies that fail the check are quarantined
+A reply that failed the consistency check used to be shown with a warning and passed on to the next agent and the report. Now a live reply that fails is sent back once with its problems; if it fails again it is withheld — shown collapsed, not passed on, not printed in the report — and a failed live call is labelled "fresh generation was unavailable", never replaced by stored text. Tested in the browser with the agent endpoint mocked (network, quota, quarantine, withholding) and once on a real reply, which needed and passed one revision.
+
+### Demo checked through the controls
+Every runbook figure is now computed at full precision by `runbookExpected.js`, recomputed independently (T-178, and once in Python), and driven through the amount field, sliders and custom-portfolio form in the browser. The worked examples had multiplied rounded yields (7.03%, 8.90%); they now show 7.0275% and 8.9035%. An invalid amount now shows a message instead of reverting silently. One behaviour was documented: an amount the user typed is kept when the portfolio changes.
+
+### Smaller corrections
+The proxy now listens on 127.0.0.1 by default and its default model matches `.env.example`; documents no longer say the key "never leaves" the machine (the proxy sends it to Google to authenticate) or that having no dependencies means no vulnerabilities; the gross-yield limitation no longer claims every comparison overstates returns; the runbook no longer says a passing System Check guarantees its figures. The 390 px acceptance run found horizontal overflow on four pages that the earlier run had missed; wide tables now scroll within themselves.
+
+### Agent Output removed from the public site
+The public site could show AI commentary only for the four presets at their default settings, because a static host cannot hold an API key; any other weights or amount showed nothing, which looked like a limitation of the agents rather than of the hosting. The page is now offered only on a local copy: `public/js/siteMode.js` removes the link and the page on any host other than `localhost` before the router starts, the Overview lists the page as "local copy only", and the Decision Report says why there is no commentary. On a laptop the page works as before — live for any settings through the proxy, or the stored commentary on a local static server as a no-key fallback. **Rejected alternative:** a hosted serverless proxy, which would make live analysis public but expose the key's quota to anyone and needs a deployment. Tested with T-181 and in the browser with `?publicSite=1`.
 
 ---
 

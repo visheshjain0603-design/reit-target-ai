@@ -64,6 +64,31 @@ naming the failed checks, while the deterministic-checks panel shows the figures
 each check compared; the server's `/api/agents/analyse` route likewise skips the
 Orchestrator unless `context.deterministicValidation.passed === true`.
 
+**Why four calls rather than one.** This is a constrained, multi-stage
+interpretation workflow, not an autonomous agent: each call receives a fixed
+context, may only describe it, and is checked. Splitting the work keeps each
+reply to one set of figures, which makes it easier to check and to read. In the
+fresh live run on 5 October 2026 (Exercise A2, `tests/evidence/live-gemini-run-20261005.json`):
+
+- the Market Screening Analyst explained the screen outcome segment by segment —
+  "The five markets with higher raw scores were excluded because they failed the
+  simulation-support screen: GIFT City, Ahmedabad, Ambattur, Chennai, and Baner,
+  Pune failed on both simulated observations and Assumption Support Grade, while
+  Noida — Sector 62 …" — and named the largest contribution (rental yield, 21.19);
+- the Portfolio Risk Analyst stayed on the portfolio: "The city HHI was 0.4130
+  before the investment and is 0.3293 after", the asset-type HHI 0.6316 → 0.6711,
+  and the weighted yield 6.655% → 6.704%;
+- the Orchestrator, given the three earlier replies and the eight deterministic
+  checks, wrote the summary a committee reads and the required next step
+  ("External calibration remains unverified and further evidence collection and
+  due diligence are required before any real decision").
+
+A single call asked to do all of this would mix dataset statistics with portfolio
+figures (rule H exists because an early version did) and would be harder to check
+field by field. The cost is four calls and about 24 seconds per run. The workflow
+does not plan, choose tools, act, or change any figure: the ranking, screen,
+concentration and projections are all computed before the first call.
+
 The server still accepts the agent names of the earlier design
 (`dataQuality`, `statisticalAnalysis`, `portfolioAnalysis`, `diversification`) and
 routes them to the agent that now does that job. A request for `validation` is
@@ -126,7 +151,7 @@ The last column refers to the defect list in §10.
 | D | "Use the context's vocabulary: raw rank, eligible rank, highest raw-score market, shortlist candidate, selected target, next eligible candidate, highest raw-score alternative, simulation-support screen, simulated observations, Assumption Support Grade, external calibration." The rule then names four retired terms the model must never write (abridged here; they are listed in §12). | 2, 8 |
 | E | "A segment's rank is its rawRank (or its eligibleRank among segments passing the screen). Never say a segment "ranked first" unless its rawRank is 1." | 3 |
 | F | "When you say why a segment fails the simulation-support screen, use ITS OWN exclusionReasons / failsScreenOn: some fail on simulated observations, some on Assumption Support Grade alone, some on both. Never attribute a grade-only failure to sample size." | 7 |
-| G | "Simulation support is NOT evidence. More simulated observations narrow the estimate around the project's assumed distribution; they do not show that the figures are true of any real market. Thirty observations is a project governance convention, not a statistical guarantee. External calibration is Unverified for every segment." | 4, 8 |
+| G | "Simulation support is NOT evidence. More simulated observations make a segment's estimated median more precise around the project's assumed distribution; they do not narrow the P10–P90 spread of the simulated observations and do not show that the figures are true of any real market. The P10–P90 range is the spread of the simulated observations (their middle 80%), never a confidence interval. Thirty observations is a project convention chosen by the authors, not a statistical guarantee. External calibration is Unverified for every segment." | 4, 8 |
 | H | "Figures in marketDataset describe the 50 candidate market segments, NOT the portfolio. Figures in portfolio describe the existing holdings. Never mix them." | 1 |
 | I | "Refer to records as simulated market observations — never properties, listings or transactions." | — |
 | J | "If the context contains revisionNotes, your previous answer broke the rules listed there. Correct every one." | (revision loop, §9) |
@@ -331,8 +356,21 @@ every stored reply (T-160i1–i4) and on fixtures reproducing the defects (T-160
 treats any word beginning "un", such as "unverified", as a negation), so an
 overclaim in a sentence that also says "unverified" is not flagged by the overclaim
 rules. Money written after ₹ and small whole numbers are not compared with the
-context. A live reply that fails is displayed with its warnings rather than
-suppressed, and live mode has no revision loop; only the cache builder revises.
+context. Two rules were added on 5 October 2026: a reply that calls the P10–P90
+band a confidence interval, or says more draws narrow it, is flagged.
+
+**What happens to a reply that fails (since 5 October 2026).** In live mode the
+page sends the reply back once with the specific problems (`revisionNotes`, rule
+J). If the revision passes, the card says it passed after one revision. If it
+fails again, the reply is **quarantined**: the card shows "Withheld", lists the
+problems, and keeps the text collapsed as "not authoritative"; the next agent
+receives `null` in its place, and the Decision Report prints no commentary from
+it. Stored replies all passed when the cache was built; one that failed on
+display would be withheld, since no repair is possible offline. A live call that
+fails (network, quota, key) is reported as "fresh generation was unavailable" —
+stored commentary is never substituted, because stored text is not evidence of a
+live run. Earlier behaviour, superseded: a failing live reply was shown in full
+under a warning and was passed on to the next agent.
 
 ---
 
@@ -365,7 +403,8 @@ scenario descriptor and, per agent, the output, model, time, `checkedBy:
 "agentOutputCheck.js"` and `checkPassed: true`. `--dry-run` builds every scenario,
 context, key and deterministic check without calling the API or writing anything.
 
-**Use.** When the page is not served by the proxy, "Show Pre-generated Analysis"
+**Use.** The public site does not offer the Agent Output page, so stored
+commentary is shown only on a local copy. When a local page is not served by the proxy, "Show Pre-generated Analysis"
 appears only if the current run's scenario key matches a stored key exactly; the
 button then reads "Hide Pre-generated Analysis". The key covers the methodology
 version, context version, dataset, portfolio, weights, investment amount, selected
@@ -421,7 +460,7 @@ The prompts, the context, the pages and this documentation use one glossary,
 | Selected target | The segment every page analyses. In automatic mode it is the shortlist candidate; in manual mode it is the user's choice. |
 | Manually selected target | A selected target chosen by the user rather than by the screen. |
 | Simulated market observations | Seeded draws from the project's generator. Not properties, listings or transactions. |
-| Assumption Support Grade | The project's internal A–E classification of how a segment's assumptions were constructed and how wide a band was assumed around them. It is not an evidence grade: none of the benchmarks it refers to has been externally verified. |
+| Assumption Support Grade | An author-assigned simulation convention: the project's internal A–E classification of how a segment's assumptions were intended to be constructed and how wide a band was assumed around them. It is not an evidence grade: none of the benchmarks it refers to has been externally verified, and it is separate from the legacy sourceType label. |
 | External calibration status | Verified, Partially supported or Unverified, from the source register only. |
 | Known synthetic anomalies | Anomalies the generator inserted deliberately, recorded separately as ground truth. |
 <!-- canonical:END terminology -->
@@ -438,7 +477,8 @@ they record what an earlier revision did, not what the code does now.
 - v7: six agents in sequence — Data Quality, Statistical Analysis, Market Screening, Diversification, Validation, Orchestrator. [superseded]
 - v8: four agents; Data Quality and Statistical Analysis merged into one analyst, and the Validation agent replaced by deterministic checks in `validator.js`. The context (version 1) was assembled separately on each page and supplied dataset statistics under `portfolioStats`; the first pre-generated cache was built from it (§10). [superseded]
 - Vocabulary used by earlier revisions and now retired (`AppMeta.RETIRED_TERMS`, rejected by the checker): "runner-up", "evidence floor", "meets the floor", "confidence grade", "strong evidence", "documented evidence", "planted anomalies", and a Central Limit Theorem justification of n = 30. [superseded]
-- v9 (current, context version 2): context built by `fromRun()` from the shared analysis run with fixed-decimal figure strings; prose-only schemas passed as `responseSchema`; shared rules A–N; output checker; revision loop in the cache builder; cache rebuilt so that all four presets' replies pass the checker.
+- v9 (context version 2): context built by `fromRun()` from the shared analysis run with fixed-decimal figure strings; prose-only schemas passed as `responseSchema`; shared rules A–N; output checker; revision loop in the cache builder; cache rebuilt so that all four presets' replies pass the checker. [superseded]
+- v10 (current, context version 3, 5 October 2026): rule G and the screen rationale say that more draws make the estimated median more precise but do not narrow the P10–P90 spread, and that the band is not a confidence interval; two output-check rules enforce this; live replies that fail are revised once and otherwise quarantined; the cache was rebuilt (16 replies, 17 API calls, one Orchestrator reply revised once).
 
 ---
 

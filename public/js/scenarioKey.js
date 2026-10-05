@@ -55,7 +55,7 @@
    * old vocabulary ("evidence floor", "runner-up") no longer describes what the
    * application displays, so it must stop matching.
    */
-  var CONTEXT_VERSION = "2";
+  var CONTEXT_VERSION = "3";   // 3: P10–P90 and 30-draw wording corrected in prompt rule G and the screen rationale (5 Oct 2026)
 
   /* Rounding applied before hashing, so floating-point noise cannot cause a
    * spurious cache miss. Weights and scores are compared at these precisions. */

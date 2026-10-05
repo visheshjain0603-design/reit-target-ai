@@ -1,0 +1,17 @@
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const out = {};
+const btn = () => document.querySelector('#agents-content .reit-run-btn');
+out.buttonAtDefault = btn() ? btn().textContent.trim() : 'none';
+btn().click(); await sleep(1500);
+out.atDefault = [...document.querySelectorAll('.reit-agent-card')].map(c => /Pre-generated interpretation/.test(c.textContent) ? 'STORED-LABELLED' : 'OTHER');
+out.keyShown = window._reitAgentOutputs && window._reitAgentOutputs.scenarioKey;
+AnalysisRun.update({ investmentCr: 75 }); await sleep(1200);
+out.cardsAfterChange = document.querySelectorAll('.reit-agent-card').length;
+out.publishedAfterChange = window._reitAgentOutputs ? window._reitAgentOutputs.scenarioKey : null;
+out.currentKey = AnalysisRun.current().scenarioKey;
+out.buttonAfterChange = btn() ? btn().textContent.trim() + ' | disabled=' + btn().disabled : 'no button';
+out.messageAfterChange = (document.getElementById('agents-content').textContent.match(/No stored commentary[^.]*\.|differ[^.]*\./) || ['?'])[0];
+location.hash = 'report'; await sleep(900);
+out.reportAfterChange = (document.getElementById('report-content').textContent.match(/No agent commentary for this run[^.]*\.|produced for a different configuration[^.]*\./) || ['?'])[0];
+AnalysisRun.update({ investmentCr: null }); await sleep(800);
+return JSON.stringify(out, null, 1);

@@ -53,7 +53,7 @@ var OUT     = path.join(PROJECT, "public", "data", "agent-cache.json");
 var JS      = path.join(PROJECT, "public", "js");
 var DATA    = path.join(PROJECT, "public", "data");
 
-var API_HOST = "localhost";
+var API_HOST = "127.0.0.1";   // the proxy listens on loopback by default (server/server.js)
 var API_PORT = parseInt(process.env.PORT || "3001", 10);
 var DRY_RUN  = process.argv.indexOf("--dry-run") !== -1;
 var MAX_REVISIONS = 2;

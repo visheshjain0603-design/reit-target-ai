@@ -44,66 +44,60 @@ No model output ever feeds back into a score, a rank, a target or a figure.
 | Institution and author | NMIMS B.Sc. Finance, Business Analytics — Vishesh Jain |
 <!-- canonical:END key-figures -->
 
+### 1.1 System overview
+
+A simplified view, readable at ordinary print size. The full diagram, with every
+script and data file, is Appendix A. The API key is held on the local machine by
+the proxy, which sends it to Google's Gemini endpoint to authenticate each call;
+it never reaches the browser.
+
 ```mermaid
-flowchart TD
-    subgraph Build["Build time: data-pipeline/ (Node)"]
-        GEN["generateObservations.js<br/>seeded simulated observations"]
-        DER["deriveMarkets.js<br/>segment medians"]
-        CS["computeStatistics.js"]
-        BOD["buildObservationDistribution.js"]
-        BM["buildMeta.js<br/>runs analysisRun.compute per preset"]
-        BAC["buildAgentCache.js<br/>writes checked replies only"]
-        REG[("source_register.csv")]
-    end
-
-    subgraph Data["public/data/"]
-        MK[("markets.json")]
-        PF[("portfolio.json")]
-        ST[("statistics.json")]
-        ME[("meta.json")]
-        AC[("agent-cache.json")]
-    end
-
-    subgraph Browser["Browser: public/js/"]
-        ENG["Engines<br/>hhi, scoringEngine, governance,<br/>projection, stats, validator"]
-        RUN["analysisRun.js<br/>the shared analysis run"]
-        PAGES["Page controllers<br/>Overview, Portfolio, Screener, Diversification,<br/>Agent Output, Data Centre, Report"]
-        CTX["agentContext.fromRun"]
-        CHK["agentOutputCheck.check"]
-        SYS["systemCheck.js"]
-    end
-
-    subgraph Server["server/server.js: local proxy on port 3001"]
-        PROXY["prompts + responseSchema<br/>retry and model fallback"]
-    end
-
-    GEM["Gemini API"]
-
-    GEN --> DER
-    DER --> CS
-    DER --> BOD
-    REG --> BM
-    DER --> MK
-    CS --> ST
-    BM --> ME
-    BAC --> AC
-    MK --> RUN
-    PF --> RUN
-    ST --> RUN
-    ME --> RUN
-    ENG --> RUN
-    RUN -->|"subscribe: re-render"| PAGES
-    PAGES -->|"AnalysisRun.update(inputs)"| RUN
-    RUN --> CTX
-    RUN --> SYS
-    AC -->|"static mode: exact scenario-key match"| CHK
-    CTX -->|"live mode: POST /api/agent"| PROXY
-    BAC -->|"POST /api/agent"| PROXY
-    PROXY --> CHK
-    CHK --> PAGES
-    PROXY -->|"HTTPS; the key stays on the server"| GEM
-    GEM --> PROXY
+flowchart TB
+    P["Seeded data pipeline<br/>synthetic observations → segment medians, statistics, meta"]
+    D[("Static data files<br/>public/data/")]
+    R["Shared analysis run<br/>scoring · screen · HHI · projections"]
+    V{"8 deterministic checks<br/>in code"}
+    UI["Eight pages + Decision Report<br/>every figure from the run"]
+    X["Local proxy on 127.0.0.1<br/>key in server/.env"]
+    G["Google Gemini"]
+    K["Output check<br/>repair once, else withhold"]
+    S[("Stored commentary<br/>exact scenario-key match only")]
+    P --> D --> R --> UI
+    R --> V
+    R -->|"agent context"| X
+    V -->|"gate the Orchestrator"| X
+    X -->|"HTTPS"| G
+    X --> K
+    S -->|"static mode"| K
+    K -->|"only replies that pass"| UI
 ```
+
+### 1.2 Agent flow
+
+```mermaid
+flowchart TB
+    C["Context from the shared run<br/>fixed-decimal figures"] --> A1["1. Data & Statistical Analyst"]
+    A1 --> A2["2. Market Screening Analyst"]
+    A2 --> A3["3. Portfolio Risk & Scenario Analyst"]
+    A3 --> G{"validator.js:<br/>all 8 checks pass?"}
+    G -->|"yes"| A4["4. Investment Orchestrator"]
+    G -->|"no"| X["No synthesis;<br/>failed checks shown"]
+    A1 --> K{"agentOutputCheck.check<br/>on every reply"}
+    A2 --> K
+    A3 --> K
+    A4 --> K
+    K -->|"passes"| UI["Agent cards, later agents<br/>and the Decision Report"]
+    K -->|"fails (live)"| RV["Sent back once<br/>with the specific problems"]
+    RV -->|"revision passes"| UI
+    RV -->|"fails again"| W["Withheld: shown collapsed,<br/>not passed on, not in the report"]
+```
+
+Each agent receives the context plus the earlier agents' outputs — but only
+outputs that passed the check; a withheld reply is replaced by `null`. In static
+mode the same check runs on the stored replies before they are displayed (they
+all passed when the cache was built; one that failed now would be withheld, since
+no repair is possible offline). A live call that fails is reported as "fresh
+generation was unavailable"; stored commentary is never substituted for it.
 
 ---
 
@@ -339,8 +333,10 @@ the page and the cache builder), `POST /api/agents/analyse` (a server-side
 four-agent chain with the same deterministic gate; the page does not use it),
 `GET /api/health` and `GET /api/status` (report whether a key is configured, as a
 boolean), `/api/cache/clear`, and static files from `public/` with a
-path-traversal check. The key is read from `server/.env` and sent only to the
-Gemini endpoint. Each call requests JSON output with the agent's
+path-traversal check. It listens on 127.0.0.1 by default; `REIT_HOST=0.0.0.0`
+makes it reachable from the network, deliberately. The default model is
+`gemini-3.1-flash-lite`, the same as `.env.example`. The key is read from
+`server/.env` and sent only to the Gemini endpoint, to authenticate each call. Each call requests JSON output with the agent's
 `responseSchema`, temperature 0.2 and thinking disabled; transient errors are
 retried with exponential backoff; when a model's quota is exhausted, or the model
 is unusable (HTTP 400/404), the call moves to the next model in the chain
@@ -355,7 +351,13 @@ the agent that absorbed their role.
   `/api/health` and, if a key is configured, "Run Agent Analysis" makes live
   calls for the current run (the Orchestrator only when the checks pass). If the
   proxy has no key, the pre-generated commentary below is still available.
-- **Static mode** applies on GitHub Pages or any other origin. The proxy is not
+- **Public site.** On any host other than `localhost` (GitHub Pages),
+  `public/js/siteMode.js` removes the Agent Output link and page before the
+  router starts, the Overview lists the page as "local copy only", and the
+  Decision Report says the public site has no AI commentary. Nothing is fetched
+  from the proxy or the cache. `?publicSite=1` forces this on a local copy.
+- **Static mode** applies on a local copy served without the proxy (for example
+  `python3 -m http.server`). The proxy is not
   probed, so no failed requests are logged. "Show Pre-generated Analysis" serves
   `public/data/agent-cache.json` only when the run's scenario key matches a
   stored scenario exactly; the button then reads "Hide Pre-generated Analysis".
@@ -469,8 +471,89 @@ Test counts are reported by each run and in [test-report.md](test-report.md).
 | Pure engines with dual export | Unit-testable without a browser; build scripts reuse the production code. |
 | One in-memory run, inputs persisted | Pages cannot hold different copies of the analysis. |
 | Hash routing | Works on any static host, including GitHub Pages. |
-| Node standard-library proxy | No dependencies to audit; the key never reaches the browser. |
+| Node standard-library proxy | No third-party packages to install, audit or keep patched (the project's own code can still contain defects); the key never reaches the browser. |
 | Strict response schemas plus a deterministic check | The model is held to prose fields, and specific false statements are caught before display. |
+
+
+---
+
+## Appendix A — Detailed system diagram
+
+Every script, data file and route, with the CI actions dashed. Full-size PNG and
+SVG exports are in the submission package.
+
+```mermaid
+flowchart LR
+    subgraph Build["Build time: data-pipeline/ (Node, seeded)"]
+        direction TB
+        IN[("Assumption CSVs<br/>market_universe, estimates, assumptions")]
+        GEN["generateObservations.js<br/>seed 20260919"]
+        DER["deriveMarkets.js<br/>segment medians, P10-P90"]
+        CS["computeStatistics.js"]
+        REG[("source_register.csv")]
+        BM["buildMeta.js<br/>meta.json + generated doc blocks"]
+        BAC["buildAgentCache.js<br/>writes only checked replies"]
+        IN --> GEN --> DER --> CS
+        REG --> BM
+    end
+
+    subgraph Data["public/data/ (static files)"]
+        direction TB
+        MK[("markets.json<br/>observations.json")]
+        PF[("portfolio.json")]
+        ST[("statistics.json")]
+        ME[("meta.json")]
+        AC[("agent-cache.json")]
+    end
+
+    subgraph Browser["Browser: public/js/ (no key, no direct model call)"]
+        direction TB
+        ENG["Deterministic engines<br/>scoring, HHI, screen, projection, stats"]
+        RUN["analysisRun.js<br/>one shared analysis run"]
+        VAL["validator.js<br/>8 deterministic checks"]
+        CTX["agentContext.fromRun"]
+        CHK["agentOutputCheck.check<br/>repair once, else withhold"]
+        PAGES["Pages: Overview, Portfolio, Screener,<br/>Diversification, Statistics, Agent Output,<br/>Data Centre + System Check, Decision Report"]
+        ENG --> RUN
+        RUN -->|"subscribe: every page re-renders"| PAGES
+        PAGES -->|"AnalysisRun.update(inputs)"| RUN
+        RUN --> VAL
+        RUN --> CTX
+        CHK --> PAGES
+    end
+
+    subgraph KeyZone["Local machine: the key is held here"]
+        direction TB
+        ENV[("server/.env<br/>GEMINI_API_KEY, git-ignored")]
+        PROXY["server/server.js proxy, 127.0.0.1:3001<br/>prompts + responseSchema"]
+        ENV --> PROXY
+    end
+
+    GEM["Google Gemini API"]
+
+    subgraph CI["GitHub Actions"]
+        direction TB
+        TEST["tests.yml<br/>Node suites + seed reproducibility"]
+        DEPLOY["pages.yml<br/>publishes public/ to GitHub Pages"]
+    end
+
+    DER --> MK
+    CS --> ST
+    BM --> ME
+    BAC --> AC
+    MK --> RUN
+    PF --> RUN
+    ST --> RUN
+    ME --> RUN
+    AC -->|"static mode: exact scenario-key match"| CHK
+    CTX -->|"live mode: POST /api/agent"| PROXY
+    VAL -->|"gate: Orchestrator only if all pass"| PROXY
+    PROXY -->|"HTTPS: key sent only to Gemini to authenticate"| GEM
+    PROXY --> CHK
+    BAC -->|"POST /api/agent"| PROXY
+    TEST -.->|"runs the production code"| ENG
+    DEPLOY -.->|"publishes"| Data
+```
 
 ---
 

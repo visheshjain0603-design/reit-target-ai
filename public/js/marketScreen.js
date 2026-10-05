@@ -344,15 +344,30 @@
     var input = document.createElement("input");
     input.type = "number";
     input.min  = "1";
-    input.max  = "500";
+    input.max  = "100000";   // the analysis accepts up to ₹1,00,000 Cr (analysisRun.js)
     input.step = "1";
     input.id    = "screener-investment";
     input.value = state.investmentCr;
     input.className = "reit-investment-input";
+    var note = document.createElement("p");
+    note.id = "screener-investment-note";
+    note.className = "reit-weight-err-msg";
+    note.setAttribute("role", "status");
+    note.hidden = true;
+    input.setAttribute("aria-describedby", note.id);
     input.addEventListener("change", function () {
-      var v = parseFloat(this.value);
-      if (v > 0 && isFinite(v)) { AnalysisRun.update({ investmentCr: v }); }
-      else { this.value = state.investmentCr; }
+      var raw = this.value;
+      var v = parseFloat(raw);
+      if (v > 0 && isFinite(v) && v <= 100000) {
+        note.hidden = true;
+        AnalysisRun.update({ investmentCr: v });
+      } else {
+        // Not applied: say why, and keep the amount the analysis is using.
+        this.value = state.investmentCr;
+        note.textContent = "\u201c" + (raw === "" ? "(empty)" : raw) + "\u201d is not a valid amount. Enter a positive " +
+          "number of \u20b9 crore (up to 1,00,000). The analysis keeps \u20b9" + state.investmentCr + " Cr.";
+        note.hidden = false;
+      }
     });
 
     var label = document.createElement("label");
@@ -362,6 +377,7 @@
 
     row.appendChild(label);
     row.appendChild(input);
+    row.appendChild(note);
     return row;
   }
 
@@ -545,8 +561,8 @@
       "Risk runs 0–100 and lower is better, so this is an upper bound."));
     body.appendChild(numberSingle("Minimum simulated observations", "minObservations",
       d.observations.min, d.observations.max, 1,
-      "Seeded draws behind the segment's medians. More draws narrow the estimate around the " +
-      "assumed distribution; they are not market evidence. Range: " +
+      "Seeded draws behind the segment's medians. More draws make the estimated median more precise " +
+      "around the assumed distribution; they are not market evidence. Range: " +
       d.observations.min + "–" + d.observations.max + "."));
 
     body.appendChild(eligibleOnlyRow());
@@ -1150,7 +1166,7 @@
           ". The composite score above is unaffected; it measures attractiveness, " +
           "not simulation precision.") +
       " External calibration: " + (m.externalCalibrationStatus || "Unverified") +
-      ". More simulated draws narrow the estimate around the assumed distribution; " +
+      ". More simulated draws make the estimated median more precise around the assumed distribution; " +
       "they are not market evidence.";
     div.appendChild(evid);
 
@@ -1235,8 +1251,8 @@
     uDiv.className = "reit-uncertainty-panel";
     var uTitle = document.createElement("p");
     uTitle.className = "reit-uncertainty-title";
-    uTitle.textContent = "Simulation spread (P10–P90 of this segment's simulated observations). " +
-      "This measures precision around the project's assumptions, not real-market uncertainty:";
+    uTitle.textContent = "P10–P90 spread of simulated observations (the middle 80% of this segment's draws). " +
+      "It describes the spread the project assumed, not a confidence interval and not real-market uncertainty:";
     uDiv.appendChild(uTitle);
 
     var uTbl = document.createElement("table");

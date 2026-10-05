@@ -32,6 +32,48 @@ application against the same data.
 
 ---
 
+## 1a. Results at a glance (final run, 5 October 2026)
+
+| Check | Result | Evidence |
+|---|---|---|
+| Application suite (`node tests/reit-tests.js`) | 720 passed, 0 failed (assertions; see §3a for what kind) | §2.1 |
+| Data-pipeline suite | 22 passed, 0 failed | `node data-pipeline/tests/dataPipeline.test.js` |
+| Analytics audit | exit code 0 — every headline figure re-derives by an independent route | `data-pipeline/docs/ANALYTICS_AUDIT.md` |
+| Seeded reproducibility | Two consecutive regenerations of the full data chain (observations, `markets.json`, `observations.json`, `statistics.json`, `observation-distribution.json`, `meta.json`) were byte-identical; observations and statistics are identical to the committed files | SHA-256 comparison; CI step |
+| Browser acceptance, desktop (1440 px) | 76 / 76 passed, no console errors | `tests/acceptance-results.json` |
+| Browser acceptance, phone (390 px) | 84 / 84 passed, no horizontal overflow on any route, no console errors (after the overflow fix in §4e) | `tests/acceptance-results.json` |
+| System Check | 10 / 10 | browser acceptance SYSCHECK; T-161 |
+| Fresh live Gemini run (§4b) | Exercise A2 (no stored commentary): 4 / 4 agents live, 4 / 4 consistency checks passed (one after a single revision), 24.3 s | `tests/evidence/live-gemini-run-20261005.json` |
+| Failure handling (§4c) | Network failure, quota error, quarantine of a failing reply, and withholding from the next agent and the report — all behave as specified; no API calls used | `tests/evidence/agent-failure-handling-20261005.json` |
+| Stale commentary (§4d) | Stored commentary appears only at an exact match, labelled as stored, and disappears when an input changes | `tests/evidence/stale-commentary-20261005.json` |
+| CSV area units (§4f) | 300 sq ft stays 300 sq ft; square metres converted once; missing or conflicting units rejected with the reason | T-176, CSV-3 to CSV-5 |
+| Runbook figures (§4g) | Exercises A, B, C and the live configuration recomputed independently; equal to the application at full precision | T-178; EX-A1 to EX-B3 |
+
+---
+
+## 1b. Use-case tests
+
+Each core use case (Overview, "Who it is for") is exercised by automated tests
+and by the browser acceptance run, and shown in a screenshot of the default run.
+
+| # | Use case | Application-suite tests | Browser acceptance checks | Result | Screenshot |
+|---|---|---|---|---|---|
+| 1 | Diagnose concentration in the existing portfolio | T01–T06, T22, T-157 (HHI, weighted yield, portfolio totals) | R-portfolio, R-diversification, FOCUS-1/2 (custom portfolio form) | Pass | `portfolio.jpg`, `diversification.jpg` |
+| 2 | Rank markets with adjustable priorities | T07–T16, T80–T81, T-162a (presets, weights, ranking order) | SYNC-*preset*-target for all four presets | Pass | `screener-ranking.jpg` |
+| 3 | Compare the highest raw-score market with the highest-ranked market passing the screen | T-151, T-163, T-165 (screen, manual selection, report tables) | SYNC-*preset*-candidate, SYNC-*preset*-top3, MANUAL-1 to MANUAL-4 | Pass | `screener-candidate-plate.jpg`, `overview-candidate-plate.jpg`, `diversification-candidate-tables.jpg` |
+| 4 | Simulate yield, concentration and scenario effects | T04–T06, T-157–T-158, T-162d–e (HHI after, year-0 rent, projections) | SYNC-*preset*-projection, SYNC-*preset*-rent | Pass | `diversification.jpg`, `screener-breakdown.jpg` |
+| 5 | Deterministic validation and Gemini-assisted interpretation | T44, T-160 (context, cache, output checker), T-174 | CACHE-1 to CACHE-8 (static); live run §4a | Pass | `agents-pre-generated.jpg`, `live-agent-output.jpg` |
+| 6 | Printable decision report | T-154, T-165 | SYNC-*preset*-report, CACHE-5, CACHE-7 | Pass | `report.jpg`, `report-screening-tables.jpg`, `live-report-commentary.jpg` |
+
+Supporting behaviour: Reset Demo (T-155, T-164; RESET-1 to RESET-5, EX-RESET), the
+System Check (T-161; SYSCHECK), the CSV cleaning pipeline (T-156, T-176; CSV-1 to
+CSV-5), the runbook exercises through the controls (T-178; EX-A1 to EX-B3,
+EX-INVALID), agent failure handling (T-180; §4c), provenance and benchmark checks
+(T-177), the screen's sensitivity (T-179), and the customer and use-case statement
+itself (T-173). Screenshots are in [screenshots/](screenshots/).
+
+---
+
 ## 2. How to run each suite
 
 No suite needs `npm install`: every script uses only the Node standard library or
@@ -54,7 +96,7 @@ node tests/reit-tests.js
 The suite prints one `PASS` or `FAIL` line per assertion, prints a results line,
 lists every failure at the end, and exits with status 1 if anything failed.
 
-Latest full run, 5 October 2026: `node tests/reit-tests.js` → "Results: 666 passed, 0 failed" (also recorded in HANDOFF.md). Assertion T-170 fails if this line and the live count ever disagree.
+Latest full run, 5 October 2026: `node tests/reit-tests.js` → "Results: 720 passed, 0 failed" (also recorded in HANDOFF.md). Assertion T-170 fails if this line and the live count ever disagree.
 
 ### 2.2 Browser acceptance
 
@@ -88,6 +130,29 @@ file differs). No API key is available in CI, so no live Gemini call is ever tes
 there; the stored replies in `public/data/agent-cache.json` are checked instead.
 
 ---
+
+## 3a. What kind of evidence each check is
+
+The application suite counts **assertions**, not independent test cases: one
+behaviour is often checked by several lettered assertions, and many assertions
+compare production output with metadata that the same production code generated.
+Those comparisons catch drift between pages, data files and documents; they do
+not show that a figure is right. The checks below are the ones that recompute
+figures by a **separate route** and could catch a wrong formula:
+
+| Independent check | What it recomputes | Separate from the application code? |
+|---|---|---|
+| `data-pipeline/scripts/auditAnalytics.js` | Portfolio aggregates, both HHI figures, normalisation ranges, composite scores, contribution sums, every projection point | Yes — its own implementation |
+| T-178 | HHI, weighted yield, year-0 rent and 3-year value for exercises A, B, C and the live configuration, from the raw data files | Yes — code written in the test, not `analysisRun.js`; also cross-checked once in Python while preparing this report |
+| T-176c–e, T-176i | Square-metre conversion against 1 ÷ 0.3048² | Yes — the factor is computed in the test |
+| T-179e | That more draws tighten the median's bootstrap interval but not the P10–P90 spread | Recomputed by `screenSensitivity.js` from the observations |
+| Worked examples (report Sections 9 and 10) | One composite score and one HHI by hand | Yes — by hand |
+| Browser acceptance EX-*, SYNC-* | What the rendered pages show after the real controls are used | Reads the DOM, not the engine |
+
+Tests such as T-167 (meta.json equals a fresh run), T-174 (limitations quoted word
+for word) and T-170 (documented test count) are consistency checks of the second
+kind. The exported Word and PDF documents are not covered by any automated test;
+they were produced from the Markdown and inspected page by page when made.
 
 ## 3. What the application suite covers
 
@@ -133,6 +198,9 @@ assertions (for example T-160a to T-160s).
 | T-169 | No current document uses retired terminology or presents simulation support as evidence (quoted terms and `[superseded]` lines exempt) |
 | T-170 | This report and `HANDOFF.md` state the application suite's own count for the run |
 | T-171 | No `.env` file is tracked and no tracked file contains an API key |
+| T-173 | Customer, business problem and six use cases stated once in `AppMeta.CUSTOMER`, rendered on the Overview with links to real routes, copied into `meta.json`, and present in the README, the project report and `CANONICAL_FACTS.md` |
+| T-174 | The application's stated limitations (`validator.js`) appear word for word in `docs/limitations.md`, the project report and `CANONICAL_FACTS.md`, cover every required topic (including "not forecasts" and static versus live), and are read by the Overview, Agent Output and Decision Report |
+| T-175 | Every relative link and image in the README, HANDOFF and the documentation resolves to a file |
 | T-172 | Visual system: `index.html` loads one local stylesheet (`css/app.css`); every class the page scripts assign is defined in it or listed as a structural hook; every animation stops under `prefers-reduced-motion`; no CSS text-case transform (the browser checks read `innerText`); `motion.js` never writes text, markup or application state |
 
 ---
@@ -151,6 +219,111 @@ assertions (for example T-160a to T-160s).
 | CSV-1, CSV-2 | The valid fixture is accepted; every row of the invalid fixture is rejected or warned with a stated reason |
 | FOCUS-1, FOCUS-2 | Focus moves into the Add Asset form and returns to its opener on Escape |
 | A11Y-tables | Every principal table has a caption or an accessible name |
+
+---
+
+## 4a. Live Gemini test (5 October 2026, earlier run)
+
+Run after the visual redesign through the local proxy (`node server/server.js`,
+`http://localhost:3001`) with the configured key, on a configuration with no
+stored commentary, so the text could only come from live calls.
+
+| Item | Result |
+|---|---|
+| Configuration | Diversification Focused, ₹75 Cr, sample portfolio, automatic selection (scenario key `883fda7e`) |
+| Agents | All four answered live, `gemini-3.1-flash-lite`, 13.3 seconds |
+| Consistency check | Passed on all four replies |
+| Deterministic gate | All 8 checks passed before the Orchestrator |
+| Activity trail | All five steps Completed |
+| Decision Report | Commentary provenance "Live Gemini call made during this session for this exact run"; HHI 0.4130 → 0.3429 (city) and 0.6316 → 0.5132 (asset type), as the engine computes for ₹75 Cr |
+| Console | No application errors |
+| Key exposure | No key-shaped string in the page, the loaded scripts, `/api/health`, browser storage or the proxy log |
+
+The proxy was stopped afterwards. Screenshots: `screenshots/live-agent-context.jpg`,
+`screenshots/live-agent-output.jpg`, `screenshots/live-report-commentary.jpg`.
+
+## 4b. Fresh live Gemini run on a non-default configuration (final run)
+
+After the prompt wording changed (context version 3), the stored commentary was
+rebuilt (`buildAgentCache.js`: 16 replies, all passing the output check, 17 API
+calls — one Orchestrator reply needed one revision) and one fresh run was made on
+a configuration that has no stored commentary.
+
+| Item | Result |
+|---|---|
+| Configuration | Runbook Exercise A2: custom weights 35/25/20/10/10, ₹75 Cr, sample portfolio, automatic selection |
+| Scenario key | `f49bb7b8` (no stored entry matches it) |
+| Started | 2026-10-05 13:22:32 UTC; 24.3 seconds from **Run Agent Analysis** to the last card |
+| Served by | `node server/server.js` on 127.0.0.1:3001 (loopback); WebKit browser driven by `tests/browser/liveRunAndWait.js` |
+| Model | `gemini-3.1-flash-lite` for all four agents |
+| Consistency check | Market Screening, Portfolio Risk and Orchestrator passed first time. The Data & Statistical Analyst's first reply failed the check; it was sent back once with the problems and the revision passed — the bounded repair working on a real reply |
+| Deterministic gate | All 8 deterministic checks passed before the Orchestrator |
+| Key exposure | None in the evidence file, the page or the proxy log |
+
+The four replies are stored in `tests/evidence/live-gemini-run-20261005.json`.
+
+## 4c. Failure handling (no API calls)
+
+`tests/browser/agentFailureTests.js` drives the real Agent Output page served by
+the proxy, replacing only the `/api/agent` request:
+
+| Case | Expected | Result |
+|---|---|---|
+| Network failure | Every card says "Fresh generation was unavailable"; no stored text substituted; deterministic checks still shown; the report prints no commentary | Pass |
+| Quota error (HTTP 429) | As above, with the reason | Pass |
+| Orchestrator reply contradicting the analysis (twice) | Sent back once with its problems; then **Withheld** — collapsed, not published to the report; the report says the reply was withheld | Pass (2 calls made; report does not contain the bad text) |
+| First agent's reply fails twice | Withheld, and the next agent receives `dataStatisticalOutput: null` instead of the failing text | Pass |
+
+## 4d. Stale commentary (static mode)
+
+`tests/browser/staleCommentaryTest.js`: at the Balanced defaults the four cards
+are labelled "Pre-generated interpretation … Stored text, not a live call" (key
+`d881ea78`). After the amount changes to ₹75 Cr (key `d2a69bbf`) the cards are
+removed, nothing is published to the report, the page says the configuration
+"differs from the stored analysis by: investment amount", and the report says
+"No agent commentary for this run."
+
+## 4e. Mobile overflow found and fixed
+
+The 390 px acceptance run in WebKit found horizontal overflow on Portfolio (63 px),
+Market Screener (98 px), Diversification (675 px) and Decision Report (673 px). The
+same overflow is present in the previously committed version, so the earlier
+"0 px" result had been measured under different conditions. Causes: generic
+`.reit-table` tables were not made scrollable on narrow screens, a fixed-width
+chart did not scale, and screen-reader-only labels inside the ranked table were
+positioned outside its scroll area. All three were fixed in `public/css/app.css`;
+the run in §1a is after the fix.
+
+## 4f. CSV area units
+
+The cleaner no longer infers square metres from small numbers (it used to when a
+file's median area was below 500). T-176 and the browser checks CSV-3 to CSV-5
+confirm: 300, 250 and 180 sq ft stay as typed; `areaSqM`, `area` with `areaUnit`,
+and a unit written after the number are converted once by 1 ÷ 0.3048²; a generic
+area with no unit, a square-metre value in the square-foot column, two area
+columns that disagree, or an unrecognised unit are each rejected with the reason;
+the valid and invalid fixtures behave exactly as before.
+
+## 4f2. Public site without the Agent Output page
+
+The same page loaded with `?publicSite=1` (what the GitHub Pages host gets): the
+navigation has seven links and no Agent Output; `#agents` falls back to the
+Overview; the Overview lists Agent Output as "local copy only" without a link; the
+Decision Report says "No agent commentary on the public site" and why; the System
+Check passes 10 / 10; no page overflows at 390 px; no console errors. On a local
+copy the page is unchanged (acceptance 76 / 76 and 84 / 84). Covered by T-181.
+
+## 4g. Runbook figures
+
+`data-pipeline/scripts/runbookExpected.js` computes every figure the runbook
+quotes with the application's code; T-178 recomputes concentration, weighted
+yield, year-0 rent and the 3-year value from the raw data by a separate route and
+requires equality to 1 part in 10⁹; the browser checks EX-A1 to EX-B3 drive the
+same exercises through the amount field, the weight sliders and the custom
+portfolio form. One behaviour was documented rather than changed: an amount the
+user has typed is kept when the portfolio changes (₹75 Cr on the custom portfolio
+gives city HHI after 0.3339), while the default amount follows 10% of the active
+portfolio.
 
 ---
 
@@ -197,8 +370,12 @@ excludes `server/.env` and every variant of it except the committed template
   term, evidence overclaim). It cannot prove a sentence true. See
   `docs/prompt-design.md`, §8.
 - **Live Gemini behaviour.** CI has no key, so only stored replies are checked. A
-  live reply is checked in the browser when it is displayed, and shown with its
-  warnings if it fails.
-- **Rendering in every browser.** The browser acceptance script is run by hand; it
-  is not part of CI. Visual layout beyond page overflow and table labelling is
-  checked by inspection.
+  live reply is checked in the browser when it is displayed; a reply that fails is
+  sent back once and, if it fails again, withheld (§4c). One fresh live run was
+  made for this report (§4b); live output varies between runs.
+- **Rendering in every browser.** The browser acceptance script is run by hand in
+  WebKit (Safari's engine); it is not part of CI, and other engines were not run in
+  this pass. Visual layout beyond page overflow and table labelling is checked by
+  inspection.
+- **The exported documents.** The Word and PDF files are generated from the
+  Markdown and inspected page by page when made; no automated test reads them.

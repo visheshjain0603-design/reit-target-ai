@@ -3,10 +3,11 @@
 **NMIMS B.Sc. Finance | Business Analytics | Theme 4 — Building Agents/Artifacts Using Generative AI**
 **Author: Vishesh Jain. All data in this project is synthetic.**
 
-Preparation for the oral examination: a five-minute demonstration, then the
-questions an examiner is most likely to ask, with answers that say what the
-system establishes and what it does not. Figures come from the generated blocks
-below (filled from `public/data/meta.json` by `data-pipeline/scripts/buildMeta.js`)
+Short, revisable answers to the questions an examiner is most likely to ask,
+with the figures to have at hand. The demonstration itself, and three
+evaluator exercises with expected results, are in
+[LIVE_DEMO_RUNBOOK.md](LIVE_DEMO_RUNBOOK.md). Figures below come from generated
+blocks (filled from `public/data/meta.json` by `data-pipeline/scripts/buildMeta.js`)
 or from the code named beside them. If this guide and the application ever
 disagree, the application is right and this guide is stale.
 
@@ -14,19 +15,17 @@ disagree, the application is right and this guide is stale.
 
 ## 1. The system in one paragraph
 
-REIT Target AI ranks synthetic Indian market segments as possible targets for a
-synthetic REIT portfolio. A deterministic scoring engine
-(`public/js/scoringEngine.js`) weights five normalised factors — rental yield,
-rental growth, diversification benefit, demand and low market risk — under one
-of four presets or custom weights totalling 100%. A separate
-simulation-support screen (`public/js/governance.js`) then names the
-**shortlist candidate**: the highest-ranked candidate passing the screen.
-External calibration is a third, independent status read only from the source
-register, and it is Unverified for every segment. All of this is computed once,
-in one shared analysis run (`public/js/analysisRun.js`), and every page renders
-that run. Four Gemini agents interpret the run; they never calculate, rank or
-validate. The shortlist candidate is an exploratory model output, not an
-investment recommendation.
+REIT Target AI helps a REIT's investment team decide where a proposed new
+investment should go. A deterministic engine ranks synthetic Indian market
+segments on five normalised factors — rental yield, rental growth,
+diversification benefit, demand and low market risk — under one of four presets
+or custom weights. A separate simulation-support screen names the **shortlist
+candidate**: the highest-ranked segment whose simulated figures are adequately
+supported. External calibration is a third, independent status, Unverified for
+every segment. All of it is computed once, in one shared analysis run, and every
+page renders that run. Four Gemini agents interpret the run; they never
+calculate, rank or validate, and every reply is checked against the computed
+figures. The output is an exploratory shortlist, not investment advice.
 
 ---
 
@@ -65,478 +64,406 @@ All at the defaults: sample portfolio, ₹50.00 Cr, screen applied, automatic se
 
 <!-- canonical:BEGIN screen-and-calibration -->
 - **Composite attractiveness score** — the five weighted factors. Never changed by the screen.
-- **Simulation support** — simulated observations behind a segment's medians, their P10–P90 spread, and the project's own Assumption Support Grade (A–E). A transparent project governance convention for simulation precision, not a regulatory or universal statistical threshold. Thirty draws keeps the P10–P90 spread of a segment's simulated medians reasonably narrow; grade C or better excludes segments whose assumptions the project itself classed as interpolated or placeholder. Passing the screen says nothing about real-market accuracy.
+- **Simulation support** — simulated observations behind a segment's medians, their P10–P90 spread, and the project's own Assumption Support Grade (A–E). A transparent project convention chosen by the authors, not a regulatory or universal statistical threshold. More draws make a segment's estimated median more precise; they do not narrow the P10–P90 spread of its simulated observations. Thirty is a chosen minimum, not a proven sufficient sample. Grade C or better excludes the assumption sets the authors graded D (estimated from comparable segments) or E (placeholder). Passing the screen says nothing about real-market accuracy.
 - **Simulation-support screen** — at least 30 simulated observations and Assumption Support Grade C or better. 25 of 50 segments pass.
 - **External calibration** — from the source register only: 0 of 12 cited external sources verified; 0 partially supported. A segment is Verified only when every external source it cites is verified. Every segment is Unverified.
 - **Wording** — the model output is a *shortlist candidate*: "Exploratory shortlist only. External calibration remains unverified — proceed to further evidence collection and due diligence before any real decision."
 <!-- canonical:END screen-and-calibration -->
 
----
+### Statistical findings
 
-## 3. Before the viva
+<!-- canonical:BEGIN statistics-summary -->
+Correlations across the 2,156 simulated market observations, pooled and within each property type:
 
-- **Static mode (recommended for a timed demonstration).** Open
-  https://visheshjain0603-design.github.io/reit-target-ai/ . No server and no key
-  are needed. Pre-generated agent commentary is available for the four presets
-  at their defaults.
-- **Live mode (optional).** Live calls spend the key's daily free-tier quota and
-  can fail when it is exhausted, so keep static mode open in a second tab.
+| Relationship | Expected sign | Pooled | Commercial Office | Retail | Residential | Sign reverses when pooled |
+|---|---|---|---|---|---|---|
+| Yield vs Capital Value | negative | -0.170 | -0.732 | -0.610 | -0.660 | no |
+| Yield vs Risk | positive | -0.163 | 0.605 | 0.552 | 0.667 | yes |
+| Rental Growth vs Demand | positive | 0.396 | 0.385 | 0.635 | 0.546 | no |
+| Demand vs Risk | negative | -0.652 | -0.734 | -0.762 | -0.771 | no |
 
-      git clone https://github.com/visheshjain0603-design/reit-target-ai.git
-      cd reit-target-ai
-      cp server/.env.example server/.env   # add GEMINI_API_KEY for live mode (never commit it)
-      node server/server.js                 # then open http://localhost:3001
+Linear regression of gross yield on rental growth: pooled slope -0.288 with R² 0.063; within property types R² ranges from 0.014 to 0.053.
 
-  When the proxy has a key, the Agent Output button is "Run Agent Analysis"
-  (live calls). If the proxy is running without a key, pre-generated commentary
-  is still offered.
-- Press **Reset demo…** on the Overview before starting, so the run is at the defaults.
-- Have `tests/fixtures/markets-valid.csv` and `tests/fixtures/markets-invalid.csv`
-  on disk for the Data Centre step.
-- Optionally run the Node checks beforehand and note the result of the latest run:
+Detection of the 24 known synthetic anomalies (1.113% of observations), scored against the generator's separate ground-truth file:
 
-      node tests/reit-tests.js
-      node data-pipeline/tests/dataPipeline.test.js
-      node data-pipeline/scripts/auditAnalytics.js
+| Detector | Flagged | Correctly flagged | Precision | Recall | F1 |
+|---|---|---|---|---|---|
+| Tukey fences (1.5 × IQR) on gross yield, all 2,156 observations pooled | 304 | 7 | 0.023 | 0.292 | 0.043 |
+| Tukey fences (1.5 × IQR) on gross yield, applied within each of the 50 markets | 36 | 17 | 0.472 | 0.708 | 0.567 |
+| Robust (median/MAD) Mahalanobis distance over 5 standardised variables, χ² cutoff at α = 0.01 | 387 | 11 | 0.028 | 0.458 | 0.053 |
+| Robust (median/MAD) Mahalanobis over 5 standardised variables, fitted within each property type, χ² cutoff at α = 0.01 | 232 | 18 | 0.078 | 0.750 | 0.141 |
+
+Generated by `data-pipeline/scripts/buildMeta.js` from `public/data/statistics.json`. These describe the generator's construction, not a real market.
+<!-- canonical:END statistics-summary -->
 
 ---
 
-## 4. Five-minute demonstration
+## 3. Questions and answers
 
-### Step 1 — Overview (0:00–0:30)
+### A. Customer, problem and theme
 
-**Do:** open Overview.
-**Point out:** the synthetic-data statement; the dataset cards are derived from
-the data files, not typed; "Current analysis" shows the selected target for the
-active preset and compares it with the highest raw-score alternative (or, when
-the target is itself the highest raw-score market, with the next eligible
-candidate); the limits section.
+**1. Who is the customer?**
+REIT investment analysts and the acquisition committee they report to — the
+people deciding where the next tranche of capital should be allocated.
 
-### Step 2 — Reset Demo (0:30–0:50)
+**2. What business decision does it support?**
+Which target market a proposed new investment should go to, and what that choice
+does to the portfolio's income, concentration and projected value. It supports
+the decision; it does not make it.
 
-**Do:** press **Reset demo…**. A panel titled "Reset the demo to its defaults?"
-lists what will happen. Press **Reset to defaults** (Cancel or Escape closes it
-without changing anything).
-**Point out:** it restores the sample portfolio (a custom portfolio is kept but
-made inactive), the Balanced preset and its canonical weights, ₹50.00 Cr, the
-screen applied, automatic selection and no filters, and discards agent
-commentary from the previous run. It clears only the application's own storage
-keys, recomputes immediately and returns to the Overview with a valid analysis;
-no other page has to be visited first.
+**3. What are the core use cases?**
+Diagnose concentration in the existing portfolio; rank markets with adjustable
+priorities; compare the highest raw-score market with the highest-ranked market
+passing the screen; simulate yield, concentration and scenario effects; produce
+deterministic validation and Gemini-assisted interpretation; and print a
+decision report.
 
-### Step 3 — Market Screener: presets (0:50–1:50)
+**4. Why is this Theme 4 and not Theme 1 or Theme 2?**
+Theme 4 asks for an agent or artefact built with generative AI. The deliverable
+is a working application in which four Gemini agents are embedded in an
+analytical workflow, with guard-rails around them. Theme 1 is about statistical
+techniques demonstrated on two software platforms, and Theme 2 about predictive
+models scored on a held-out set; neither describes a decision-support artefact
+with AI agents.
 
-**Do:** press Balanced, Income Focused, Growth Focused and Diversification
-Focused in turn, then return to Balanced.
-**Point out:**
-- Under Balanced the target panel shows Gurugram — Cyber Hub, Delhi NCR at raw
-  rank 5 and eligible rank 1. The line beneath reads "Highest raw-score market:
-  Ambattur, Chennai … fails the simulation-support screen: only 26 simulated
-  observations (screen requires 30); Assumption Support Grade D (screen
-  requires C or better)."
-- Under Income Focused the candidate moves to Aerocity, Delhi NCR at raw rank 8;
-  the highest raw-score market, GIFT City, fails on both criteria.
-- Under Growth Focused the highest raw-score market, Banjara Hills, passes, so it
-  is the candidate at raw rank 1 and no exclusion line is shown.
-- Under Diversification Focused the highest raw-score market, New Town
-  (Rajarhat), fails, and Banjara Hills is the candidate at raw rank 2.
-- No score and no raw rank changes when the screen is applied; the screen only
-  chooses among the ranked segments. The checkbox "Ignore the simulation-support
-  screen" makes the highest raw-score market the candidate, and the Decision
-  Report records that the screen was ignored.
-- The Detail button on any row shows that segment's simulated distribution
-  (P10–P90 and quartiles of its simulated observations).
+**5. Why use synthetic data?**
+The project is about the method — combining deterministic analytics with checked
+AI interpretation — not about claiming facts about the Indian market. Licensed
+observation-level data was not available, and scraping listing sites raises
+accuracy and terms-of-use problems. A seeded generator makes every figure
+reproducible and lets anomaly detection be measured against a known truth.
 
-### Step 4 — Manual selection and the warning (1:50–2:20)
+### B. Model and scoring
 
-**Do:** in the ranking table press **Select** on Ambattur, Chennai.
-**Point out:** the panel is now headed "Manually selected target"; a notice
-names the current shortlist candidate with its raw and eligible ranks; the
-warning reads "The manual selection differs from the current shortlist
-candidate. Every page analyses the manual selection until you return to
-automatic mode." The Select button reads "Selected (manual)". Every other page
-shows the same label. Selection mode and target are part of the scenario key,
-so Agent Output will not offer pre-generated commentary for this run.
+**6. Why weighted multi-factor scoring?**
+There is no labelled outcome — no record of which acquisitions worked — to train
+a predictive model. A committee needs to see and change its priorities. A
+weighted sum is transparent, explainable factor by factor, and its sensitivity
+to the weights can be shown directly (the four presets).
 
-### Step 5 — Return to automatic (2:20–2:30)
+**7. Why these five factors?**
+They are what an acquisition committee weighs: income (yield), growth,
+diversification, demand and risk. Capital growth and occupancy move closely with
+rental growth, demand and risk in the data, so adding them would double-count.
 
-**Do:** press **Return to automatic recommendation**.
-**Point out:** the selected target is the shortlist candidate again and will
-follow every change of preset, weights, amount, portfolio or screen setting.
+**8. Why min–max normalisation?**
+The factors are in different units (%, index points). Min–max rescales each to
+0–100 between the worst and best segment, so a weight means "share of the
+score". It is easy to explain and recompute by hand. If every segment had the
+same value the factor would be 50, so the score is never undefined.
 
-### Step 6 — Diversification (2:30–3:20)
+**9. Why invert risk?**
+The risk score is higher for riskier segments, but a weighted sum only makes
+sense if every factor points the same way. So the engine uses low market risk =
+100 − risk score: higher is better for all five.
 
-**Do:** open Diversification.
-**Point out:**
-- City and asset-type HHI before and after investing in the selected target.
-  Under Balanced, city concentration falls (Delhi NCR is new to the portfolio)
-  while asset-type concentration rises (the target is Commercial Office, which
-  the portfolio already holds most of). The two are shown separately for this
-  reason. The bands (below 0.15 diversified, 0.15–0.25 moderate, above 0.25
-  concentrated) are descriptive, not regulatory.
-- Two tables: "Raw-score leaders — top 3 by composite attractiveness score" and
-  "Eligible shortlist — top 3 passing the simulation-support screen". Under
-  Balanced the first shows raw ranks 1–3, all failing the screen; the second
-  begins with the candidate at raw rank 5.
-- "Sensitivity Analysis — every preset": each card shows both the highest
-  raw-score segment and the shortlist candidate, so an ineligible segment is
-  never presented as a preset's result.
-- Scenario Projections: the year-0 rent line shows its derivation (existing rent
-  plus the amount times the target's gross yield); gross yield and Effective
-  Yield are labelled separately.
-- If time allows, switch the preset on the Screener and come back: this page now
-  analyses the new candidate at once. That is the defect the shared analysis run
-  fixed (question B1).
+**10. How is gross yield calculated?**
+Monthly rent per sq ft × 12 ÷ capital value per sq ft. For the portfolio,
+weighted gross yield is total annual rent ÷ total value (₹33.275 Cr ÷ ₹500 Cr),
+not an average of the holdings' yields.
 
-### Step 7 — Agent Output (3:20–4:10)
+**11. How is the diversification factor calculated, and is it the real effect?**
+For the segment's city: 1 if the portfolio holds nothing there, otherwise
+max(0, 1 − 2 × share); the same for its property type; factor = 100 × (0.6 ×
+city + 0.4 × type). It is a proxy; the realised HHI change is shown beside it on
+Diversification.
 
-**Do:** open Agent Output, press **Show Pre-generated Analysis**, scroll through
-one card, press **Hide Pre-generated Analysis**, then press Show again if the
-commentary should appear in the report.
-**Point out:**
-- The status bar says static mode: live calls are made only when the page is
-  served by the local proxy.
-- "Analysis Context" lists the deterministic figures the agents receive — the
-  same run every page renders.
-- The Activity Trail has five steps for four agents. "Inputs validated
-  (deterministic, no model call)" sits before the Orchestrator.
-- "Deterministic Input Checks" reads "All 8 deterministic checks passed." with
-  what each check compared, followed by the fixed list of stated limitations.
-- Each card carries a provenance banner (pre-generated, stored text, not a live
-  call), deterministic figures above the prose that are taken from the analysis
-  and not from the model, and a consistency-check line.
-- Changing any input removes the commentary and disables the button, and the
-  note names which inputs differ from the stored analysis.
+**12. Why are the scores deterministic?**
+The same data, portfolio and weights always give the same ranks; ties are broken
+by segment ID. That is what allows the tests, the cache and the documentation to
+agree with the screen.
 
-### Step 8 — Data Centre (4:10–4:40)
+### C. Concentration (HHI)
 
-**Do:** press **Run System Check**; then **Import CSV** with
-`markets-valid.csv`, and again with `markets-invalid.csv`.
-**Point out:** ten checks (CHK-01 to CHK-10) run the production engines against
-the current data and state what each expected and what it got; the same module
-runs in the Node test suite. The valid file is accepted in full; every row of
-the invalid file is rejected, each for one stated reason. Imported files never
-change the market segments or the analysis. The five data levels are kept in
-separate sections, and the city × property-type table states why no confidence
-interval is computed (question D1).
+**13. What is HHI?**
+The Herfindahl–Hirschman Index: the sum of squared shares. With all value in one
+city it is 1; with n equal shares it is 1/n. The application reads below 0.15 as
+diversified, 0.15–0.25 moderate and above 0.25 concentrated — descriptive bands,
+not regulatory ones.
 
-### Step 9 — Decision Report (4:40–5:00)
+**14. Why calculate city and asset-type HHI separately?**
+They are different risks: a city exposes the portfolio to one local economy, an
+asset type to one demand cycle. A single combined number would hide which one an
+investment changes.
 
-**Do:** open Decision Report and press **Print / Save as PDF**.
-**Point out:** "Top 3 by raw attractiveness score" and "Top eligible shortlist"
-are separate tables showing raw rank, eligible rank, screen result, support
-grade, simulated observations, external calibration and exclusion reason. The
-shortlist candidate (model) is shown separately from any manually selected
-target. HHI and projections come from the same run. Agent commentary is printed
-only when it was produced for this exact run, with its provenance.
+**15. Why can one HHI improve while the other worsens?**
+Under Balanced the candidate is a Delhi NCR office segment. Delhi NCR is new, so
+city HHI falls (0.4130 → 0.3496); but the portfolio is already 77.8% office, so
+asset-type HHI rises (0.6316 → 0.6588).
 
-**If anything looks wrong during the demonstration:** press Reset Demo. If live
-mode fails because the quota is exhausted, switch to the static site.
+**16. What is the yield–diversification trade-off?**
+Under Growth Focused the candidate is Banjara Hills (Residential, 2.66% gross
+yield). It cuts asset-type HHI sharply but lowers the portfolio's weighted
+yield. Diversification is bought with income.
 
----
+### D. The screen, simulation support and calibration
 
-## 5. Likely questions, with honest answers
+**17. Why is the shortlist candidate sometimes not raw rank 1?**
+Because the segments above it fail the simulation-support screen. Under
+Balanced, raw ranks 1–4 all fail (three on both tests, one on grade alone), so
+Gurugram — Cyber Hub at raw rank 5 is eligible rank 1. The screen changes no
+score and no rank; it only chooses among the ranked segments.
 
-### A. Results and the screen
+**18. What is the difference between raw rank and eligible rank?**
+Raw rank is position by composite score among all 50 segments. Eligible rank is
+position among the segments that pass the screen.
 
-**A1. Why is the Balanced shortlist candidate only raw rank 5?**
-Because the four segments that score higher all fail the simulation-support
-screen. Under Balanced, raw ranks 1 to 4 are Ambattur (Chennai), Baner (Pune),
-Noida — Sector 62 (Delhi NCR) and GIFT City (Ahmedabad). Ambattur, Baner and
-GIFT City fail on both criteria: too few simulated observations and Assumption
-Support Grade D. Noida — Sector 62 has enough simulated observations but is
-graded D, so it fails on grade alone. Gurugram — Cyber Hub is the first segment
-that passes, so it is eligible rank 1. Its score is lower than theirs and stays
-lower; the screen changed no score and no rank. Under three of the four presets
-the highest raw-score market rests on the dataset's minimum number of simulated
-observations and grade D. That is a property of the synthetic data, which is why
-the highest raw-score market is always shown with the reason it failed rather
-than hidden.
+**19. Why use a simulation-support screen?**
+To stop the tool shortlisting a segment whose figures rest on very few simulated
+draws or on assumptions the project itself classed as weak. It keeps
+attractiveness and support separate, instead of blending them into one number
+that would hide why a segment was excluded.
 
-**A2. Why is the Income Focused candidate raw rank 8?**
-Seven segments score higher and all seven fail, for different reasons. GIFT
-City, Ambattur, Baner and Park Street (Kolkata) fail on both criteria. SG
-Highway (Ahmedabad) and Salt Lake Sector V (Kolkata) are graded C but fail on
-simulated observations alone; Salt Lake Sector V is one simulated observation
-short of the threshold. Noida — Sector 62 fails on grade alone. Aerocity is the
-first that passes. The mix of reasons matters: the agent context carries each
-segment's own exclusion reason, and the output check rejects any sentence that
-blames a grade-only failure on sample size. The segment one observation short
-also shows that the screen has a hard edge chosen by convention (A3).
+**20. Why are thirty observations only a project convention?**
+We chose thirty as a minimum number of draws; we did not derive it. More draws
+make a segment's *estimated median* more precise, but they do not narrow the
+P10–P90 spread of the observations, which reflects the distribution we assumed.
+We measured this afterwards: in the same segments, 25 to 60 draws leave the
+spread at about 0.86–0.92 percentage points, while the interval for the median
+narrows from 0.28 to 0.19 (`docs/SCREEN_SENSITIVITY.md`). The textbook rule of
+thumb about samples of thirty concerns means of a real population, so it does not
+apply. The edge matters: at 25 draws Income Focused would shortlist SG Highway,
+Ahmedabad instead of Aerocity.
 
-**A3. Why thirty simulated observations? Is that the textbook "n ≥ 30" rule?**
-No. Thirty is a transparent project governance convention for simulation
-precision, not a regulatory or universal statistical threshold. The textbook
-rule of thumb concerns the sampling distribution of a mean of independent
-observations drawn from a real population. None of that applies here: the
-project ranks medians, not means; the observations are draws from distributions
-the project itself specified, not a sample of a market; and no rule about sample
-size can say whether those assumed distributions are right. What thirty draws
-does is keep the P10–P90 spread of a segment's simulated medians reasonably
-narrow. An earlier revision did appeal to the sampling-theory rule; that
-justification was withdrawn, and `public/js/appMeta.js` records why. The other
-half of the screen, grade C or better, excludes segments whose assumptions the
-project itself classed as estimated from comparables or placeholder.
+**21. What does the Assumption Support Grade mean?**
+The project's own A–E classification of how each segment's assumption set was
+built: A and B meant to follow a primary or secondary benchmark, C a city
+benchmark adjusted for locality, D estimated from comparables, E a placeholder,
+with a wider assumed band at each step down.
 
-**A4. Why are more simulated draws not evidence?**
-Each draw comes from the project's assumed distribution for that segment: a
-cap-rate model for yield, and assumed triangular ranges joined by a Gaussian
-copula for the other metrics (`data-pipeline/scripts/generateObservations.js`). More draws make the segment
-median converge on the median of that assumed distribution. They reduce
-simulation noise; they do nothing about whether the assumption is right. If an
-assumed central yield is wrong, a thousand draws estimate the wrong figure more
-precisely. Evidence would be a located document from which the figure can be
-traced, which is what external calibration records, and none has been located.
-That is why simulation support and external calibration are separate columns on
-every page.
+**22. Why is it not external evidence?**
+None of the benchmarks it refers to has been located. It describes how the
+assumptions were constructed, not whether they are true. (The data field is
+still named `confidenceGrade` for compatibility.)
 
-**A5. What does external calibration mean, and why is every segment Unverified?**
-It asks whether the levels in the data — not merely the relationships — match
-the sources the project cites. A citation counts as verified only when three
-links hold: the publisher exists, the cited document is located, and the figure
-is found in it. The status is derived only from
-`data-pipeline/source_register.csv`, through `buildMeta.js`, into `meta.json`;
-`AppMeta.calibrationStatus()` takes no observation count and no grade, so it
-cannot be inferred from simulation precision. A segment is Verified only when
-every external source it cites is verified, and Partially supported when at
-least one is. The verification pass located none of the cited documents (0 of
-12) and traced no figure; some publishers were confirmed, some sites blocked
-access, and some cited titles do not exist as cited
-(`docs/SOURCE_VERIFICATION_REPORT.md`). No data value was changed to fit a
-source. So every segment is Unverified. What remains defensible without a source
-is the structure of the data (for example, yields set by property type,
-locality class and city tier); the levels are unestablished.
+**23. Why are more simulated draws not evidence?**
+Each draw comes from the project's assumed distribution. More draws make the
+median converge on the median of that assumption; if the assumption is wrong,
+more draws estimate the wrong level more precisely.
 
-**A6. Why is the A–E grade called an Assumption Support Grade?**
-Because it describes how a segment's assumptions were built, not how good the
-evidence is. The project assigned it to each segment's assumption set
-(`data-pipeline/market_universe.csv`): A and B were meant to follow a primary or
-secondary benchmark, C is a city benchmark adjusted by a locality multiplier, D
-is estimated from comparable segments, E is a placeholder; each step down the
-scale also implies a wider assumed band (`AppMeta.SUPPORT_GRADES`). None of the benchmarks has been located, so it cannot be
-an evidence grade, and a label suggesting statistical confidence would
-overstate it. The data field is still named `confidenceGrade` in `markets.json`
-for compatibility; every page, the agent context and the report use the new
-label, and the output check rejects the old one. The distribution of grades is
-in `docs/CANONICAL_FACTS.md` (Dataset detail).
+**24. Why is external calibration Unverified?**
+A source counts only when the publisher exists, the cited document is located,
+and the figure is found in it. None of the twelve cited documents was located
+and no figure was traced (`docs/SOURCE_VERIFICATION_REPORT.md`). The status is
+read only from the source register; it cannot be inferred from observation count
+or grade.
 
-**A7. Can the user overrule the screen?**
-Yes, in two ways, both visible. "Ignore the simulation-support screen" makes the
-highest raw-score market the candidate, and the report records that the screen
-was ignored. Pressing Select on any row makes it a manually selected target,
-labelled as such on every page, with a warning when it differs from the current
-candidate and a button to return to automatic selection.
+**25. What does the P10–P90 range mean?**
+The P10–P90 spread of simulated observations: the range holding the middle 80%
+of a segment's draws, with 10% below P10 and 10% above P90. It describes the
+spread we assumed. It is not a confidence interval, and not uncertainty about
+the real market.
 
-### B. Architecture and the agents
+**26. Can the user overrule the screen?**
+Yes, visibly. "Ignore the simulation-support screen" makes the highest
+raw-score market the candidate and the report records it. Select on any row
+makes a manual target, labelled on every page, with a warning and a way back.
 
-**B1. What did the shared analysis run fix?**
-The root cause was that each page read a stored snapshot at its own moment. The
-Market Screener computed the analysis and wrote a snapshot to `localStorage`;
-Overview, Agent Output and the Report read it when they rendered, but
-Diversification read it only once, when the application loaded. After a switch
-from Balanced to Income Focused, the other pages described Aerocity while
-Diversification went on analysing Gurugram — Cyber Hub, with the Balanced Top 3
-and projections. No single calculation was wrong; the pages held different
-copies. Now only the inputs are stored (preset, exact weights, investment
-amount, screen override, selection mode, manual target, filters).
-`analysisRun.js` computes one run deterministically from those inputs, the data
-files and the active portfolio. It holds the ranking with raw and eligible
-ranks, the highest raw-score market, the shortlist candidate, the selected
-target, HHI before and after, projections, per-preset sensitivity, the
-deterministic validation, the agent context and the scenario key. Every page
-subscribes to it and re-renders when it changes; no page computes a target, an
-HHI figure or a projection of its own. There is nothing stale left to read.
+### E. Scenarios
 
-**B2. Why is validation deterministic code and not an agent?**
-Every check has exactly one correct answer that arithmetic can establish. The
-eight checks in `public/js/validator.js` are: the five weights total 100%; every
-composite score lies in 0–100; the ranking is in descending score order; the
-selected target is in the ranking; the portfolio HHI figures reproduce from the
-holdings; weighted yield equals rent divided by value; the investment amount is
-positive; the synthetic-data notice is in the context. A language model can get
-such a check wrong and cannot show its working, and because the verdict gates
-the Orchestrator, a wrong verdict would either suppress a valid synthesis or
-admit an invalid one. It also spent scarce free-tier quota on something the
-browser computes exactly and offline. In code the verdict is reproducible, needs
-no network or key, and each check reports the figures it compared. The checks
-run inside every analysis run, so their result is on the Agent Output page and
-in the Decision Report even when no model is called. The page calls the
-Orchestrator only when all eight pass, the proxy's chain endpoint skips it
-without a passing result, and a request for the old validation agent is answered
-with an explanation that it was replaced by code.
+**27. Why use scenario analysis?**
+The future is uncertain, and a committee needs to see a range rather than one
+number. Three scenarios — conservative, base, optimistic — show how value, rent
+and yield could evolve under stated assumptions.
 
-**B3. Why four agents?**
-Each has a distinct job: the Data & Statistical Analyst describes the dataset;
-the Market Screening Analyst explains why the selected target scored as it did
-and how it compares with the alternative; the Portfolio Risk & Scenario Analyst
-interprets the HHI change and projections; the Investment Orchestrator combines
-them. An earlier design split the data description across two agents whose
-outputs overlapped and sometimes disagreed, and used a further agent for
-validation; the first two were merged and validation moved into code (B2).
+**28. Why are the projections not forecasts?**
+They apply flat, assumed growth and occupancy rates to the whole portfolio, with
+no correlation, no randomness, no leverage, tax, fees or transaction costs. They
+say "if these rates held", not "this will happen".
 
-**B4. How is agent output checked?**
-In two layers, both in `public/js/agentOutputCheck.js`. First, a strict JSON
-schema for each agent, passed to Gemini as `responseSchema`, allows prose fields
-only — there is no number field the model could fill inconsistently, and the
-interface renders headline figures from the deterministic context, never from
-the prose. Second, `AgentOutputCheck.check()` reads the prose and flags
-statements that contradict the context: markets that do not exist or are not in
-the context; rank claims that do not match the raw or eligible rank; figures
-that match nothing in the context at the stated precision ("7%" fails where the
-context says "7.00%", and a percentage can only match a percentage figure,
-never a rank or a count); counts
-of segments passing or failing the screen; exclusion reasons that differ from a
-segment's own; a dominant factor other than the largest contribution; retired
-terms and claims that simulation support is evidence or that anything is
-verified; context field names leaking into prose; a dataset figure described as
-the portfolio's; wrong selection-mode wording; and an Orchestrator summary that
-does not name the selected target or does not state that calibration is
-unverified and due diligence is required. The check runs on every live and
-every pre-generated reply as it is displayed. When the cache is built, a failing
-reply is sent back with its specific problems, up to two revisions, and nothing
-is written unless all sixteen replies (four presets, four agents) pass.
+**29. How is year-0 rent after the investment calculated?**
+Existing rent + amount × the selected target's gross yield. At the defaults:
+33.275 + 50 × 7.03% = ₹36.789 Cr. Year-0 value = 500 + 50 = ₹550 Cr; the base
+case after three years is 550 × 1.08³ = ₹692.84 Cr.
 
-The honest limit: the check can prove certain kinds of statement false; it
-cannot prove prose true. It skips small whole numbers and names that are
-ambiguous, and a fluent sentence with correct figures and faulty reasoning
-passes. A live reply that fails is still shown, with the problems listed and
-the note that the figures above are authoritative.
+### F. Statistics
 
-**B5. What are the agents not allowed to do?**
-The shared rules in `server/server.js` forbid them to calculate, estimate, rank,
-re-rank or validate anything; to introduce a figure that is not in the context
-or quote one at a different precision; to say a segment ranked first unless its
-raw rank is 1; to attribute an exclusion to the wrong criterion; to treat
-simulation support as evidence or call anything verified; to mix
-market-dataset figures with portfolio figures; to describe simulated
-observations as properties, listings or transactions; to write context field
-names; to call an automatically selected target manually selected; and to
-present the output as an investment recommendation. The Orchestrator must not
-re-perform or claim to have performed the deterministic checks. These rules are
-backed by structure, not trust: the schemas, the deterministic gate, the output
-check, and an interface that never takes a figure from the prose.
+**30. What is Simpson's paradox here?**
+Pooled across all observations, yield and risk are negatively correlated; within
+every property type they are positively correlated. Residential has much lower
+yields but higher risk scores than the commercial classes, so pooling drags the
+overall correlation negative.
 
-**B6. Why is pre-generated commentary available only at the four preset defaults?**
-Stored commentary is shown only when the run's scenario key matches exactly. The
-key covers the dataset, portfolio, weights, investment amount, selected target,
-selection mode, screen setting, shortlist candidate, top of the ranking, the
-methodology version and the agent context version. The cache holds one scenario
-per preset at the canonical defaults, built by
-`data-pipeline/scripts/buildAgentCache.js`. Any other configuration gets no
-commentary rather than commentary about a different analysis, and the page names
-the inputs that differ.
+**31. Why stratify by asset class?**
+Because classes are different populations. Pooling them can manufacture or
+reverse a relationship, as Simpson's paradox shows; analysing within each class
+gives the relationship that actually holds.
 
-**B7. Where is the Gemini API key?**
-In `server/.env`, which is git-ignored (the ignore rules also cover backup
-copies). Only the local proxy reads it, and it is never sent to the browser. On
-any origin other than the proxy's, the page does not contact the proxy at all.
+**32. What are precision, recall and F1?**
+Precision: of everything flagged, the share that was genuinely anomalous.
+Recall: of the genuine anomalies, the share flagged. F1: their harmonic mean,
+2PR ÷ (P + R).
 
-### C. Financial method
+**33. Why were known synthetic anomalies inserted?**
+So detector performance could be measured rather than asserted. The generator
+inserts anomalies of five kinds and writes their identities to a separate file
+the detectors never read; precision and recall are scored against it.
 
-**C1. How is concentration measured?**
-HHI is the sum of squared shares, computed on property (book) value, separately
-for city and for asset type (`public/js/hhi.js`). The Diversification page shows
-both before and after investing in the selected target. The bands are
-descriptive and not regulatory. Under Growth Focused, both fall, because the
-candidate is Residential in Hyderabad; under Balanced and Income Focused city HHI
-falls but asset-type HHI rises (see Step 6 of the demonstration).
+**34. Which detector worked best, and why?**
+Tukey fences applied within each segment: a value that is normal for one
+segment can be extreme for another, so pooled fences flag many ordinary
+observations (low precision) and miss segment-specific anomalies.
 
-**C2. Why gross yield?**
-The data has no operating costs, vacancy allowance, tax or leverage, so net
-operating income cannot be computed. Gross yield is monthly rent × 12 divided by
-capital value per square foot. It overstates the return an investor would
-receive.
+**35. Why medians rather than means?**
+Medians are robust to the inserted anomalies and to skew.
 
-**C3. Is the diversification factor the measured diversification effect?**
-No. It is a proxy: `max(0, 1 − 2 × existing share)` for city and for property
-type, weighted 60% city and 40% type, with full benefit for a city or type not
-yet held. It tracks the realised HHI change closely in direction but takes few
-distinct values, because it depends only on city and type. Replacing it with the
-realised HHI change would alter every score and ranking, so it is kept and
-declared (`data-pipeline/docs/ANALYTICS_AUDIT.md`, finding A2); the realised HHI
-change is displayed beside it.
+**36. Why no confidence interval for city × property-type groups?**
+The unit there is the micro-market (one segment median), not the observation.
+A bootstrap interval needs at least ten micro-markets and no group has that
+many, so the page says why instead of showing an interval on the wrong unit.
 
-**C4. What do the projections assume?**
-Flat rental-growth, capital-growth and occupancy assumptions for three scenarios
-(`public/js/projection.js`), applied to the whole portfolio and not derived from
-the selected segment. No leverage, tax, fees or transaction costs. Gross yield
-ignores occupancy by definition; Effective Yield applies the scenario's
-occupancy and is labelled separately (finding A3).
+### G. Agents and guard-rails
 
-### D. Statistics
+**37. Why is Gemini prohibited from calculating?**
+A language model can state a wrong figure as fluently as a right one, and cannot
+show reliable working. Deterministic code computes exactly and reproducibly;
+the model is used only where language helps — explanation.
 
-**D1. Why does the city × property-type table show no confidence interval?**
-The unit of that table is the micro-market (one segment median), not the
-simulated observation, because treating every draw as independent evidence
-would overstate precision. A bootstrap interval needs at least ten micro-markets
-(`Stats.MIN_OBS_CI` in `public/js/stats.js`), and no group has that many. The
-table says so for each group instead of printing an interval it cannot support.
-Spread within a segment is shown separately as the P10–P90 of its simulated
-observations.
+**38. What does each agent do?**
+Data & Statistical Analyst: describes the dataset and its support. Market
+Screening Analyst: why the target scored as it did, and why higher-scoring
+segments failed. Portfolio Risk & Scenario Analyst: the HHI change and the
+projections. Investment Orchestrator: a summary with rationale, risks and next
+steps.
 
-**D2. How good is the anomaly detection?**
-Known synthetic anomalies were inserted by the generator, and their identities
-were written to a separate file the detectors never read, so precision and
-recall are measured rather than asserted. They describe performance on
-anomalies of the kinds this generator created, not on real market data. The
-Mahalanobis methods assume multivariate normality, which the data does not
-meet; that material is collapsed on the Statistical Analysis page.
+**39. Why is the Orchestrator gated?**
+It produces the summary a reader is most likely to act on, so it must not run on
+inputs that fail an arithmetic check. The eight checks in `validator.js` run in
+code first; the Orchestrator is called only if all pass.
 
-### E. Limitations and real use
+**40. Why is validation code and not an agent?**
+Every check has one arithmetic answer (weights total 100%, scores in range,
+HHI reproduces, and so on). Code is exact, offline, free of quota, and shows the
+figures it compared.
 
-**E1. What are the main limitations?**
-Synthetic data; simulation precision is not real-world accuracy; the Assumption
-Support Grade is internal; external calibration is Unverified; the screen is a
-convention; gross yield only; book-value HHI with descriptive bands; flat-growth
-projections; a proxy diversification factor; no group confidence intervals;
-anomaly detection measured only on generated anomalies; language-model output
-checked but not proven true, subject to free-tier quota, and pre-generated only
-at the four preset defaults; browser-only storage; no regulatory review. Each is
-set out in `docs/limitations.md`.
+**41. How are hallucinations constrained?**
+Four layers: a deterministic context with every figure as a fixed-decimal
+string; fourteen shared prompt rules (never calculate, quote exactly, use the
+controlled vocabulary); a prose-only JSON response schema, so headline figures
+come from the context, never the model; and an output check of every reply.
 
-**E2. What would be needed before real use?**
-Licensed or disclosed market data in place of the simulation; located sources
-with every figure traced, so that external calibration can become Verified; net
-yields with operating costs, vacancy, tax and transaction costs; mark-to-market
-valuations; diversification measured from return series rather than shares;
-time series and cycle-aware growth; out-of-sample validation of the scoring;
-review by valuers and investment professionals; a review against the SEBI (Real
-Estate Investment Trusts) Regulations, 2014; and an authenticated, rate-limited
-service with managed keys in place of a local proxy. Even then, the output would
-remain a shortlist for due diligence, not a decision.
+**42. What does the output checker prove, and what not?**
+It proves certain statements false: unknown markets, wrong ranks, figures not in
+the context at that precision, wrong exclusion reasons, a wrong dominant factor,
+retired terms, evidence claims. It cannot prove prose true: a sentence with
+correct figures and faulty reasoning passes.
 
-### F. Verification
+**43. What is the difference between live and static mode?**
+Live: the page is served by the local proxy with a key, and the agents are
+called for the exact current run — any weights or amount. Static (a local copy
+without the proxy): stored commentary is shown only when the run's scenario key
+matches one of the four presets at their defaults. The public site shows no
+Agent Output page at all, because it cannot hold a key; the agents are
+demonstrated from a local copy.
 
-**F1. How do you know the figures are right?**
-`node tests/reit-tests.js` runs the application suite (quote the count from the
-latest run); `node data-pipeline/tests/dataPipeline.test.js` runs the pipeline
-suite; `node data-pipeline/scripts/auditAnalytics.js` recomputes every headline
-figure by a separate route and exits non-zero on any disagreement;
-`tests/browserAcceptance.js` drives the rendered pages through their own
-controls and compares what each route shows. CI
-(`.github/workflows/tests.yml`) runs the Node suites and checks that
-regenerating the data from the seed reproduces it byte for byte. The documents'
-figures are generated blocks, and the test suite fails if a block is stale.
-These checks show the code does what it states; they do not make the data real.
+**44. Where is the API key and how is it protected?**
+Only in `server/.env`, which is git-ignored with every variant. The proxy reads
+it and sends it only to Gemini; the browser never sees it, and a test fails if
+any tracked file contains a key.
+
+### H. Architecture and testing
+
+**45. What problem did the shared analysis run solve?**
+Pages used to read a stored snapshot at different moments, so after a preset
+change Diversification could still analyse the old target. Now only inputs are
+stored; one run is computed from them and pushed to every page at once.
+
+**46. How do you know the figures are right?**
+The application suite tests the engines and cross-page agreement; an
+independent audit recomputes every headline figure by another route; the System
+Check runs ten checks live; browser acceptance drives every page through its own
+controls; and CI regenerates the data from its seed byte for byte. These show
+the code does what it states; they do not make the data real.
+
+**47. How is the data reproducible?**
+A seeded generator (Mulberry32, seed 20260919) never reads the clock or random
+state; regenerating gives byte-identical output, and CI fails if it does not.
+
+### I. Limitations, real use and AI
+
+**48. What are the largest limitations?**
+Synthetic data; unverified calibration; simulation precision is not evidence;
+gross yield only; book-value HHI; flat-growth projections that are not
+forecasts; no regulatory or expert review. The same list is shown in the
+application and in `docs/limitations.md`.
+
+**49. What would change with real data?**
+Real observations would replace the generator's output at the start of the
+pipeline; the scripts after it run unchanged. Sources would be located and
+traced, so external calibration could become Verified. Net yields, market
+values, time series and out-of-sample validation of the scoring would be needed.
+The output would still be a shortlist for due diligence.
+
+**50. What did AI tools create, and what decisions remained yours?**
+Claude Code helped write code, tests and documentation and debug them; ChatGPT
+helped with planning, model review, rubric checks and prompt drafting; Gemini
+assisted assumption research, and powers the four agents in the application. The
+decisions were mine: the customer and problem, the factors and presets,
+separating attractiveness, support and calibration, keeping validation in code,
+treating unverified sources honestly, and every interpretation I defend here.
 
 ---
 
-## 6. Formula sheet
+**51. What happens if a Gemini reply contradicts the figures?**
+The page checks every reply against the computed context. A live reply that
+fails is sent back once with the specific problems; if it fails again it is
+withheld — shown collapsed, not passed to the next agent, and not printed in the
+report. In the final live run the first agent's reply failed once and its
+revision passed.
+
+**52. What if the API fails during the viva?**
+The cards say fresh generation was unavailable, with the reason, and show no AI
+text; every calculation, check and the report still work. Stored commentary
+exists only for the four presets at their defaults, is labelled as stored, and
+is never presented as a live run.
+
+**53. Why four agent calls instead of one?**
+Each call has one job and one set of figures — the dataset, the ranking, the
+portfolio, then the summary — so each reply can be checked field by field and
+dataset figures are not mixed with portfolio figures. It is a constrained
+interpretation workflow; no agent plans, acts or changes a number.
+
+**54. How sensitive is the shortlist to the screen's thresholds?**
+Balanced keeps Gurugram — Cyber Hub under every setting tried (25, 30 or 40
+draws; grade B or C). Income Focused changes: SG Highway at 25 draws, Aerocity at
+30 or 40, Cyber Hub with grade B. The thin, low-graded segments are also the
+high-yield ones, because of how the generator was built — so this shows the
+convention's effect, not a market finding.
+
+**55. Did any real source support your numbers?**
+None of the twelve cited documents was read as cited. We compared fourteen
+individual assumptions with figures in four related documents: four were
+consistent, two partly, six of our values were below the located figure — Bandra
+Kurla Complex office rent most clearly (our ₹170–210 against a quoted ₹229–427)
+— one above and one was context only. We did not change our numbers to fit:
+that would need a proper recalibration method.
+
+**56. Does the investment amount change the ranking?**
+No. The score uses the five factors of each segment and the portfolio's
+existing shares. The amount changes only the after-investment HHI, weighted
+yield and projections — ₹75 Cr gives city HHI 0.3293 instead of 0.3496.
+
+**57. How does the CSV import handle units?**
+It never guesses. `areaSqFt` is square feet, `areaSqM` is square metres
+converted once, and a generic `area` needs a stated unit; a missing or
+conflicting unit rejects the row with the reason. The import cleans a file for
+inspection only — it never replaces the analysis dataset.
+
+## 4. Formula sheet
 
 | Quantity | Formula | Source |
 |---|---|---|
-| Gross yield | monthly rent per sq ft × 12 ÷ capital value per sq ft | `scoringEngine.js` `grossYield` |
-| Min–max normalisation | (value − min) ÷ (max − min) × 100, across all segments; 50 when min = max | `scoringEngine.js` `normalise` |
-| Low market risk | 100 − risk score, on a fixed 0–100 scale | `scoringEngine.js` `scoreMarket` |
-| Composite attractiveness score | Σ factor score × weight; weights total 100% (±0.5 percentage points) | `scoringEngine.js` |
-| Diversification benefit | (0.6 × city benefit + 0.4 × type benefit) × 100; benefit = 1 for a new city or type, else max(0, 1 − 2 × share) | `hhi.js` `diversificationScore` |
-| HHI | Σ shareᵢ², shares of property value, by city and by asset type | `hhi.js` |
-| Portfolio weighted yield | total annual rent ÷ total property value | `hhi.js` `weightedYield` |
-| Year-0 rent after investing | existing rent + amount × target gross yield | `analysisRun.js`, `projection.js` |
+| Gross yield | monthly rent per sq ft × 12 ÷ capital value per sq ft | `scoringEngine.js` |
+| Min–max normalisation | (value − min) ÷ (max − min) × 100; 50 when min = max | `scoringEngine.js` |
+| Low market risk | 100 − risk score | `scoringEngine.js` |
+| Composite score | Σ factor score × weight; weights total 100% | `scoringEngine.js` |
+| Diversification benefit | 100 × (0.6 × city benefit + 0.4 × type benefit); benefit = 1 if not held, else max(0, 1 − 2 × share) | `hhi.js` |
+| HHI | Σ shareᵢ², shares of book value, by city and by asset type | `hhi.js` |
+| Weighted yield | total annual rent ÷ total value | `hhi.js` |
+| Year-0 rent | existing rent + amount × target gross yield | `analysisRun.js`, `projection.js` |
 | Projected rent / value | rent × (1 + g)ⁿ; value × (1 + c)ⁿ | `projection.js` |
-| Effective Yield | projected rent × occupancy ÷ projected value | `projection.js` |
-
-Preset weights (`scoringEngine.js` `PRESETS`):
+| Effective yield | projected rent × occupancy ÷ projected value | `projection.js` |
+| Precision / recall / F1 | TP ÷ (TP + FP); TP ÷ (TP + FN); 2PR ÷ (P + R) | `computeStatistics.js` |
 
 | Preset | Yield | Growth | Diversification | Demand | Low risk |
 |---|---|---|---|---|---|

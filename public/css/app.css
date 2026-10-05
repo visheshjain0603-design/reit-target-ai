@@ -469,6 +469,10 @@ code, pre { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; fo
 }
 .reit-validation-summary, .reit-system-check-summary { font-weight: 600; }
 .reit-check-warn ul { margin: var(--s-1) 0 0; }
+.reit-check-quarantine { border-left-width: 4px; }
+.reit-quarantine-text { margin-top: var(--s-3); }
+.reit-quarantine-text > summary { cursor: pointer; font-weight: 600; }
+.reit-quarantine-text .reit-agent-output { opacity: 0.75; }
 .reit-error-box strong { display: block; margin-bottom: var(--s-1); }
 .reit-agent-status-bar { display: block; }
 .reit-manual-warning { margin: var(--s-2) 0; font-weight: 650; }
@@ -1102,6 +1106,49 @@ input[type="file"]::file-selector-button {
 }
 .reit-ov-section--facts .reit-ov-card-sub { margin-top: 6px; color: var(--ink-3); font-size: var(--fs-13); line-height: 1.45; }
 
+/* "Who it is for": the customer and problem beside the six use cases. */
+.reit-ov-customer {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: var(--s-6) var(--s-10);
+  margin-top: var(--s-3);
+}
+.reit-ov-customer-facts { margin: 0; }
+.reit-ov-customer-facts dt { color: var(--ink-2); font-size: var(--fs-13); font-weight: 600; }
+.reit-ov-customer-facts dd { max-width: 52ch; margin: 4px 0 var(--s-5); color: var(--ink); font-size: var(--fs-16); line-height: 1.55; }
+.reit-ov-customer-facts dd:last-child { margin-bottom: 0; }
+.reit-ov-usecases > h3 { margin: 0 0 var(--s-2); color: var(--ink-2); font-size: var(--fs-13); font-weight: 600; font-stretch: 100%; }
+.reit-ov-usecase-list { counter-reset: usecase; list-style: none; margin: 0; padding: 0; }
+.reit-ov-usecase-list li {
+  counter-increment: usecase;
+  position: relative;
+  margin: 0;
+  padding: 10px 0 10px 34px;
+  border-top: 1px solid var(--rule);
+}
+.reit-ov-usecase-list li:first-child { border-top: 0; padding-top: 2px; }
+.reit-ov-usecase-list li::before {
+  content: counter(usecase);
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--rule-strong);
+  color: var(--ink-2);
+  font-size: var(--fs-12);
+  font-weight: 650;
+}
+.reit-ov-usecase-list li:first-child::before { top: 2px; }
+.reit-ov-usecase-text { display: block; color: var(--ink); font-size: var(--fs-14); line-height: 1.5; }
+.reit-ov-usecase-pages { display: block; margin-top: 2px; color: var(--ink-3); font-size: var(--fs-13); }
+.reit-ov-usecase-pages a { text-decoration: none; }
+.reit-ov-usecase-pages a:hover { text-decoration: underline; }
+
 /* Generic overview cards (outside the two special sections). */
 .reit-ov-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--s-3); }
 .reit-ov-card { position: relative; padding: var(--s-4); border: 1px solid var(--rule); border-radius: var(--r-md); background: var(--surface-2); }
@@ -1703,6 +1750,7 @@ input[type="file"]::file-selector-button {
 /* ── 14. Data Centre ───────────────────────────────────────────────────── */
 .reit-dc-section > h2 { margin-bottom: var(--s-2); }
 .reit-control-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3); margin: var(--s-3) 0 var(--s-4); }
+.reit-control-row .reit-control-label { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); font-size: var(--fs-14); }
 .reit-quality-summary { display: flex; flex-wrap: wrap; gap: var(--s-2); margin: var(--s-3) 0 var(--s-4); }
 .reit-quality-chip {
   position: relative;
@@ -1985,6 +2033,7 @@ input[type="file"]::file-selector-button {
   .reit-ov-section--facts .reit-ov-card:nth-child(3) { border-left: 0; }
   .reit-ov-section--facts .reit-ov-card:nth-child(n+3) { border-top: 1px solid var(--rule); }
   .reit-ov-routes { grid-template-columns: 1fr; }
+  .reit-ov-customer { grid-template-columns: 1fr; }
   .reit-alloc-wrap { grid-template-columns: 1fr; }
 }
 
@@ -2054,11 +2103,18 @@ input[type="file"]::file-selector-button {
 
   /* Wide tables scroll inside themselves, never the page. */
   .reit-ranked-table, .reit-obs-table, .reit-validation-table, .reit-compare-table,
-  .reit-dash-table, .reit-breakdown-table, .reit-hhi-mini-table, .reit-uncertainty-table {
+  .reit-dash-table, .reit-breakdown-table, .reit-hhi-mini-table, .reit-uncertainty-table,
+  .reit-table, .reit-sim-table {
     display: block;
     max-width: 100%;
     overflow-x: auto;
   }
+  /* Screen-reader-only labels inside a scrolling table are positioned against the
+   * table, so they cannot widen the page from a column scrolled out of view. */
+  table.reit-ranked-table, table.reit-table, table.reit-sim-table { position: relative; }
+  table .reit-sr-only { left: 0; top: 0; }
+  /* Charts drawn at a fixed width scale down to the screen. */
+  #main-content svg { max-width: 100%; height: auto; }
   .reit-ranked-table th { position: static; }
   .reit-breakdown-inner { padding: var(--s-4); }
 

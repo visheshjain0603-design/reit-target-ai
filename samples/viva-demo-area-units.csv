@@ -1,0 +1,9 @@
+city,locality,propertyType,areaSqFt,areaSqM,area,areaUnit,askingPriceINR,monthlyRentINR,recordId,sourceName,isSynthetic
+Mumbai,Kala Ghoda,Retail,300,,,,90 lakh,45000,UNIT-01,Viva sample,true
+Pune,Camp,Retail,,30,,,60 lakh,30000,UNIT-02,Viva sample,true
+Pune,Aundh,Retail,,,120,sqm,70 lakh,32000,UNIT-03,Viva sample,true
+Mumbai,Colaba,Retail,,,300 sq m,,2.5 crore,1.2 lakh,UNIT-04,Viva sample,true
+Mumbai,Fort,Retail,100 sqm,,,,80 lakh,40000,UNIT-05,Viva sample,true
+Pune,Baner,Retail,,,250,,65 lakh,31000,UNIT-06,Viva sample,true
+Mumbai,Worli,Retail,500,100,,,95 lakh,47000,UNIT-07,Viva sample,true
+Pune,Kothrud,Retail,,,120,acres,70 lakh,32000,UNIT-08,Viva sample,true

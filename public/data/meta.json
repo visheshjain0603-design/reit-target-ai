@@ -18,6 +18,50 @@
   "repoName": "reit-target-ai",
   "repoUrl": "https://github.com/visheshjain0603-design/reit-target-ai"
  },
+ "customer": {
+  "primaryUser": "REIT investment analysts and acquisition committees evaluating where a proposed new investment should be allocated.",
+  "businessProblem": "A REIT must balance income, growth, demand, risk and portfolio diversification when choosing its next target market, while understanding the reliability and limitations of the supporting data.",
+  "useCases": [
+   {
+    "text": "Diagnose geographic and asset-type concentration in the existing portfolio.",
+    "pages": [
+     "portfolio",
+     "diversification"
+    ]
+   },
+   {
+    "text": "Rank target markets using adjustable business priorities.",
+    "pages": [
+     "screener"
+    ]
+   },
+   {
+    "text": "Compare the highest raw-score market with the highest-ranked market passing the simulation-support screen.",
+    "pages": [
+     "screener",
+     "overview"
+    ]
+   },
+   {
+    "text": "Simulate yield, concentration and scenario effects of a proposed investment.",
+    "pages": [
+     "diversification"
+    ]
+   },
+   {
+    "text": "Produce deterministic validation and Gemini-assisted interpretation.",
+    "pages": [
+     "agents"
+    ]
+   },
+   {
+    "text": "Generate a printable decision report for management discussion.",
+    "pages": [
+     "report"
+    ]
+   }
+  ]
+ },
  "governance": {
   "name": "Simulation-support screen",
   "MIN_OBSERVATIONS": 30,
@@ -30,7 +74,7 @@
    "E"
   ],
   "rule": "at least 30 simulated observations and Assumption Support Grade C or better",
-  "rationale": "A transparent project governance convention for simulation precision, not a regulatory or universal statistical threshold. Thirty draws keeps the P10–P90 spread of a segment's simulated medians reasonably narrow; grade C or better excludes segments whose assumptions the project itself classed as interpolated or placeholder. Passing the screen says nothing about real-market accuracy.",
+  "rationale": "A transparent project convention chosen by the authors, not a regulatory or universal statistical threshold. More draws make a segment's estimated median more precise; they do not narrow the P10–P90 spread of its simulated observations. Thirty is a chosen minimum, not a proven sufficient sample. Grade C or better excludes the assumption sets the authors graded D (estimated from comparable segments) or E (placeholder). Passing the screen says nothing about real-market accuracy.",
   "overrideLabel": "Ignore the simulation-support screen (make the highest raw-score market the candidate)",
   "overrideNote": "With the screen ignored, the candidate is simply the highest raw-score market. Segments that fail the screen stay marked, and the report records that the screen was ignored."
  },
@@ -233,7 +277,7 @@
    "key": "balanced",
    "label": "Balanced",
    "eligibleCount": 25,
-   "scenarioKey": "60e51559",
+   "scenarioKey": "d881ea78",
    "highestRaw": {
     "marketId": "MKT-036",
     "name": "Ambattur, Chennai",
@@ -258,7 +302,7 @@
    "key": "incomeFocused",
    "label": "Income Focused",
    "eligibleCount": 25,
-   "scenarioKey": "abc2191a",
+   "scenarioKey": "81037afb",
    "highestRaw": {
     "marketId": "MKT-038",
     "name": "GIFT City, Ahmedabad",
@@ -283,7 +327,7 @@
    "key": "growthFocused",
    "label": "Growth Focused",
    "eligibleCount": 25,
-   "scenarioKey": "7ba66b74",
+   "scenarioKey": "d85a5255",
    "highestRaw": {
     "marketId": "MKT-012",
     "name": "Banjara Hills, Hyderabad",
@@ -308,7 +352,7 @@
    "key": "diversFocused",
    "label": "Diversification Focused",
    "eligibleCount": 25,
-   "scenarioKey": "f7884bb9",
+   "scenarioKey": "cf0fdcd8",
    "highestRaw": {
     "marketId": "MKT-049",
     "name": "New Town (Rajarhat), Kolkata",
@@ -374,7 +418,7 @@
    },
    "supportGrade": {
     "label": "Assumption Support Grade",
-    "definition": "The project's internal A–E classification of how a segment's assumptions were constructed and how wide a band was assumed around them. It is not an evidence grade: none of the benchmarks it refers to has been externally verified."
+    "definition": "An author-assigned simulation convention: the project's internal A–E classification of how a segment's assumptions were intended to be constructed and how wide a band was assumed around them. It is not an evidence grade: none of the benchmarks it refers to has been externally verified, and it is separate from the legacy sourceType label."
    },
    "externalCalibration": {
     "label": "External calibration status",
@@ -387,7 +431,7 @@
   },
   "supportGrades": {
    "label": "Assumption Support Grade",
-   "definition": "The project's internal A–E classification of how a segment's assumptions were constructed and how wide a band was assumed around them. It is not an evidence grade: none of the benchmarks it refers to has been externally verified.",
+   "definition": "An author-assigned simulation convention: the project's internal A–E classification of how a segment's assumptions were intended to be constructed and how wide a band was assumed around them. It is not an evidence grade: none of the benchmarks it refers to has been externally verified, and it is separate from the legacy sourceType label.",
    "grades": {
     "A": "Assumptions intended to follow a named primary benchmark; narrowest assumed band (±5–8%).",
     "B": "Assumptions intended to follow a primary or secondary benchmark with minor interpolation (±10–12%).",
@@ -408,9 +452,359 @@
   },
   "candidateCaveat": "Exploratory shortlist only. External calibration remains unverified — proceed to further evidence collection and due diligence before any real decision."
  },
+ "statistics": {
+  "totalObservations": 2156,
+  "simpsonsParadox": [
+   {
+    "label": "Yield vs Capital Value",
+    "expect": "negative",
+    "pooled": -0.1701,
+    "byPropertyType": {
+     "Commercial Office": -0.7317,
+     "Retail": -0.6097,
+     "Residential": -0.6605
+    },
+    "signFlip": false
+   },
+   {
+    "label": "Yield vs Risk",
+    "expect": "positive",
+    "pooled": -0.1632,
+    "byPropertyType": {
+     "Commercial Office": 0.6054,
+     "Retail": 0.5521,
+     "Residential": 0.6668
+    },
+    "signFlip": true
+   },
+   {
+    "label": "Rental Growth vs Demand",
+    "expect": "positive",
+    "pooled": 0.3955,
+    "byPropertyType": {
+     "Commercial Office": 0.3846,
+     "Retail": 0.6354,
+     "Residential": 0.546
+    },
+    "signFlip": false
+   },
+   {
+    "label": "Demand vs Risk",
+    "expect": "negative",
+    "pooled": -0.6519,
+    "byPropertyType": {
+     "Commercial Office": -0.7338,
+     "Retail": -0.7616,
+     "Residential": -0.7715
+    },
+    "signFlip": false
+   }
+  ],
+  "regression": {
+   "pooled": {
+    "slope": -0.288363,
+    "r2": 0.0626,
+    "n": 2156
+   },
+   "byPropertyType": [
+    {
+     "propertyType": "Commercial Office",
+     "slope": -0.08082,
+     "r2": 0.0139,
+     "n": 1266
+    },
+    {
+     "propertyType": "Retail",
+     "slope": -0.178094,
+     "r2": 0.0526,
+     "n": 516
+    },
+    {
+     "propertyType": "Residential",
+     "slope": -0.09401,
+     "r2": 0.0445,
+     "n": 374
+    }
+   ]
+  },
+  "anomalies": {
+   "count": 24,
+   "contaminationPct": 1.113,
+   "byMechanism": {
+    "subtle_mispricing": 6,
+    "bivariate_only": 6,
+    "trophy_asset": 4,
+    "data_entry_error": 3,
+    "distressed_sale": 5
+   }
+  },
+  "detectors": [
+   {
+    "key": "tukeyPooled",
+    "method": "Tukey fences (1.5 × IQR) on gross yield, all 2,156 observations pooled",
+    "flagged": 304,
+    "truePositives": 7,
+    "precision": 0.023,
+    "recall": 0.2917,
+    "f1": 0.0427
+   },
+   {
+    "key": "tukeyStratified",
+    "method": "Tukey fences (1.5 × IQR) on gross yield, applied within each of the 50 markets",
+    "flagged": 36,
+    "truePositives": 17,
+    "precision": 0.4722,
+    "recall": 0.7083,
+    "f1": 0.5667
+   },
+   {
+    "key": "mahalanobisRobust",
+    "method": "Robust (median/MAD) Mahalanobis distance over 5 standardised variables, χ² cutoff at α = 0.01",
+    "flagged": 387,
+    "truePositives": 11,
+    "precision": 0.0284,
+    "recall": 0.4583,
+    "f1": 0.0535
+   },
+   {
+    "key": "mahalanobisStratified",
+    "method": "Robust (median/MAD) Mahalanobis over 5 standardised variables, fitted within each property type, χ² cutoff at α = 0.01",
+    "flagged": 232,
+    "truePositives": 18,
+    "precision": 0.0776,
+    "recall": 0.75,
+    "f1": 0.1406
+   }
+  ]
+ },
+ "limitations": [
+  "All data is synthetic. No observation corresponds to a real property, tenant or transaction.",
+  "Gross yield only — no management fees, vacancy allowance, tax, leverage or transaction costs.",
+  "HHI is computed on book value, not on a mark-to-market valuation.",
+  "Scenario projections apply flat growth rates; no correlation structure or Monte Carlo simulation. They are illustrative what-if paths, not forecasts.",
+  "Market estimates are medians of a seeded simulation, not observed transaction prices.",
+  "No regulatory review against the SEBI (Real Estate Investment Trusts) Regulations, 2014.",
+  "Language-model commentary interprets figures computed elsewhere; it neither verifies nor recalculates them.",
+  "External calibration is Unverified: none of the cited source documents was located and no figure was traced to a source (docs/SOURCE_VERIFICATION_REPORT.md).",
+  "More simulated observations make a segment's estimated median more precise around the project's assumed distribution; they do not narrow the P10–P90 spread of the observations and are not market evidence. The simulation-support screen is a project convention, not a statistical or regulatory threshold.",
+  "The shortlist candidate is an exploratory model output, not an investment recommendation; further evidence collection and due diligence would be required.",
+  "The public site does not offer the Agent Output page or any AI commentary; the Gemini agents run only on a local copy — live for any settings with the local proxy and a Gemini API key, or as stored commentary for the four presets at their defaults."
+ ],
+ "benchmarkChecks": [
+  {
+   "id": "BMK-01",
+   "segmentId": "MKT-001",
+   "segment": "Bandra Kurla Complex, Mumbai",
+   "parameter": "monthly rent (Grade A office)",
+   "project": "170–210 (central 185)",
+   "units": "INR per sq ft per month",
+   "publisher": "Knight Frank India",
+   "document": "India Real Estate – Office and Residential Market (January–June 2025)",
+   "date": "H1 2025",
+   "page": "Mumbai business-district rental table (p.59 of the extracted text)",
+   "figure": "BKC & Off-BKC 2,460 – 4,590 (229–427) 15% 6%",
+   "period": "H1 2025",
+   "relation": "below"
+  },
+  {
+   "id": "BMK-02",
+   "segmentId": "MKT-001",
+   "segment": "Bandra Kurla Complex, Mumbai",
+   "parameter": "annual rental growth",
+   "project": "4–10 (central 7)",
+   "units": "percent per year",
+   "publisher": "Knight Frank India",
+   "document": "India Real Estate – Office and Residential Market (January–June 2025)",
+   "date": "H1 2025",
+   "page": "same table",
+   "figure": "BKC & Off-BKC … 15% 6% (12-month and 6-month change)",
+   "period": "H1 2025",
+   "relation": "below"
+  },
+  {
+   "id": "BMK-03",
+   "segmentId": "MKT-026",
+   "segment": "Outer Ring Road, Bengaluru",
+   "parameter": "monthly rent (Grade A office)",
+   "project": "92–125 (central 108)",
+   "units": "INR per sq ft per month",
+   "publisher": "Knight Frank India",
+   "document": "India Real Estate – Office and Residential Market (January–June 2025)",
+   "date": "H1 2025",
+   "page": "Bengaluru rental table (p.27)",
+   "figure": "ORR 1,076 - 1,345 (100 - 125) 2% 0%",
+   "period": "H1 2025",
+   "relation": "consistent"
+  },
+  {
+   "id": "BMK-04",
+   "segmentId": "MKT-016",
+   "segment": "Gurugram — Cyber Hub, Delhi NCR",
+   "parameter": "monthly rent (Grade A office)",
+   "project": "105–145 (central 125)",
+   "units": "INR per sq ft per month",
+   "publisher": "Knight Frank India",
+   "document": "India Real Estate – Office and Residential Market (January–June 2025)",
+   "date": "H1 2025",
+   "page": "NCR rental table (p.67); Zone A includes DLF Cyber City",
+   "figure": "Gurugram Zone A 1,292-2,067 (120-192) 8% 4%",
+   "period": "H1 2025",
+   "relation": "partly consistent"
+  },
+  {
+   "id": "BMK-05",
+   "segmentId": "MKT-010",
+   "segment": "HITEC City, Hyderabad",
+   "parameter": "monthly rent (Grade A office)",
+   "project": "60–85 (central 72)",
+   "units": "INR per sq ft per month",
+   "publisher": "Knight Frank India",
+   "document": "India Real Estate – Office and Residential Market (January–June 2025)",
+   "date": "H1 2025",
+   "page": "Hyderabad rental table (p.43); SBD includes HITEC City",
+   "figure": "SBD 753- 1,023 (70 -95) 11% 3%",
+   "period": "H1 2025",
+   "relation": "partly consistent"
+  },
+  {
+   "id": "BMK-06",
+   "segmentId": "MKT-005",
+   "segment": "Kharadi, Pune",
+   "parameter": "monthly rent (Grade A office)",
+   "project": "55–78 (central 66)",
+   "units": "INR per sq ft per month",
+   "publisher": "Knight Frank India",
+   "document": "India Real Estate – Office and Residential Market (January–June 2025)",
+   "date": "H1 2025",
+   "page": "Pune rental table (p.75); PBD East includes Kharadi",
+   "figure": "PBD East 726-1,183 (67-110) 5% 2%",
+   "period": "H1 2025",
+   "relation": "below"
+  },
+  {
+   "id": "BMK-07",
+   "segmentId": "MKT-006",
+   "segment": "Wakad, Pune",
+   "parameter": "capital value (residential)",
+   "project": "3840–10200 (central 6160)",
+   "units": "INR per sq ft",
+   "publisher": "Knight Frank India",
+   "document": "India Real Estate – Office and Residential Market (January–June 2025)",
+   "date": "H1 2025",
+   "page": "Pune residential price movement in select locations",
+   "figure": "Wakad 108,146-141,923 (10,047-13,185) 18% 15%",
+   "period": "H1 2025",
+   "relation": "below"
+  },
+  {
+   "id": "BMK-08",
+   "segmentId": "MKT-048",
+   "segment": "Undri / Pisoli, Pune",
+   "parameter": "capital value (residential)",
+   "project": "2880–7480 (central 4480)",
+   "units": "INR per sq ft",
+   "publisher": "Knight Frank India",
+   "document": "India Real Estate – Office and Residential Market (January–June 2025)",
+   "date": "H1 2025",
+   "page": "Pune residential price movement in select locations",
+   "figure": "Undri 60,461-67,641 (5,617-6,284) 2% 1%",
+   "period": "H1 2025",
+   "relation": "below"
+  },
+  {
+   "id": "BMK-09",
+   "segmentId": "MKT-008",
+   "segment": "Sarjapur Road, Bengaluru",
+   "parameter": "capital value (residential)",
+   "project": "5280–12240 (central 7840)",
+   "units": "INR per sq ft",
+   "publisher": "ANAROCK Research",
+   "document": "Indian Residential Real Estate Annual Report 2024: Beyond the Growth Trajectory",
+   "date": "January 2025",
+   "page": "India residential market overview table, 'Average Capital Value (INR/sqft)' (p.7)",
+   "figure": "Average Capital Value … Bengaluru 8,380",
+   "period": "2024",
+   "relation": "consistent (city level only)"
+  },
+  {
+   "id": "BMK-10",
+   "segmentId": "MKT-010",
+   "segment": "HITEC City, Hyderabad",
+   "parameter": "monthly rent (office, single REIT asset)",
+   "project": "60–85 (central 72)",
+   "units": "INR per sq ft per month",
+   "publisher": "Mindspace Business Parks REIT",
+   "document": "Investor Presentation Q4 FY25",
+   "date": "30 April 2025",
+   "page": "Portfolio asset table as of 31 March 2025 (p.54)",
+   "figure": "Mindspace Madhapur 13.7 9.9 3.7 92.3% 97.2% 7.3 69.9",
+   "period": "31 March 2025",
+   "relation": "consistent (one asset)"
+  },
+  {
+   "id": "BMK-11",
+   "segmentId": "MKT-021",
+   "segment": "Malad — Mindspace, Mumbai",
+   "parameter": "monthly rent (office, single REIT asset)",
+   "project": "82–115 (central 98)",
+   "units": "INR per sq ft per month",
+   "publisher": "Mindspace Business Parks REIT",
+   "document": "Investor Presentation Q4 FY25",
+   "date": "30 April 2025",
+   "page": "Portfolio asset table as of 31 March 2025 (p.54)",
+   "figure": "Mindspace Malad 0.8 0.8 - 98.5% 98.5% 3.8 102.2",
+   "period": "31 March 2025",
+   "relation": "consistent (one asset)"
+  },
+  {
+   "id": "BMK-12",
+   "segmentId": "MKT-001",
+   "segment": "Bandra Kurla Complex, Mumbai",
+   "parameter": "monthly rent (office, single REIT asset)",
+   "project": "170–210 (central 185)",
+   "units": "INR per sq ft per month",
+   "publisher": "Mindspace Business Parks REIT",
+   "document": "Investor Presentation Q4 FY25",
+   "date": "30 April 2025",
+   "page": "Portfolio asset table as of 31 March 2025 (p.54)",
+   "figure": "The Square BKC 0.1 0.1 - 100.0% 100.0% 1.7 240.0",
+   "period": "31 March 2025",
+   "relation": "below"
+  },
+  {
+   "id": "BMK-13",
+   "segmentId": "MKT-031",
+   "segment": "Pocharam, Hyderabad",
+   "parameter": "occupancy (office, single REIT asset)",
+   "project": "55–82 (central 70)",
+   "units": "percent",
+   "publisher": "Mindspace Business Parks REIT",
+   "document": "Investor Presentation Q4 FY25",
+   "date": "30 April 2025",
+   "page": "Portfolio asset table as of 31 March 2025 (p.54)",
+   "figure": "Mindspace Pocharam 0.6 0.6 - 0.0% 0.0% - -",
+   "period": "31 March 2025",
+   "relation": "above"
+  },
+  {
+   "id": "BMK-14",
+   "segmentId": "MKT-001",
+   "segment": "Bandra Kurla Complex, Mumbai",
+   "parameter": "monthly rent (office, Mumbai REIT asset outside BKC)",
+   "project": "170–210 (central 185)",
+   "units": "INR per sq ft per month",
+   "publisher": "Embassy Office Parks REIT",
+   "document": "FY2025 Earnings Materials (Q4 FY25 earnings presentation)",
+   "date": "29 April 2025",
+   "page": "Portfolio summary (p.47)",
+   "figure": "Express Towers 0.5 - 0.5 3.6 100% 274 300 10%",
+   "period": "31 March 2025",
+   "relation": "context only"
+  }
+ ],
  "tests": {
   "file": "tests/reit-tests.js",
-  "testIdCount": 73,
-  "assertCallCount": 596
+  "testIdCount": 83,
+  "assertCallCount": 647
  }
 }

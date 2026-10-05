@@ -3,23 +3,72 @@
 **NMIMS B.Sc. Finance | Business Analytics | Theme 4 — Building Agents/Artifacts Using Generative AI**
 **Author: Vishesh Jain**
 
-REIT Target AI is an academic decision-support prototype. For a sample REIT
-portfolio it ranks candidate market segments for a new investment, tests whether
-each segment's simulated figures are precise enough to shortlist, measures how
-the investment would change portfolio concentration, projects the result under
-three scenarios, and asks four Gemini agents to explain the outcome in plain
-language. Every calculation is deterministic JavaScript. The language model only
+REIT Target AI is an academic decision-support prototype. For a REIT portfolio it
+ranks candidate market segments for a new investment, shows how the investment
+would change the portfolio's concentration, projects the result under three
+scenarios, and asks four Gemini agents to explain the outcome in plain language.
+Every calculation is deterministic JavaScript; the language model only
 interprets figures that have already been computed, and its replies are checked
 against those figures before they are shown.
 
 > **Synthetic data only.** Every holding, market segment, rent, valuation and
-> simulated observation in this project was generated for academic
-> demonstration. Nothing describes a real property, listing, transaction or
-> market, no figure has been externally verified, and nothing here is
-> investment advice.
+> simulated observation was generated for academic demonstration. Nothing
+> describes a real property, listing, transaction or market, no figure has been
+> externally verified, and nothing here is investment advice.
 
 - **Live site:** https://visheshjain0603-design.github.io/reit-target-ai/
 - **Repository:** https://github.com/visheshjain0603-design/reit-target-ai
+- **Final report:** [docs/project-report.md](docs/project-report.md) · **Live-demo runbook:** [docs/LIVE_DEMO_RUNBOOK.md](docs/LIVE_DEMO_RUNBOOK.md)
+
+## Who it is for
+
+<!-- canonical:BEGIN customer-and-use-cases -->
+**Primary user.** REIT investment analysts and acquisition committees evaluating where a proposed new investment should be allocated.
+
+**Business problem.** A REIT must balance income, growth, demand, risk and portfolio diversification when choosing its next target market, while understanding the reliability and limitations of the supporting data.
+
+**Core use cases** (and the pages where each is carried out):
+
+1. Diagnose geographic and asset-type concentration in the existing portfolio. *(Portfolio, Diversification)*
+2. Rank target markets using adjustable business priorities. *(Market Screener)*
+3. Compare the highest raw-score market with the highest-ranked market passing the simulation-support screen. *(Market Screener, Overview)*
+4. Simulate yield, concentration and scenario effects of a proposed investment. *(Diversification)*
+5. Produce deterministic validation and Gemini-assisted interpretation. *(Agent Output)*
+6. Generate a printable decision report for management discussion. *(Decision Report)*
+<!-- canonical:END customer-and-use-cases -->
+
+## Quick start
+
+**Public site — nothing to install.** Open the live site. Every calculation,
+page and report works. The public site does not offer the Agent Output page or
+any AI commentary: it cannot hold an API key, so the Gemini agents run only on a
+local copy (below).
+
+**Locally.** Requires Node.js 18 or later (no npm packages) and a modern browser.
+
+```bash
+git clone https://github.com/visheshjain0603-design/reit-target-ai.git
+cd reit-target-ai
+python3 -m http.server 8080 --directory public   # then open http://localhost:8080
+```
+
+**Live Gemini mode.** Needs a Gemini API key, kept on your machine only.
+
+```bash
+cp server/.env.example server/.env   # then set GEMINI_API_KEY=... in server/.env
+node server/server.js                 # then open http://localhost:3001
+```
+
+`server/.env` and every `server/.env.*` variant are git-ignored; the key is read
+only by the local proxy, which sends it to Google's Gemini endpoint to
+authenticate each call; it never reaches the browser (`/api/health` reports only
+whether a key is configured). The proxy listens on 127.0.0.1 only, so other
+devices cannot use it unless you set `REIT_HOST=0.0.0.0` on purpose. Never commit
+a key; if one is ever pushed, treat it as compromised and rotate it. Live calls
+are made only when the page is served by the proxy at `http://localhost:3001`. If
+a live call fails (quota, network), the page says fresh generation was
+unavailable; it never substitutes stored commentary. A reply that fails the
+consistency check is sent back once, and withheld if it fails again.
 
 ## Key figures
 
@@ -42,81 +91,135 @@ edit by hand. The full set is in [docs/CANONICAL_FACTS.md](docs/CANONICAL_FACTS.
 | Institution and author | NMIMS B.Sc. Finance, Business Analytics — Vishesh Jain |
 <!-- canonical:END key-figures -->
 
-## Three separate questions
+## User guide
 
-The application keeps three concepts apart and never lets one stand in for
-another (`public/js/appMeta.js`, `public/js/governance.js`):
+The pages follow the order of the analysis. Every page shows the **same shared
+analysis run**; a change made anywhere appears everywhere at once. The sidebar
+always names the current analysis (target, preset, amount, selection mode).
 
-1. **Composite attractiveness score.** How attractive a segment looks on five
-   normalised factors — rental yield, rental growth, diversification benefit,
-   demand and low market risk — weighted by one of four presets (Balanced,
-   Income Focused, Growth Focused, Diversification Focused) or by custom weights
-   that sum to 100%. Computed by `scoringEngine.js`. Nothing else changes a
-   score or a rank.
-2. **Simulation support.** How many simulated observations stand behind a
-   segment's medians, how wide their P10–P90 spread is, and the project's
-   internal **Assumption Support Grade** (A–E), which records how the segment's
-   assumptions were built and how wide a band was assumed around them. It is not
-   an evidence grade. The **simulation-support screen** requires at least 30
-   simulated observations and grade C or better — a transparent project
-   governance convention for simulation precision, not a regulatory or universal
-   statistical threshold. More draws narrow the estimate around the *assumed*
-   distribution; they are not market evidence.
-3. **External calibration.** Verified, Partially supported or Unverified,
-   derived only from the source register (`data-pipeline/source_register.csv`).
-   No cited document has been located, so every segment is Unverified — see
-   [docs/SOURCE_VERIFICATION_REPORT.md](docs/SOURCE_VERIFICATION_REPORT.md).
+### Overview
 
-The screen's output is the **shortlist candidate**: the highest-ranked candidate
-passing the simulation-support screen. It is an exploratory model output, not an
-investment recommendation, and it always carries the same caveat: "Exploratory
-shortlist only. External calibration remains unverified — proceed to further
-evidence collection and due diligence before any real decision." The highest
-raw-score market is always shown beside it with the reason it failed the screen.
-A user may ignore the screen; that choice is explicit and recorded in the report.
+What the system is, who it is for, the current analysis on the dark *candidate
+plate* — the selected target with its composite score, simulation support and
+external calibration kept in separate cells — and a comparison with the highest
+raw-score alternative or the next eligible candidate. It ends with the stated
+limitations and **Reset demo…**.
+
+**Reset the demo.** Press **Reset demo…**, read the panel, press **Reset to
+defaults** (Cancel or Escape changes nothing). It restores the sample portfolio,
+the Balanced preset and its weights, ₹50.00 Cr, the simulation-support screen
+applied, automatic selection and no filters. A custom portfolio is kept but made
+inactive; nothing outside this application's own browser storage is touched.
+
+### Portfolio — and how to create a custom portfolio
+
+Shows the holdings, their value, rent, yield, occupancy and lease expiry, and
+concentration by city and asset type with HHI.
+
+1. Press **Custom Portfolio** at the top of the page.
+2. Press **Start Blank — Add First Asset**, or **Copy from Sample Portfolio** to edit a copy.
+3. Fill the form — Asset ID, Asset Name, City, Locality, Property Type, Property
+   Value (₹ Cr), Annual Rent (₹ Cr), Total Area and Occupied Area (sq ft), Lease
+   Expiry (YYYY-MM-DD), Tenant Sector — and press **Add Asset**. Use **+ Add
+   Asset**, **Edit** and **Delete** to change it.
+4. While the custom portfolio is active and non-empty it replaces the sample in
+   every calculation on every page; the default investment becomes 10% of its
+   value. Press **Sample Portfolio** to switch back. The custom portfolio is
+   stored only in this browser.
+
+### Market Screener — weights, investment, ranks and the screen
+
+- **Investment amount.** Type a positive amount in ₹ Cr and press Enter or leave
+  the field.
+- **Weights.** Press a preset (Balanced, Income Focused, Growth Focused,
+  Diversification Focused), or move the five sliders (rental yield, rental
+  growth, diversification, demand strength, low market risk). Custom weights are
+  applied only when they total 100%; until then the total is shown in red and
+  every page keeps the last valid analysis.
+- **Raw rank** is a segment's position by composite attractiveness score among
+  all segments. **Eligible rank** is its position among the segments that pass
+  the **simulation-support screen** (at least 30 simulated observations and
+  Assumption Support Grade C or better). The **shortlist candidate** is eligible
+  rank 1. When the highest raw-score market fails the screen, the panel says
+  exactly why.
+- **Screen override.** Tick **Ignore the simulation-support screen** to make the
+  highest raw-score market the candidate; the choice is recorded in the Decision
+  Report. Untick to restore the screen.
+- **Manual selection.** Press **Select** on any row to make it the selected
+  target. Every page labels it "Manually selected target" and warns when it
+  differs from the shortlist candidate; **Return to automatic recommendation**
+  undoes it.
+- **Details and filters.** **Show** on a row opens the score breakdown, the HHI
+  impact, the P10–P90 spread and the simulated distribution. **Filters** hide
+  rows from view; they never change a score, rank or the target.
+
+### Diversification
+
+City and asset-type HHI before and after investing in the selected target, the
+weighted-yield change, the raw-score leaders beside the eligible shortlist,
+sensitivity across all four presets, and 1-, 3- and 5-year scenario projections.
+HHI bands (below 0.15 diversified, 0.15–0.25 moderate, above 0.25 concentrated)
+are descriptive, not regulatory.
+
+### Statistical Analysis
+
+Key findings from the simulated observations: distributions, correlation pooled
+and within each property type (Simpson's paradox), a limited regression, and how
+well four detectors find the known synthetic anomalies (precision, recall, F1).
+
+### Agent Output
+
+The deterministic context the agents receive, the activity trail, the eight
+deterministic input checks that gate the final agent, and the four agents'
+commentary, each card showing its provenance and the result of the consistency
+check. **This page appears only on a local copy, not on the public site.** In
+live mode (`node server/server.js`, then http://localhost:3001) press **Run Agent
+Analysis**: it works for any weights, amount, portfolio and target. On a local
+static server (no key) press **Show Pre-generated Analysis**; it is available
+only when the current run exactly matches a stored scenario (any preset at its
+defaults), and otherwise the page names the inputs that differ. Add
+`?publicSite=1` to the address to see the page as the public site shows it.
+
+### Data Centre — and the System Check
+
+The data in five labelled levels (portfolio holdings, segment aggregates,
+simulated observations, the source register, data quality), CSV import with a
+downloadable template, and **Run System Check**: ten checks of the production
+engines against the current data, each showing what it expected and what it
+got. Running it never changes the analysis.
+
+The CSV import is a **cleaning demonstration**: it never replaces the market
+segments or changes the analysis. Area units are never guessed from the numbers:
+`areaSqFt` is square feet (a 300 sq ft shop stays 300 sq ft), `areaSqM` is square
+metres converted once (1 m² = 10.7639 sq ft), and a generic `area` column needs an
+`areaUnit` column (`sqft` or `sqm`) or the unit chosen in **Unit of a generic
+"area" column**. A row with a missing or conflicting unit is rejected with the
+reason. To replace the analysis dataset itself, use the data pipeline
+([docs/data-documentation.md](docs/data-documentation.md), Section 9).
+
+### Decision Report
+
+A printable record of the current run: summary, raw-score and eligible-shortlist
+tables, concentration, projections, the deterministic checks, the limitations
+and — only when it was produced for this exact run — agent commentary with its
+provenance. Press **Print / Save as PDF**.
+
+## How the analysis works
+
+The application keeps three questions apart and never lets one stand in for another:
 
 <!-- canonical:BEGIN screen-and-calibration -->
 - **Composite attractiveness score** — the five weighted factors. Never changed by the screen.
-- **Simulation support** — simulated observations behind a segment's medians, their P10–P90 spread, and the project's own Assumption Support Grade (A–E). A transparent project governance convention for simulation precision, not a regulatory or universal statistical threshold. Thirty draws keeps the P10–P90 spread of a segment's simulated medians reasonably narrow; grade C or better excludes segments whose assumptions the project itself classed as interpolated or placeholder. Passing the screen says nothing about real-market accuracy.
+- **Simulation support** — simulated observations behind a segment's medians, their P10–P90 spread, and the project's own Assumption Support Grade (A–E). A transparent project convention chosen by the authors, not a regulatory or universal statistical threshold. More draws make a segment's estimated median more precise; they do not narrow the P10–P90 spread of its simulated observations. Thirty is a chosen minimum, not a proven sufficient sample. Grade C or better excludes the assumption sets the authors graded D (estimated from comparable segments) or E (placeholder). Passing the screen says nothing about real-market accuracy.
 - **Simulation-support screen** — at least 30 simulated observations and Assumption Support Grade C or better. 25 of 50 segments pass.
 - **External calibration** — from the source register only: 0 of 12 cited external sources verified; 0 partially supported. A segment is Verified only when every external source it cites is verified. Every segment is Unverified.
 - **Wording** — the model output is a *shortlist candidate*: "Exploratory shortlist only. External calibration remains unverified — proceed to further evidence collection and due diligence before any real decision."
 <!-- canonical:END screen-and-calibration -->
 
-## One shared analysis run
-
-Every page renders a single object: the analysis run computed by
-`public/js/analysisRun.js`. It is recomputed deterministically from the persisted
-inputs — preset, exact weights, investment amount (by default 10% of the active
-portfolio's value), whether the screen is ignored, selection mode, manual target
-and display filters — together with the active portfolio (the sample, or the
-user's custom portfolio) and the data files. The run holds the full ranking (raw
-rank, eligible rank, simulation support and external calibration for every
-segment), the highest raw-score market, the shortlist candidate, the selected
-target, HHI before and after, the scenario projections, a sensitivity table for
-all four presets, the deterministic validation, the agent context and the
-scenario key. Any input change goes through `AnalysisRun.update()`, which saves
-the inputs (never the results), recomputes, and notifies every subscribed page in
-the same tick. In **automatic** mode the selected target is the shortlist
-candidate and follows every change. In **manual** mode the user's pick is kept,
-labelled "Manually selected target" on every page, flagged when it differs from
-the current candidate, and undone with "Return to automatic recommendation".
-Reset Demo on the Overview asks for confirmation, restores the defaults and
-recomputes at once. [docs/architecture.md](docs/architecture.md) explains the
-design and the cross-page defect it replaced.
-
-## Pages
-
-1. **Overview** (`#overview`) — what the system is, the current analysis, its comparison with the highest raw-score alternative or next eligible candidate, what it must not be used for, and Reset Demo.
-2. **Portfolio** (`#portfolio`) — the sample portfolio, or a custom portfolio the user builds (add, edit, delete).
-3. **Market Screener** (`#screener`) — presets, weight sliders, investment amount, screen override, manual selection, filters and each segment's simulated distribution.
-4. **Diversification** (`#diversification`) — HHI before and after for the selected target, raw-score and eligible-shortlist tables, sensitivity across all four presets (raw leader and candidate), projections.
-5. **Agent Output** (`#agents`) — the four agents, the deterministic checks that gate the Orchestrator, and the consistency check on every reply.
-6. **Data Centre** (`#datacentre`) — five data levels (portfolio holdings; market segment aggregates; simulated observation dataset; source/calibration register; data quality and cleaning results, with CSV import) and the System Check.
-7. **Statistics** (`#statsdash`) — descriptive statistics, sample adequacy, stratified correlation and Simpson's paradox, a limited regression, detection of the known synthetic anomalies, limitations and key findings.
-8. **Decision Report** (`#report`) — a printable record of the whole run; agent commentary is included only when it was produced for this exact run.
-
-## Agents and the deterministic gate
+All of it is computed once, in `public/js/analysisRun.js`, from the stored
+inputs (preset, weights, amount, screen setting, selection mode, manual target,
+filters), the active portfolio and the data files; only the inputs are stored.
+Four agents then interpret the run:
 
 ```
 Data & Statistical Analyst → Market Screening Analyst → Portfolio Risk & Scenario Analyst
@@ -124,126 +227,81 @@ Data & Statistical Analyst → Market Screening Analyst → Portfolio Risk & Sce
 ```
 
 The agents never calculate, rank or validate. Each receives a context built
-deterministically by `AgentContext.fromRun()` (`public/js/agentContext.js`) with
-explicit fields — raw rank, eligible rank, highest raw-score market, shortlist
-candidate, selected target, selection mode, screen result and exact exclusion
-reasons, simulated observations, support grade, external calibration — and
-every figure supplied as a fixed-decimal string, so it is quoted at exactly the
-precision the interface shows. Each must reply in a strict JSON schema of prose fields only
-(`public/js/agentOutputCheck.js`), which the proxy passes to Gemini as
-`responseSchema`. `validator.js` runs in code before the Orchestrator and the
-Orchestrator is called only when every check passes. Every reply is then checked
-by `AgentOutputCheck.check()`: markets exist and are in the context, ranks,
-figures and exclusion reasons match, the dominant factor is the largest
-contribution, retired terms, evidence overclaims and field-name leakage are
-rejected, and the Orchestrator must name the selected target and state that
-calibration is unverified and due diligence is required. Headline figures on
-each card come from the context, never from the prose, and each card shows its
-check result. Prompts are in `server/server.js`; see
+deterministically from the run, must reply in a prose-only JSON schema, and
+every reply is checked by `AgentOutputCheck.check()` against that context. See
+[docs/architecture.md](docs/architecture.md) and
 [docs/prompt-design.md](docs/prompt-design.md).
 
-## Running it
-
-Requirements: Node.js 18 or later (no npm packages) and a modern browser. A
-Gemini API key is needed only for live mode.
+## Tests
 
 ```bash
-git clone https://github.com/visheshjain0603-design/reit-target-ai.git
-cd reit-target-ai
-```
-
-### Static mode (no server, no key)
-
-Open the live site, or serve `public/` with any static file server, for example
-`python3 -m http.server 8080 --directory public`. Everything deterministic works.
-On Agent Output the proxy is not contacted: **Show Pre-generated Analysis**
-serves stored commentary from `public/data/agent-cache.json` only when the
-current run's scenario key matches a stored scenario exactly (each preset at its
-defaults), and the button then reads **Hide Pre-generated Analysis**. For any
-other configuration the page lists the inputs that differ and shows no
-commentary.
-
-### Live mode (local proxy with a Gemini key)
-
-```bash
-cp server/.env.example server/.env   # then set GEMINI_API_KEY in server/.env
-node server/server.js                 # then open http://localhost:3001
-```
-
-`server/.env` is git-ignored, along with every `server/.env.*` variant. Never
-commit a real key; if one is ever pushed, treat it as compromised and rotate it.
-Live calls are made only when the page is served by the proxy at
-http://localhost:3001. The key stays on the server; `/api/health` reports only
-whether one is configured.
-
-## Tests and rebuilding
-
-```bash
-node tests/reit-tests.js                        # application suite (Node, no browser)
+node tests/reit-tests.js                        # application suite
 node data-pipeline/tests/dataPipeline.test.js   # data pipeline suite
 node data-pipeline/scripts/auditAnalytics.js    # independent re-derivation; exit code 0 when it agrees
 ```
 
-Each suite prints its own count; see the latest run and
-[docs/test-report.md](docs/test-report.md). CI (`.github/workflows/tests.yml`)
-runs the two Node suites and checks that regenerating the observations from the
-fixed seed reproduces the committed data byte for byte. Browser acceptance
-checks that drive all eight routes through their own controls are in
-`tests/browserAcceptance.js` (run inside the application; instructions in its
-header), with a Playwright smoke test in `tests/browserSmokeTest.js`; neither
-runs in CI. `.github/workflows/pages.yml` publishes `public/` to GitHub Pages.
-Documents carry generated blocks and the test suite fails if a block, a parsed
-figure or a retired term is out of date.
+Browser acceptance checks run inside the application (instructions in the header
+of `tests/browserAcceptance.js`); the latest results are in
+`tests/acceptance-results.json`. CI (`.github/workflows/tests.yml`) runs the Node
+suites and checks that regenerating the data from its seed reproduces the
+committed file byte for byte. Documents carry generated blocks, and the suite
+fails if a block, a stated figure or a retired term is out of date. Counts and a
+use-case test table are in [docs/test-report.md](docs/test-report.md).
 
 Rebuild the data (seeded and reproducible):
 
 ```bash
-node data-pipeline/scripts/generateObservations.js          # simulated observations + known synthetic anomalies
-node data-pipeline/scripts/deriveMarkets.js                 # segment medians -> markets.json, observations.json
-node data-pipeline/scripts/computeStatistics.js             # statistics.json
-node data-pipeline/scripts/buildObservationDistribution.js  # observation-distribution.json
-node data-pipeline/scripts/buildMeta.js                     # meta.json, CANONICAL_FACTS.md, generated blocks
+node data-pipeline/scripts/generateObservations.js
+node data-pipeline/scripts/deriveMarkets.js
+node data-pipeline/scripts/computeStatistics.js
+node data-pipeline/scripts/buildObservationDistribution.js
+node data-pipeline/scripts/buildMeta.js
+node data-pipeline/scripts/screenSensitivity.js   # shortlist under other screen thresholds; median precision
+node data-pipeline/scripts/runbookExpected.js     # every figure the demo runbook quotes, at full precision
 ```
 
-Rebuild the pre-generated agent commentary (needs the proxy and a key;
-`--dry-run` builds every scenario and calls nothing):
+`data-pipeline/scripts/reconcileProvenance.js` (already applied) keeps each
+segment's provenance notes consistent with its `sourceIds`; running it again
+changes nothing.
 
-```bash
-node server/server.js &
-node data-pipeline/scripts/buildAgentCache.js
-```
+## Theme 4 deliverables
 
-The builder computes each preset's run with the same `analysisRun.js`, checks
-every reply with `AgentOutputCheck.check()`, sends a failing reply back with the
-specific problems (up to two revisions), and writes nothing unless every reply
-for every preset passes.
+| Deliverable | Where |
+|---|---|
+| Working prototype and live demo | [Live site](https://visheshjain0603-design.github.io/reit-target-ai/); [docs/LIVE_DEMO_RUNBOOK.md](docs/LIVE_DEMO_RUNBOOK.md) |
+| README / user manual | This file |
+| Final academic report | [docs/project-report.md](docs/project-report.md) |
+| Architecture diagram | [docs/architecture.md](docs/architecture.md) |
+| Test report with use-case results and screenshots | [docs/test-report.md](docs/test-report.md), [docs/screenshots/](docs/screenshots/), `tests/acceptance-results.json` |
+| Limitations | [docs/limitations.md](docs/limitations.md) |
+| AI-use declaration | [docs/ai-use-declaration.md](docs/ai-use-declaration.md) |
+| Source and data documentation | [docs/data-documentation.md](docs/data-documentation.md), [docs/SOURCE_VERIFICATION_REPORT.md](docs/SOURCE_VERIFICATION_REPORT.md), `data-pipeline/benchmark_checks.csv`, [docs/SCREEN_SENSITIVITY.md](docs/SCREEN_SENSITIVITY.md), [docs/CANONICAL_FACTS.md](docs/CANONICAL_FACTS.md), [data-pipeline/docs/](data-pipeline/docs/) |
+| Process log | [docs/process-log.md](docs/process-log.md) |
+| Prompt design | [docs/prompt-design.md](docs/prompt-design.md) |
+| Viva preparation | [docs/viva-guide.md](docs/viva-guide.md) |
+| CSV data and scripts | `data-pipeline/*.csv`, `data-pipeline/generated/`, `data-pipeline/scripts/`, `public/data/` |
 
-## Documentation
+[docs/verification-evidence.md](docs/verification-evidence.md) records an earlier
+reliability pass and the institution-name migration; [HANDOFF.md](HANDOFF.md)
+records the latest state of the work.
 
-Code lives in `public/` (the browser application: `js/`, `data/`, `index.html`),
-`server/` (the local proxy), `data-pipeline/` (generator and build scripts) and
-`tests/`. The generated blocks in this README and the documents listed in
-`data-pipeline/scripts/canonicalBlocks.js` are refilled by `buildMeta.js`.
+## Viva demonstration
 
-- [docs/CANONICAL_FACTS.md](docs/CANONICAL_FACTS.md) — generated figures, preset results and terminology
-- [docs/architecture.md](docs/architecture.md) — system design, the shared analysis run, the agent layer
-- [docs/data-documentation.md](docs/data-documentation.md) — the synthetic dataset and its schema
-- [docs/SOURCE_VERIFICATION_REPORT.md](docs/SOURCE_VERIFICATION_REPORT.md) — what was checked against external sources, and what was not found
-- [docs/limitations.md](docs/limitations.md) — methodological and practical limitations
-- [docs/prompt-design.md](docs/prompt-design.md) — agent prompts, schemas and the output check
-- [docs/test-report.md](docs/test-report.md) — test suites and results
-- [docs/project-report-draft.md](docs/project-report-draft.md) — the academic report
-- [docs/viva-guide.md](docs/viva-guide.md) — formula reference and anticipated questions
-- [docs/process-log.md](docs/process-log.md) — development decisions
-- [docs/ai-use-declaration.md](docs/ai-use-declaration.md) — how AI tools were used
-- [docs/verification-evidence.md](docs/verification-evidence.md) — record of the reliability pass and institution-name migration
-- [data-pipeline/docs/](data-pipeline/docs/) — data methodology, data dictionary and the analytics audit
+Use the static site unless live agents are needed. Press **Reset demo…** first.
+Then: Overview (customer and the candidate) → Portfolio (concentration) → Market
+Screener (switch preset and change the amount; raw rank versus eligible rank) →
+Diversification (both HHI dimensions; the yield–diversification trade-off) →
+Statistical Analysis (Simpson's paradox) → Agent Output (commentary and checks)
+→ Data Centre (System Check) → Decision Report → Reset demo. The full timed
+sequence, three evaluator exercises with expected results, and recovery steps
+are in [docs/LIVE_DEMO_RUNBOOK.md](docs/LIVE_DEMO_RUNBOOK.md); likely questions
+are in [docs/viva-guide.md](docs/viva-guide.md).
 
 ## Limitations
 
-The data is synthetic, external calibration is Unverified for every segment, the
-simulation-support screen is a project convention, yields are gross, projections
-use flat rates, and the agents interpret but do not verify. The full list is in
-[docs/limitations.md](docs/limitations.md); the Agent Output page also lists the
-fixed limitations stated by `validator.js`. Built for academic assessment at
-NMIMS; no part of it is investment advice or a regulated financial service.
+The data is synthetic; external calibration is Unverified for every segment; the
+simulation-support screen is a project convention; yields are gross;
+projections use flat rates and are not forecasts; and the agents interpret but
+do not verify. The full list — the same one the application shows — is in
+[docs/limitations.md](docs/limitations.md). Built for academic assessment; no
+part of it is investment advice or a regulated financial service.

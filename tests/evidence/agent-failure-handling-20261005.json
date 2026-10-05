@@ -1,0 +1,40 @@
+{
+ "what": "Agent failure handling, exercised through the real Agent Output page with the agent endpoint mocked (no API calls)",
+ "date": "2026-10-05",
+ "browser": "WebKit (WKWebView, macOS 15.5)",
+ "served": "node server/server.js on 127.0.0.1:3001 (live mode); only /api/agent was replaced",
+ "script": "tests/browser/agentFailureTests.js",
+ "results": {
+  "network": [
+   "Data & Statistical Analyst Agent :: UNAVAILABLE",
+   "Market Screening Analyst Agent :: UNAVAILABLE",
+   "Portfolio Risk & Scenario Analyst Agent :: UNAVAILABLE",
+   "Investment Orchestrator Agent :: UNAVAILABLE"
+  ],
+  "networkDeterministic": true,
+  "networkReport": true,
+  "quota": [
+   "Data & Statistical Analyst Agent :: UNAVAILABLE",
+   "Market Screening Analyst Agent :: UNAVAILABLE",
+   "Portfolio Risk & Scenario Analyst Agent :: UNAVAILABLE",
+   "Investment Orchestrator Agent :: UNAVAILABLE"
+  ],
+  "quarantine": [
+   "Data & Statistical Analyst Agent :: PASSED",
+   "Market Screening Analyst Agent :: PASSED",
+   "Portfolio Risk & Scenario Analyst Agent :: PASSED",
+   "Investment Orchestrator Agent :: WITHHELD"
+  ],
+  "repairAttempted": true,
+  "publishedOrchestrator": false,
+  "reportWithheld": true,
+  "reportShowsBadText": false,
+  "downstream": [
+   "Data & Statistical Analyst Agent :: WITHHELD",
+   "Market Screening Analyst Agent :: PASSED",
+   "Portfolio Risk & Scenario Analyst Agent :: PASSED",
+   "Investment Orchestrator Agent :: PASSED"
+  ],
+  "dataWithheldFromNextAgent": true
+ }
+}

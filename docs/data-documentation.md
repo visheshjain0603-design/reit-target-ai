@@ -1,7 +1,7 @@
 # Data Documentation — REIT Target AI
 
 **NMIMS B.Sc. Finance | Business Analytics | Theme 4 — Building Agents/Artifacts Using Generative AI**
-**Vishesh Jain | 4 October 2026**
+**Vishesh Jain | 5 October 2026**
 
 All data in this project is synthetic. No record describes a real property, tenant, listing, transaction or market, and no figure has been externally verified. Every figure in this document was computed from `public/data/portfolio.json`, `public/data/markets.json`, `public/data/observations.json` and `public/data/meta.json`, or is generated into the marked blocks by `data-pipeline/scripts/buildMeta.js`.
 
@@ -26,6 +26,16 @@ All data in this project is synthetic. No record describes a real property, tena
 <!-- canonical:END key-figures -->
 
 Units used throughout: amounts in Indian rupees (₹); **Cr** is one crore, ₹10,000,000. Areas in square feet (sq ft). Yields and growth rates are annual. Scores are on a 0–100 scale.
+
+### 1.1 How the data was made, in brief
+
+- **Generated, not collected.** No figure was scraped, downloaded or fetched from a live market source; the application has no data feed or external database connection.
+- **Assumption-anchored synthetic data.** For each segment the project wrote lower, central and upper estimates for each metric (`data-pipeline/market_estimates_long.csv`, `data-pipeline/assumptions.csv`). Some were intended to follow published benchmarks named in `data-pipeline/source_register.csv`; none of those documents has been located, so no figure is anchored to a verified source. A seeded generator then draws simulated market observations around the assumptions. In that sense the data is *semi-synthetic by design* — real-world-shaped assumptions plus synthetic draws — but because no anchor was verified, every segment is recorded as fully synthetic (`isSemiSynthetic: false`).
+- **Seeded and reproducible.** Generator version 2.0.0, seed 20260919, Mulberry32 pseudo-random generator; nothing reads the clock or `Math.random`, so regenerating reproduces the files byte for byte (Section 5.2).
+- **Medians and the P10–P90 spread of simulated observations.** Each segment's figures are the **median** of its simulated observations (half fall below, half above). **P10** is the value below which 10% of the observations fall and **P90** the value below which 90% fall, so P10–P90 contains the middle 80% of the draws. It describes the spread of the distribution the project assumed. It is not a confidence interval, and not uncertainty about a real market.
+- **Observation count is not evidence.** More draws make a segment's *estimated median* more precise around the assumed distribution; they do not narrow the P10–P90 spread of the observations, and they do not show the assumption is true. `docs/SCREEN_SENSITIVITY.md` measures both (Section 5.1).
+- **Benchmarks checked, assumptions unchanged.** On 5 October 2026, 14 assumption-level comparisons were made against figures read in located documents (`data-pipeline/benchmark_checks.csv`, summarised in Section 6.1). They do not verify any cited source, and no assumption was changed to match them.
+- **Known synthetic anomalies** were inserted deliberately, with their identities held in a separate ground-truth file, so detection can be scored (Section 5.2).
 
 ---
 
@@ -198,20 +208,31 @@ Every statistical field is the **median of the segment's simulated observations*
 
 **Gross yield is not stored.** The application computes it as `medianMonthlyRentPerSqFt × 12 ÷ medianCapitalValuePerSqFt`. Because a ratio of medians is not the median of ratios, this differs slightly from `uncertainty.grossYieldPct.central` (the median of the draws' own yields) — by at most 0.31 percentage points across the universe — and lies inside the P10–P90 band for all 50 segments.
 
-**Read the two note fields with care.** `methodologyNote` and `classificationNote` were written when the assumption set was built and use phrases such as "parameterised on JLL/CBRE India Office Research Q4 2024" and "derived from REIT annual-report disclosures". None of the documents they refer to was located. Moreover, for every segment the publications named in `methodologyNote` are not the register entries listed in `sourceIds` (office segments cite SRC-001/SRC-002, retail segments SRC-003/SRC-004 and residential segments SRC-005/SRC-006). Treat the notes as a record of intent, not as sourced facts.
+**The two note fields were reconciled on 5 October 2026.** Until then `methodologyNote` and `classificationNote` said, in the present tense, that estimates were "parameterised on JLL/CBRE India Office Research Q4 2024" or "derived from REIT annual-report disclosures", and for every one of the 50 segments the publications they named were not the register entries in `sourceIds`. None of those documents has been located. `data-pipeline/scripts/reconcileProvenance.js` rewrote both notes from each segment's own fields: the note now names exactly the sources in `sourceIds`, states that none has been located, and records that the earlier wording described the authors' intended benchmark, not a calibration. The original wording is kept in `data-pipeline/provenance_notes.superseded-20261005.csv`. No statistical field, grade, `sourceType`, `dataClassification` or `sourceIds` value was changed.
 
 The file header carries `datasetName`, `dataAsOf`, `currency: INR`, `areaUnit: sqft`, `isSynthetic: true`, a disclaimer, `totalMarkets` and `derivedFrom`. Its dataset-level `sourceType` value (`synthetic_academic_placeholder`) is a label for the file as a whole; it does not describe each segment, whose codes are given below.
 
 ### 4.4 `sourceType` codes and their display labels
 
-The codes are internal. The Data Centre shows the label from `SOURCE_TYPE_LABELS` in `public/js/appMeta.js` (column "Assumption basis"). No label says "reported", because no reported figure has been verified.
+The codes are a **legacy label** carried over from the first-generation dataset, recording how each record was originally produced. They were assigned separately from the Assumption Support Grade and measure something different, so "placeholder" in this label does not mean grade E. The Data Centre shows the label from `SOURCE_TYPE_LABELS` in `public/js/appMeta.js` (column "Assumption basis"); no label says "reported", because no reported figure has been verified.
 
 | Code | Display label | Segments |
 |---|---|---|
-| `synthetic_academic_placeholder` | Synthetic placeholder | 21 |
-| `estimated_synthetic` | Estimated by synthetic interpolation | 19 |
-| `estimated_tier3` | City benchmark × locality multiplier — Tier-3 source cited, not located | 9 |
-| `reported_tier1` | Benchmark-based assumption — Tier-1 source cited, not located | 1 |
+| `synthetic_academic_placeholder` | Legacy label: synthetic academic record (first-generation dataset) | 21 |
+| `estimated_synthetic` | Legacy label: estimated by synthetic interpolation | 19 |
+| `estimated_tier3` | Legacy label: city benchmark × locality multiplier — source cited, not located | 9 |
+| `reported_tier1` | Legacy label: benchmark-based record — source cited, not located | 1 |
+
+**What each provenance field measures.**
+
+| Field | Measures | Assigned by | Used by the application |
+|---|---|---|---|
+| `confidenceGrade` (Assumption Support Grade, A–E) | How the authors intended each assumption set to be built and how wide a band they assumed around it | The authors, in `data-pipeline/market_universe.csv` — an author-assigned simulation convention | The simulation-support screen (grade C or better) |
+| `sourceType` | How the record was produced in the first-generation dataset | Carried over unchanged | Display only |
+| `dataClassification` | The intended anchor for the locality (REIT disclosure, city benchmark, none) | The authors | Display only |
+| `externalCalibrationStatus` | Whether every cited source was located and a figure traced | Computed from the source register | Every page; Unverified for all 50 |
+
+The grade is a convention, not a measured quality: it was not derived from data, nothing validates it, and none of the benchmarks it refers to was located. Grade C or better therefore excludes the assumption sets the authors graded D (estimated from comparable segments) or E (placeholder) — it does not exclude every record whose legacy label says "placeholder", and it should not be read as a measure of accuracy. `docs/SCREEN_SENSITIVITY.md` shows how the shortlist changes if the cut-off is grade B instead.
 
 An unknown code would be shown as "Unclassified assumption". The code and the Assumption Support Grade were assigned separately and do not map one to one:
 
@@ -230,7 +251,7 @@ An unknown code would be shown as "Unclassified assumption". The code and the As
 | Estimated | 39 | A city benchmark was extrapolated to the locality |
 | Synthetic | 3 | No documented anchor at all |
 
-These describe how each assumption set was meant to be built. They are not statements about evidence: no cited document was located, so "Derived" does not mean derived from a verified source. Separately, every statistical field of every segment is derived from simulated observations, whatever its classification.
+These describe how each assumption set was meant to be built, as recorded by the authors. They are not statements about evidence: no cited document was located, so "Derived" does not mean derived from a verified source. Separately, every statistical field of every segment is derived from simulated observations, whatever its classification.
 
 ### 4.6 Notional 1,000 sq ft columns (Data Centre)
 
@@ -262,7 +283,7 @@ A 95% confidence interval for the median gross yield would be bootstrapped acros
 | `occupancy_pct`, `vacancy_pct` | % | Occupancy and its complement |
 | `demand_score`, `market_risk_score` | 0–100 index | Demand and risk indices |
 
-The draws behind a segment are its simulated market observations. More draws narrow a segment's median around the **assumed** distribution; they are not market evidence.
+The draws behind a segment are its simulated market observations. More draws make a segment's estimated median more precise around the **assumed** distribution; they do not narrow the P10–P90 spread of the observations, and they are not market evidence. Within the same segments, using 25, 30, 40 and 60 draws leaves the mean P10–P90 spread of gross yield between 0.86 and 0.92 percentage points while the 90% bootstrap interval for the median narrows from 0.28 to 0.19 percentage points (`docs/SCREEN_SENSITIVITY.md`).
 
 ### 5.2 Generator, seed and reproducibility
 
@@ -298,7 +319,7 @@ node data-pipeline/scripts/buildMeta.js                  # meta.json, CANONICAL_
 
 <!-- canonical:BEGIN screen-and-calibration -->
 - **Composite attractiveness score** — the five weighted factors. Never changed by the screen.
-- **Simulation support** — simulated observations behind a segment's medians, their P10–P90 spread, and the project's own Assumption Support Grade (A–E). A transparent project governance convention for simulation precision, not a regulatory or universal statistical threshold. Thirty draws keeps the P10–P90 spread of a segment's simulated medians reasonably narrow; grade C or better excludes segments whose assumptions the project itself classed as interpolated or placeholder. Passing the screen says nothing about real-market accuracy.
+- **Simulation support** — simulated observations behind a segment's medians, their P10–P90 spread, and the project's own Assumption Support Grade (A–E). A transparent project convention chosen by the authors, not a regulatory or universal statistical threshold. More draws make a segment's estimated median more precise; they do not narrow the P10–P90 spread of its simulated observations. Thirty is a chosen minimum, not a proven sufficient sample. Grade C or better excludes the assumption sets the authors graded D (estimated from comparable segments) or E (placeholder). Passing the screen says nothing about real-market accuracy.
 - **Simulation-support screen** — at least 30 simulated observations and Assumption Support Grade C or better. 25 of 50 segments pass.
 - **External calibration** — from the source register only: 0 of 12 cited external sources verified; 0 partially supported. A segment is Verified only when every external source it cites is verified. Every segment is Unverified.
 - **Wording** — the model output is a *shortlist candidate*: "Exploratory shortlist only. External calibration remains unverified — proceed to further evidence collection and due diligence before any real decision."
@@ -306,19 +327,56 @@ node data-pipeline/scripts/buildMeta.js                  # meta.json, CANONICAL_
 
 The verification method, the outcome for each source and the two factual errors found in the register's notes are documented in `docs/SOURCE_VERIFICATION_REPORT.md`.
 
+### 6.1 Benchmark comparisons (5 October 2026)
+
+A second pass looked for the exact cited documents and, where related documents could be read, compared individual assumptions with figures quoted in them. Each row compares one parameter of one segment; a located report does not verify the other parameters, the other segments citing it, or the citation itself.
+
+<!-- canonical:BEGIN benchmark-checks -->
+| Check | Segment | Parameter | Project assumption | Located figure (quoted) | Source | Relation |
+|---|---|---|---|---|---|---|
+| BMK-01 | Bandra Kurla Complex, Mumbai | monthly rent (Grade A office) | 170–210 (central 185) INR per sq ft per month | BKC & Off-BKC 2,460 – 4,590 (229–427) 15% 6% | Knight Frank India, India Real Estate – Office and Residential Market (January–June 2025) (H1 2025), Mumbai business-district rental table (p.59 of the extracted text) | below |
+| BMK-02 | Bandra Kurla Complex, Mumbai | annual rental growth | 4–10 (central 7) percent per year | BKC & Off-BKC … 15% 6% (12-month and 6-month change) | Knight Frank India, India Real Estate – Office and Residential Market (January–June 2025) (H1 2025), same table | below |
+| BMK-03 | Outer Ring Road, Bengaluru | monthly rent (Grade A office) | 92–125 (central 108) INR per sq ft per month | ORR 1,076 - 1,345 (100 - 125) 2% 0% | Knight Frank India, India Real Estate – Office and Residential Market (January–June 2025) (H1 2025), Bengaluru rental table (p.27) | consistent |
+| BMK-04 | Gurugram — Cyber Hub, Delhi NCR | monthly rent (Grade A office) | 105–145 (central 125) INR per sq ft per month | Gurugram Zone A 1,292-2,067 (120-192) 8% 4% | Knight Frank India, India Real Estate – Office and Residential Market (January–June 2025) (H1 2025), NCR rental table (p.67); Zone A includes DLF Cyber City | partly consistent |
+| BMK-05 | HITEC City, Hyderabad | monthly rent (Grade A office) | 60–85 (central 72) INR per sq ft per month | SBD 753- 1,023 (70 -95) 11% 3% | Knight Frank India, India Real Estate – Office and Residential Market (January–June 2025) (H1 2025), Hyderabad rental table (p.43); SBD includes HITEC City | partly consistent |
+| BMK-06 | Kharadi, Pune | monthly rent (Grade A office) | 55–78 (central 66) INR per sq ft per month | PBD East 726-1,183 (67-110) 5% 2% | Knight Frank India, India Real Estate – Office and Residential Market (January–June 2025) (H1 2025), Pune rental table (p.75); PBD East includes Kharadi | below |
+| BMK-07 | Wakad, Pune | capital value (residential) | 3840–10200 (central 6160) INR per sq ft | Wakad 108,146-141,923 (10,047-13,185) 18% 15% | Knight Frank India, India Real Estate – Office and Residential Market (January–June 2025) (H1 2025), Pune residential price movement in select locations | below |
+| BMK-08 | Undri / Pisoli, Pune | capital value (residential) | 2880–7480 (central 4480) INR per sq ft | Undri 60,461-67,641 (5,617-6,284) 2% 1% | Knight Frank India, India Real Estate – Office and Residential Market (January–June 2025) (H1 2025), Pune residential price movement in select locations | below |
+| BMK-09 | Sarjapur Road, Bengaluru | capital value (residential) | 5280–12240 (central 7840) INR per sq ft | Average Capital Value … Bengaluru 8,380 | ANAROCK Research, Indian Residential Real Estate Annual Report 2024: Beyond the Growth Trajectory (January 2025), India residential market overview table, 'Average Capital Value (INR/sqft)' (p.7) | consistent (city level only) |
+| BMK-10 | HITEC City, Hyderabad | monthly rent (office, single REIT asset) | 60–85 (central 72) INR per sq ft per month | Mindspace Madhapur 13.7 9.9 3.7 92.3% 97.2% 7.3 69.9 | Mindspace Business Parks REIT, Investor Presentation Q4 FY25 (30 April 2025), Portfolio asset table as of 31 March 2025 (p.54) | consistent (one asset) |
+| BMK-11 | Malad — Mindspace, Mumbai | monthly rent (office, single REIT asset) | 82–115 (central 98) INR per sq ft per month | Mindspace Malad 0.8 0.8 - 98.5% 98.5% 3.8 102.2 | Mindspace Business Parks REIT, Investor Presentation Q4 FY25 (30 April 2025), Portfolio asset table as of 31 March 2025 (p.54) | consistent (one asset) |
+| BMK-12 | Bandra Kurla Complex, Mumbai | monthly rent (office, single REIT asset) | 170–210 (central 185) INR per sq ft per month | The Square BKC 0.1 0.1 - 100.0% 100.0% 1.7 240.0 | Mindspace Business Parks REIT, Investor Presentation Q4 FY25 (30 April 2025), Portfolio asset table as of 31 March 2025 (p.54) | below |
+| BMK-13 | Pocharam, Hyderabad | occupancy (office, single REIT asset) | 55–82 (central 70) percent | Mindspace Pocharam 0.6 0.6 - 0.0% 0.0% - - | Mindspace Business Parks REIT, Investor Presentation Q4 FY25 (30 April 2025), Portfolio asset table as of 31 March 2025 (p.54) | above |
+| BMK-14 | Bandra Kurla Complex, Mumbai | monthly rent (office, Mumbai REIT asset outside BKC) | 170–210 (central 185) INR per sq ft per month | Express Towers 0.5 - 0.5 3.6 100% 274 300 10% | Embassy Office Parks REIT, FY2025 Earnings Materials (Q4 FY25 earnings presentation) (29 April 2025), Portfolio summary (p.47) | context only |
+
+14 comparisons: 1 above, 6 below, 4 consistent, 1 context only, 2 partly consistent. Generated from `data-pipeline/benchmark_checks.csv`, which also records each document's URL and its relationship to the source register. None of these documents is the one the register cites, so no source is verified and every segment's external calibration stays Unverified; no assumption was changed to match a figure.
+<!-- canonical:END benchmark-checks -->
+
+Where the located figure differs, the assumption was kept: changing it would need a documented recalibration method and regeneration of every dependent output, and one quoted range or one asset is not a locality median. The disagreements are stated as limitations instead (`docs/limitations.md`, Section 3).
+
 ---
 
 ## 7. Level 5 — Data quality and CSV cleaning
 
-The Data Centre's import runs a listing-style CSV through `public/js/dataCleaner.js`. Imported files are checked only; they never change the market segments or the analysis.
+The Data Centre's import runs a listing-style CSV through `public/js/dataCleaner.js`. It is a **cleaning demonstration**: imported files are checked only; they never replace the market segments or change the analysis (Section 9 gives the route for replacing the dataset itself).
 
-**Columns.** Required: `city`, `locality`, `propertyType`, `areaSqFt`, `askingPriceINR`, `monthlyRentINR`. Optional: `recordId`, `sourceName`, `sourceUrl`, `collectionDate`, `datasetType`, `isSynthetic`, `listingType`. A template can be downloaded from the page.
+**Columns.** Required: `city`, `locality`, `propertyType`, an area, `askingPriceINR`, `monthlyRentINR`. Optional: `recordId`, `sourceName`, `sourceUrl`, `collectionDate`, `datasetType`, `isSynthetic`, `listingType`. A template can be downloaded from the page.
+
+**Area units are explicit, never inferred.** The area may be given in one of three ways:
+
+| Column(s) | Read as | Conversion |
+|---|---|---|
+| `areaSqFt` | square feet | none — a 300 sq ft shop stays 300 sq ft |
+| `areaSqM` | square metres | × 10.7639… once (1 ft = 0.3048 m exactly, so 1 m² = 1 ÷ 0.3048² sq ft) |
+| `area` with `areaUnit` (`sqft` or `sqm`), or the unit written after the number ("300 sq m"), or the unit chosen on the import page | as declared | as above |
+
+A row is rejected, with the reason, when its unit is missing (a generic `area` with no unit and no choice on the page), unrecognised, or conflicting (for example "100 sqm" in the `areaSqFt` column, or `areaSqFt` and `areaSqM` that describe different areas by more than 1%). Superseded behaviour: until 5 October 2026 the cleaner treated every area as square metres when the file's median area was below 500, which multiplied genuine small square-foot properties by 10.76.
 
 **Steps, in order:**
 
 1. `validateColumns` — required columns present; if any is missing, the pipeline stops there, counts every row as rejected and names the missing columns.
 2. `standardiseNames` — trims names and normalises property-type spelling (for example "office" to Commercial Office).
-3. `convertUnits` — parses Indian notation ("50 lakh", "1.2 crore", "₹1,20,000"); treats areas as square metres and converts them when the file's median area is below 500.
+3. `convertUnits` — parses Indian notation ("50 lakh", "1.2 crore", "₹1,20,000"); reads each row's area in the unit it declares and converts square metres once; records the unit in `areaSourceUnit`.
 4. `rejectImpossible` — rejects area below 10 sq ft or above 100,000 sq ft, and asking price or monthly rent that is not a positive number.
 5. `detectDuplicates` — flags exact repeats of source, locality, property type, area and price.
 6. `flagOutliers` — flags price per sq ft outside 1.5 × IQR within a city + locality + property-type group that has at least four rows with a valid price.
@@ -336,6 +394,30 @@ For the blank price and the non-numeric area, the stated reason is the general o
 
 The Data Centre also runs a ten-item **System Check** (`public/js/systemCheck.js`) that exercises the production engines — HHI, scoring, projections, the cleaning pipeline, the shared analysis run, the canonical counts and the stored agent commentary — against the current data, showing what each check expected and what it got.
 
+### 7.1 File headers
+
+| File | Header field | Meaning |
+|---|---|---|
+| `portfolio.json` | `datasetName` | "Synthetic Existing REIT Portfolio" |
+| `portfolio.json` | `dataAsOf` | 2026-09-19 |
+| `portfolio.json` | `currency` | INR — every amount is in Indian rupees |
+| `portfolio.json` | `areaUnit` | `sq_ft` — square feet |
+| `portfolio.json` | `isSynthetic` | `true` |
+| `markets.json` | `datasetName` | Title of the segment dataset |
+| `markets.json` | `dataAsOf` | 2026-09-19 |
+| `markets.json` | `currency` | INR |
+| `markets.json` | `areaUnit` | `sqft` — square feet (the same unit as `sq_ft`; the spelling differs between files) |
+| `markets.json` | `isSynthetic` | `true` |
+| `markets.json` | `sourceType` | `synthetic_academic_placeholder` — a label for the file as a whole (Section 4.3) |
+| `markets.json` | `disclaimer` | States that all values are invented and must not be used for any investment decision |
+| `markets.json` | `totalMarkets` | Number of segments in the file |
+| `markets.json` | `derivedFrom` | Source file, generator version and observation total the medians were computed from |
+| `observations.json` | `datasetName` | Title of the observation dataset |
+| `observations.json` | `generatorVersion` | 2.0.0 |
+| `observations.json` | `totalObservations` | Number of simulated market observations in the file |
+| `observations.json` | `isSynthetic` | `true` |
+| `observations.json` | `disclaimer` | As above |
+
 ---
 
 ## 8. Other files in `public/data/`
@@ -346,6 +428,31 @@ The Data Centre also runs a ten-item **System Check** (`public/js/systemCheck.js
 | `statistics.json` | `computeStatistics.js` | Descriptive statistics, correlations, Simpson's-paradox and regression results, anomaly-detector results against the ground truth, sample-size summary |
 | `observation-distribution.json` | `buildObservationDistribution.js` | Per-segment quantiles and ten-bin histograms for six metrics, used by the Market Screener |
 | `agent-cache.json` | `buildAgentCache.js` | Stored agent commentary for the four presets at the canonical defaults, keyed by scenario key |
+
+---
+
+---
+
+## 9. What real-world data would replace in a production system
+
+| Synthetic component today | Real-world replacement | What changes downstream |
+|---|---|---|
+| Generated observations (`generateObservations.js`) | Licensed transaction, rental and valuation records, or REIT and regulatory disclosures, written in the same observation schema | Nothing in the application: `deriveMarkets.js`, `computeStatistics.js`, `buildObservationDistribution.js` and `buildMeta.js` run unchanged; the dataset fingerprint changes, so stored agent commentary must be rebuilt |
+| Assumption ranges and the Assumption Support Grade | Data-quality measures of the real records (coverage, recency, number of transactions) | The screen would test real coverage rather than the project's own classification |
+| Unverified source register | Located documents with every figure traced | External calibration could become Partially supported or Verified, segment by segment |
+| Book values in the sample portfolio | Current market valuations | HHI on market value |
+| Gross yields | Net operating income after fees, vacancy, capital expenditure and tax | Net yield in place of gross yield |
+| Flat scenario rates | Market-specific growth series and time series | Cycle-aware projections; still scenarios, not forecasts |
+
+The output would still be a shortlist for further due diligence, not a decision.
+
+**Replacing the dataset with the existing pipeline.** No new import feature is needed, and none was added. The pipeline already separates generation from everything downstream:
+
+1. Write the replacement observations in the observation schema (Section 5.1) to `data-pipeline/generated/observations.v2.json`, one record per observation with `market_id` from the existing 50 segments (`deriveMarkets.js` stops if any of the 50 has no observations).
+2. Run, in order: `node data-pipeline/scripts/deriveMarkets.js`, `computeStatistics.js`, `buildObservationDistribution.js`, `buildMeta.js`, then `screenSensitivity.js` and `runbookExpected.js`.
+3. Rebuild the stored commentary with `buildAgentCache.js` (the dataset is part of every scenario key, so the old commentary stops matching automatically), and run the test suites.
+
+Adding new segments would also need rows in `data-pipeline/market_universe.csv`. The Data Centre's CSV import is not this route: it cleans a file for inspection only.
 
 ---
 

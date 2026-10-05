@@ -33,6 +33,7 @@ var DATA    = path.join(PROJECT, "public", "data");
 
 var AppMeta = require(path.join(PROJECT, "public", "js", "appMeta.js"));
 var ScenarioKey = require(path.join(PROJECT, "public", "js", "scenarioKey.js"));
+var Validator = require(path.join(PROJECT, "public", "js", "validator.js"));
 
 function readJson(p) { return JSON.parse(fs.readFileSync(p, "utf8")); }
 
@@ -158,6 +159,33 @@ function countAssertions() {
   };
 }
 
+/* The statistical findings the report and the viva guide quote, copied from
+ * statistics.json so that no document types a correlation or a detector score. */
+function statisticsSummary(sd) {
+  var od = sd.outlierDetection || {};
+  var det = od.detectors || {};
+  return {
+    totalObservations: sd.totalObservations,
+    simpsonsParadox: (sd.simpsonsParadox || []).map(function (r) {
+      return { label: r.label, expect: r.expect, pooled: r.pooled, byPropertyType: r.byPropertyType, signFlip: r.signFlip };
+    }),
+    regression: sd.regression ? {
+      pooled: { slope: sd.regression.yieldOnGrowth.slope, r2: sd.regression.yieldOnGrowth.r2, n: sd.regression.yieldOnGrowth.n },
+      byPropertyType: Object.keys(sd.regression.byPropertyType || {}).map(function (k) {
+        var m = sd.regression.byPropertyType[k];
+        return { propertyType: k, slope: m.slope, r2: m.r2, n: m.n };
+      })
+    } : null,
+    anomalies: od.groundTruth ? { count: od.groundTruth.planted, contaminationPct: od.groundTruth.contaminationPct,
+                                  byMechanism: od.groundTruth.byMechanism } : null,
+    detectors: Object.keys(det).map(function (k) {
+      var d = det[k];
+      return { key: k, method: d.method, flagged: d.score.flagged, truePositives: d.score.truePositives,
+               precision: d.score.precision, recall: d.score.recall, f1: d.score.f1 };
+    })
+  };
+}
+
 var meta = {
   note: "GENERATED FILE — do not edit by hand. Produced by " +
         "data-pipeline/scripts/buildMeta.js from the data files in public/data/. " +
@@ -170,6 +198,7 @@ var meta = {
    * own dataAsOf date carries the time information that matters. */
 
   project: AppMeta.PROJECT,
+  customer: AppMeta.CUSTOMER,
   governance: AppMeta.GOVERNANCE,
   agents: AppMeta.AGENTS.map(function (a) {
     return { key: a.key, label: a.label, purpose: a.purpose };
@@ -183,6 +212,23 @@ var meta = {
     externalCalibration: AppMeta.EXTERNAL_CALIBRATION,
     candidateCaveat: AppMeta.CANDIDATE_CAVEAT
   },
+  statistics: statisticsSummary(statisticsDoc),
+  /* The limitations the application states (Overview, Agent Output, Decision
+   * Report), so the documents quote the same list rather than a copy of it. */
+  limitations: Validator.LIMITATIONS,
+  /* Assumption-level comparisons with figures read in located documents
+   * (data-pipeline/benchmark_checks.csv). They never change a source's
+   * verification status or a segment's external calibration. */
+  benchmarkChecks: (function () {
+    var p = path.join(PROJECT, "data-pipeline", "benchmark_checks.csv");
+    if (!fs.existsSync(p)) { return []; }
+    return parseCsv(fs.readFileSync(p, "utf8")).map(function (b) {
+      return { id: b.check_id, segmentId: b.segment_id, segment: b.segment, parameter: b.parameter,
+               project: b.project_lower + "–" + b.project_upper + " (central " + b.project_central + ")", units: b.units,
+               publisher: b.publisher, document: b.document_title, date: b.document_date, page: b.page_or_table,
+               figure: b.figure_quoted, period: b.period, relation: b.relation };
+    });
+  }()),
   tests: countAssertions()
 };
 var calibrationValues = Object.keys(segmentCalibration);
@@ -217,6 +263,10 @@ var md = [
   "",
   blocks["key-figures"],
   "",
+  "## Customer, business problem and use cases",
+  "",
+  blocks["customer-and-use-cases"],
+  "",
   "## Dataset detail",
   "",
   "| Fact | Value |",
@@ -235,6 +285,18 @@ var md = [
   "## Simulation support and external calibration",
   "",
   blocks["screen-and-calibration"],
+  "",
+  "## Stated limitations (shown in the application)",
+  "",
+  blocks["stated-limitations"],
+  "",
+  "## Statistical findings",
+  "",
+  blocks["statistics-summary"],
+  "",
+  "## Benchmark comparisons (data-pipeline/benchmark_checks.csv)",
+  "",
+  blocks["benchmark-checks"] || "None recorded.",
   "",
   "## Terminology",
   "",

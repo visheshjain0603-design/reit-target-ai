@@ -1,0 +1,16 @@
+city,locality,propertyType,areaSqFt,askingPriceINR,monthlyRentINR,recordId,sourceName,sourceUrl,collectionDate,datasetType,isSynthetic,listingType
+Mumbai,BKC,Commercial Office,5000,15 crore,10 lakh,VIVA-01,Viva sample,https://example.invalid/viva,2026-10-05,synthetic,true,sale
+  Mumbai  ,  BKC  ,office,4000,120000000,800000,VIVA-02,Viva sample,https://example.invalid/viva,2026-10-05,synthetic,true,sale
+Mumbai,BKC,Commercial Office,6000,"₹18,00,00,000","₹12,00,000",VIVA-03,Viva sample,https://example.invalid/viva,2026-10-05,synthetic,true,sale
+Mumbai,BKC,Commercial Office,4500,13.5 crore,9 lakh,VIVA-04,Viva sample,https://example.invalid/viva,2026-10-05,synthetic,true,sale
+Mumbai,BKC,Commercial Office,5500,165 crore,11 lakh,VIVA-05,Viva sample,https://example.invalid/viva,2026-10-05,synthetic,true,sale
+Mumbai,BKC,Commercial Office,5000,15 crore,10 lakh,VIVA-06,Viva sample,https://example.invalid/viva,2026-10-05,synthetic,true,sale
+Pune,Kharadi,Retail,3000,6 crore,4.5 lakh,VIVA-07,Viva sample,https://example.invalid/viva,2026-10-05,synthetic,true,sale
+Pune,Kharadi,Retail,0,5 crore,3 lakh,VIVA-08,Viva sample,https://example.invalid/viva,2026-10-05,synthetic,true,sale
+Bengaluru,Whitefield,residential,1200,1.1 crore,35000,VIVA-09,Viva sample,https://example.invalid/viva,2026-10-05,synthetic,true,sale
+Bengaluru,Whitefield,Residential,1500,0,40000,VIVA-10,Viva sample,https://example.invalid/viva,2026-10-05,synthetic,true,sale
+Hyderabad,HITEC City,Commercial Office,250000,400 crore,2.5 crore,VIVA-11,Viva sample,https://example.invalid/viva,2026-10-05,synthetic,true,sale
+Chennai,OMR,Commercial Office,8000,12 crore,-50000,VIVA-12,Viva sample,https://example.invalid/viva,2026-10-05,synthetic,true,sale
+Delhi NCR,Cyber City,Commercial Office,7000,,6 lakh,VIVA-13,Viva sample,https://example.invalid/viva,2026-10-05,synthetic,true,sale
+Kolkata,Salt Lake,Retail,abc,4 crore,2 lakh,VIVA-14,Viva sample,https://example.invalid/viva,2026-10-05,synthetic,true,sale
+Ahmedabad,GIFT City,Commercial Office,6500,7.8 crore,5.2 lakh,VIVA-15,Viva sample,https://example.invalid/viva,2026-10-05,synthetic,true,sale

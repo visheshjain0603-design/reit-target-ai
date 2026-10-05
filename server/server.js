@@ -39,8 +39,12 @@ var url    = require("url");
 }());
 
 var API_KEY   = process.env.GEMINI_API_KEY || "";
-var MODEL     = process.env.GEMINI_MODEL   || "gemini-2.0-flash-001";
+var MODEL     = process.env.GEMINI_MODEL   || "gemini-3.1-flash-lite";   // same default as .env.example
 var PORT      = parseInt(process.env.PORT  || "3001", 10);
+/* Loopback by default: the development proxy is reachable only from this
+ * machine. Serving it to a network is an explicit choice (REIT_HOST=0.0.0.0),
+ * never a silent default, because the proxy spends the configured API key. */
+var HOST      = process.env.REIT_HOST || "127.0.0.1";
 var PUBLIC_DIR = path.join(__dirname, "..", "public");
 
 // Output budget per agent call. Must be generous enough for the full JSON
@@ -440,7 +444,7 @@ var COMMON_RULES = [
   "D. Use the context's vocabulary: raw rank, eligible rank, highest raw-score market, shortlist candidate, selected target, next eligible candidate, highest raw-score alternative, simulation-support screen, simulated observations, Assumption Support Grade, external calibration. NEVER write \"runner-up\", \"evidence floor\", \"confidence grade\" or \"strong evidence\".",
   "E. A segment's rank is its rawRank (or its eligibleRank among segments passing the screen). Never say a segment \"ranked first\" unless its rawRank is 1.",
   "F. When you say why a segment fails the simulation-support screen, use ITS OWN exclusionReasons / failsScreenOn: some fail on simulated observations, some on Assumption Support Grade alone, some on both. Never attribute a grade-only failure to sample size.",
-  "G. Simulation support is NOT evidence. More simulated observations narrow the estimate around the project's assumed distribution; they do not show that the figures are true of any real market. Thirty observations is a project governance convention, not a statistical guarantee. External calibration is Unverified for every segment.",
+  "G. Simulation support is NOT evidence. More simulated observations make a segment's estimated median more precise around the project's assumed distribution; they do not narrow the P10–P90 spread of the simulated observations and do not show that the figures are true of any real market. The P10–P90 range is the spread of the simulated observations (their middle 80%), never a confidence interval. Thirty observations is a project convention chosen by the authors, not a statistical guarantee. External calibration is Unverified for every segment.",
   "H. Figures in marketDataset describe the 50 candidate market segments, NOT the portfolio. Figures in portfolio describe the existing holdings. Never mix them.",
   "I. Refer to records as simulated market observations — never properties, listings or transactions.",
   "J. If the context contains revisionNotes, your previous answer broke the rules listed there. Correct every one.",
@@ -725,8 +729,9 @@ var server = http.createServer(function (req, res) {
   res.end("Not found");
 });
 
-server.listen(PORT, function () {
-  console.log("REIT Target AI server running at http://localhost:" + PORT);
+server.listen(PORT, HOST, function () {
+  console.log("REIT Target AI server running at http://localhost:" + PORT +
+              (HOST === "127.0.0.1" ? " (loopback only)" : " (listening on " + HOST + " — reachable from the network)"));
   console.log("Agents: " + Object.keys(AGENT_PROMPTS).join(", ") +
               "  (validation is deterministic, in public/js/validator.js)");
   console.log("Gemini model: " + MODEL +

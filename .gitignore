@@ -19,3 +19,7 @@ npm-debug.log*
 # Editor
 .vscode/
 *.swp
+
+# Generated submission package (PDFs, screenshots, data copies, ZIP).
+# Rebuilt from the repository; never committed.
+submission/

@@ -62,6 +62,36 @@
     repoUrl:        "https://github.com/visheshjain0603-design/reit-target-ai"
   };
 
+  /* ─── Customer, business problem and use cases ─────────────────────────
+   * Stated once. The Overview renders it, buildMeta.js copies it into
+   * meta.json, and the generated "customer-and-use-cases" block carries the
+   * same words into the README, the project report and CANONICAL_FACTS.md, so
+   * the wording cannot drift between the application and the documents.
+   * Each use case names the pages where it is carried out.
+   */
+  var CUSTOMER = {
+    primaryUser: "REIT investment analysts and acquisition committees evaluating where a " +
+                 "proposed new investment should be allocated.",
+    businessProblem: "A REIT must balance income, growth, demand, risk and portfolio " +
+                     "diversification when choosing its next target market, while " +
+                     "understanding the reliability and limitations of the supporting data.",
+    useCases: [
+      { text: "Diagnose geographic and asset-type concentration in the existing portfolio.",
+        pages: ["portfolio", "diversification"] },
+      { text: "Rank target markets using adjustable business priorities.",
+        pages: ["screener"] },
+      { text: "Compare the highest raw-score market with the highest-ranked market passing " +
+              "the simulation-support screen.",
+        pages: ["screener", "overview"] },
+      { text: "Simulate yield, concentration and scenario effects of a proposed investment.",
+        pages: ["diversification"] },
+      { text: "Produce deterministic validation and Gemini-assisted interpretation.",
+        pages: ["agents"] },
+      { text: "Generate a printable decision report for management discussion.",
+        pages: ["report"] }
+    ]
+  };
+
   /** A repository-relative path as a link a reader can actually open. */
   function docUrl(relPath) {
     return PROJECT.repoUrl + "/blob/main/" + String(relPath).replace(/^\/+/, "");
@@ -80,9 +110,13 @@
    *   3. external calibration   whether a cited source was located and the
    *                       figure traced to it — see EXTERNAL_CALIBRATION
    *
-   * The screen below tests (2) only. More simulated draws narrow the estimate
-   * around the ASSUMED distribution; they do not create market evidence, so
+   * The screen below tests (2) only. More simulated draws make a segment's
+   * estimated median more precise around the ASSUMED distribution; they do not
+   * narrow the P10–P90 spread of the observations themselves (that describes
+   * the assumed distribution), and they do not create market evidence, so
    * passing the screen never implies that a segment is externally supported.
+   * docs/SCREEN_SENSITIVITY.md measures both quantities and shows the shortlist
+   * under thresholds of 25, 30 and 40 draws and grade B or C.
    *
    * An earlier revision justified n = 30 by the Central Limit Theorem and
    * described grade C as resting on "documented evidence". Neither holds: the
@@ -95,11 +129,12 @@
     MIN_GRADE:        "C",             // Assumption Support Grade: A, B or C qualifies
     GRADE_ORDER:      ["A", "B", "C", "D", "E"],
     rule: "at least 30 simulated observations and Assumption Support Grade C or better",
-    rationale: "A transparent project governance convention for simulation precision, not a " +
-               "regulatory or universal statistical threshold. Thirty draws keeps the P10–P90 " +
-               "spread of a segment's simulated medians reasonably narrow; grade C or better " +
-               "excludes segments whose assumptions the project itself classed as interpolated " +
-               "or placeholder. Passing the screen says nothing about real-market accuracy.",
+    rationale: "A transparent project convention chosen by the authors, not a regulatory or " +
+               "universal statistical threshold. More draws make a segment's estimated median " +
+               "more precise; they do not narrow the P10–P90 spread of its simulated observations. " +
+               "Thirty is a chosen minimum, not a proven sufficient sample. Grade C or better " +
+               "excludes the assumption sets the authors graded D (estimated from comparable " +
+               "segments) or E (placeholder). Passing the screen says nothing about real-market accuracy.",
     overrideLabel: "Ignore the simulation-support screen (make the highest raw-score market the candidate)",
     overrideNote:  "With the screen ignored, the candidate is simply the highest raw-score market. " +
                    "Segments that fail the screen stay marked, and the report records that the " +
@@ -113,9 +148,11 @@
    * to has been located or traced, so it is not an evidence grade. */
   var SUPPORT_GRADES = {
     label: "Assumption Support Grade",
-    definition: "The project's internal A–E classification of how a segment's assumptions " +
-                "were constructed and how wide a band was assumed around them. It is not an " +
-                "evidence grade: none of the benchmarks it refers to has been externally verified.",
+    definition: "An author-assigned simulation convention: the project's internal A–E " +
+                "classification of how a segment's assumptions were intended to be constructed " +
+                "and how wide a band was assumed around them. It is not an evidence grade: none " +
+                "of the benchmarks it refers to has been externally verified, and it is separate " +
+                "from the legacy sourceType label.",
     grades: {
       A: "Assumptions intended to follow a named primary benchmark; narrowest assumed band (±5–8%).",
       B: "Assumptions intended to follow a primary or secondary benchmark with minor interpolation (±10–12%).",
@@ -214,14 +251,28 @@
     { pattern: /central limit theorem/i,       use: "(remove — not applicable)" }
   ];
 
+  /* The Agent Output page is offered only on a local copy (siteMode.js): the
+   * public site cannot hold an API key, so it shows the deterministic analysis
+   * only. `?publicSite=1` forces the public behaviour for testing. */
+  function agentsAvailable(loc) {
+    loc = loc || (typeof location !== "undefined" ? location : null);
+    if (!loc) { return true; }
+    if (/[?&]publicSite=1\b/.test(loc.search || "")) { return false; }
+    return loc.protocol === "file:" || /^(localhost|127\.0\.0\.1|\[::1\]|::1)$/.test(loc.hostname || "");
+  }
+  var AGENTS_LOCAL_ONLY = "The Gemini agents run only on a local copy of the application: live for any " +
+    "settings with the local proxy (node server/server.js, then http://localhost:3001), or as stored " +
+    "commentary for the four presets at their defaults on a local static server. The public site shows " +
+    "the deterministic analysis only.";
+
   /* Display labels for the internal sourceType codes in markets.json. None
    * says "reported": no reported figure has been verified, so a label that
    * implied one would contradict the Source Verification Report. */
   var SOURCE_TYPE_LABELS = {
-    reported_tier1:                 "Benchmark-based assumption — Tier-1 source cited, not located",
-    estimated_tier3:                "City benchmark × locality multiplier — Tier-3 source cited, not located",
-    estimated_synthetic:            "Estimated by synthetic interpolation",
-    synthetic_academic_placeholder: "Synthetic placeholder"
+    reported_tier1:                 "Legacy label: benchmark-based record — source cited, not located",
+    estimated_tier3:                "Legacy label: city benchmark × locality multiplier — source cited, not located",
+    estimated_synthetic:            "Legacy label: estimated by synthetic interpolation",
+    synthetic_academic_placeholder: "Legacy label: synthetic academic record (first-generation dataset)"
   };
 
   function sourceTypeLabel(code) {
@@ -405,11 +456,14 @@
 
   var AppMeta = {
     PROJECT:     PROJECT,
+    CUSTOMER:    CUSTOMER,
     GOVERNANCE:  GOVERNANCE,
     SUPPORT_GRADES:       SUPPORT_GRADES,
     EXTERNAL_CALIBRATION: EXTERNAL_CALIBRATION,
     TERMS:                TERMS,
     RETIRED_TERMS:        RETIRED_TERMS,
+    agentsAvailable:      agentsAvailable,
+    AGENTS_LOCAL_ONLY:    AGENTS_LOCAL_ONLY,
     CANDIDATE_CAVEAT:     CANDIDATE_CAVEAT,
     SOURCE_TYPE_LABELS:   SOURCE_TYPE_LABELS,
     sourceTypeLabel:      sourceTypeLabel,

@@ -35,6 +35,7 @@
     csvRecords: [],          // last imported CSV, cleaned
     cleaningReport: null,    // last DataCleaner report
     csvFileName: null,
+    csvAreaUnit: null,       // user's unit for a generic "area" column (null = not stated)
     obsPreview: null,        // first 100 simulated observations, loaded on request
     obsPreviewPending: false,
     checkResults: null
@@ -197,8 +198,9 @@
       'Seeded draws from the project’s generator (version ' + ((markets[0] && markets[0].derivedFrom &&
       markets[0].derivedFrom.generatorVersion) || '—') + '), ' + Math.min.apply(null, markets.map(function (m) { return m.observationCount; })) +
       '–' + Math.max.apply(null, markets.map(function (m) { return m.observationCount; })) + ' per segment. They are simulated ' +
-      'market observations — not properties, listings or transactions. More draws narrow a segment’s ' +
-      'median around the ASSUMED distribution; they are not market evidence.', 'dc-h-observations');
+      'market observations — not properties, listings or transactions. More draws make a segment’s ' +
+      'estimated median more precise around the ASSUMED distribution; they do not narrow the P10–P90 spread ' +
+      'of the observations and they are not market evidence.', 'dc-h-observations');
 
     var byType = {};
     markets.forEach(function (m) { byType[m.propertyType] = (byType[m.propertyType] || 0) + m.observationCount; });
@@ -285,7 +287,8 @@
     var s = section(5, 'Data Quality and Cleaning Results',
       'Import a CSV of listing-style records to run the cleaning pipeline: column check, name ' +
       'standardisation, unit conversion, impossible-value rejection, duplicate and outlier flags. ' +
-      'Imported files are checked here only; they never change the market segments or the analysis.',
+      'This is a cleaning demonstration: imported files are checked here only; they never replace the ' +
+      'market segments or change the analysis.',
       'dc-h-quality');
 
     var row = make('div', 'reit-control-row');
@@ -308,6 +311,20 @@
     tpl.addEventListener('click', downloadCSVTemplate);
     row.appendChild(tpl);
 
+    var unitLabel = make('label', 'reit-control-label', 'Unit of a generic "area" column ');
+    unitLabel.setAttribute('for', 'reit-csv-area-unit');
+    var unitSel = document.createElement('select');
+    unitSel.id = 'reit-csv-area-unit';
+    [['', 'Not stated: each row must give areaUnit'], ['sqft', 'Square feet'], ['sqm', 'Square metres']].forEach(function (o) {
+      var opt = document.createElement('option');
+      opt.value = o[0]; opt.textContent = o[1];
+      if ((view.csvAreaUnit || '') === o[0]) opt.selected = true;
+      unitSel.appendChild(opt);
+    });
+    unitSel.addEventListener('change', function () { view.csvAreaUnit = unitSel.value || null; });
+    unitLabel.appendChild(unitSel);
+    row.appendChild(unitLabel);
+
     if (view.cleaningReport) {
       var clr = make('button', 'reit-btn reit-btn--outline', 'Clear the imported file');
       clr.type = 'button';
@@ -317,6 +334,11 @@
       row.appendChild(clr);
     }
     s.appendChild(row);
+    s.appendChild(make('p', 'reit-text-muted',
+      'Area units are never guessed from the size of the numbers. areaSqFt is read as square feet ' +
+      '(a 300 sq ft shop stays 300 sq ft); areaSqM is converted once (1 m² = 10.7639 sq ft); a generic ' +
+      '"area" column needs an areaUnit column (sqft or sqm) or the unit chosen above. Rows with a missing ' +
+      'or conflicting unit are rejected with the reason.'));
     s.appendChild(make('p', 'reit-text-muted',
       'Test files: tests/fixtures/markets-valid.csv (all rows accepted) and tests/fixtures/markets-invalid.csv ' +
       '(every row rejected, each for one stated reason).'));
@@ -329,7 +351,7 @@
     var rows = view.csvRecords.map(function (r) {
       return { cls: r.validationStatus === 'rejected' ? 'reit-row--rejected' : (r.validationStatus === 'warning' ? 'reit-row--warning' : ''),
                cells: [r.recordId, r.city, r.locality, r.propertyType,
-                       typeof r.areaSqFt === 'number' ? r.areaSqFt.toFixed(0) : r.areaSqFt,
+                       typeof r.areaSqFt === 'number' ? (isFinite(r.areaSqFt) ? r.areaSqFt.toFixed(0) : '—') : r.areaSqFt,
                        typeof r.askingPriceINR === 'number' ? rs(r.askingPriceINR) : r.askingPriceINR,
                        typeof r.monthlyRentINR === 'number' ? rs(r.monthlyRentINR) : r.monthlyRentINR,
                        r.duplicateFlag ? 'Yes' : 'No', r.outlierFlag ? 'Yes' : 'No',
@@ -387,14 +409,15 @@
   }
 
   /** Clean CSV text and show the result. Exposed for the acceptance tests. */
-  function importCSVText(text, name) {
+  function importCSVText(text, name, areaUnit) {
     try {
-      var result = DataCleaner.cleanRecords(DataCleaner.parseCSV(text));
+      var unit = areaUnit !== undefined ? areaUnit : view.csvAreaUnit;
+      var result = DataCleaner.cleanRecords(DataCleaner.parseCSV(text), unit ? { areaUnit: unit } : undefined);
       view.csvRecords = result.records;
       view.cleaningReport = result.report;
       view.csvFileName = name || 'imported.csv';
       render();
-      toast('CSV cleaned: ' + result.report.total + ' rows, ' + result.report.ok + ' OK, ' +
+      toast('CSV cleaned: ' + result.report.total + (result.report.total === 1 ? ' row, ' : ' rows, ') + result.report.ok + ' OK, ' +
             result.report.rejected + ' rejected', result.report.rejected > 0 ? 'warn' : 'success');
       return result.report;
     } catch (err) {

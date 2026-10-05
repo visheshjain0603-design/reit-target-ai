@@ -1,436 +1,1476 @@
 {
- "note": "Browser acceptance results after the visual redesign (5 October 2026). Produced by tests/browserAcceptance.js run inside the application (static mode, repository root served on localhost) in the built-in browser; tests/browserSmokeTest.js regenerates this file with Playwright.",
- "runAt": "2026-10-05",
- "mode": "static (no proxy)",
- "consoleMessages": {
-  "desktop": 0,
-  "mobile": 0
- },
- "desktop": {
-  "summary": "64 / 64 acceptance checks passed (1440 px)",
-  "passed": 64,
-  "total": 64,
-  "viewport": {
-   "width": 1440,
-   "height": 1000
+  "note": "Browser acceptance results for the assessment finalisation pass (5 October 2026): tests/browserAcceptance.js run inside the application, static mode, repository root served on localhost, in WebKit (WKWebView) at 1440 px and 390 px. Adds the runbook exercises driven through the controls (EX-*), invalid-amount feedback and CSV area units (CSV-3 to CSV-5). The 390 px run found horizontal overflow on four pages that the previous run had not detected; it was fixed (wide tables scroll inside themselves; table screen-reader labels anchored to the table) and the run below is after the fix.",
+  "runAt": "2026-10-05",
+  "mode": "static (no proxy)",
+  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+  "consoleMessages": {
+    "desktop": [],
+    "mobile": []
   },
-  "results": [
-   {
-    "id": "R-overview",
-    "label": "route #overview renders content",
-    "ok": true,
-    "detail": "5534 chars"
-   },
-   {
-    "id": "A11Y-hidden-overview",
-    "label": "only #overview is exposed; other pages are hidden and inert",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "R-portfolio",
-    "label": "route #portfolio renders content",
-    "ok": true,
-    "detail": "2301 chars"
-   },
-   {
-    "id": "A11Y-hidden-portfolio",
-    "label": "only #portfolio is exposed; other pages are hidden and inert",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "R-screener",
-    "label": "route #screener renders content",
-    "ok": true,
-    "detail": "4300 chars"
-   },
-   {
-    "id": "A11Y-hidden-screener",
-    "label": "only #screener is exposed; other pages are hidden and inert",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "R-diversification",
-    "label": "route #diversification renders content",
-    "ok": true,
-    "detail": "6331 chars"
-   },
-   {
-    "id": "A11Y-hidden-diversification",
-    "label": "only #diversification is exposed; other pages are hidden and inert",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "R-statsdash",
-    "label": "route #statsdash renders content",
-    "ok": true,
-    "detail": "10568 chars"
-   },
-   {
-    "id": "A11Y-hidden-statsdash",
-    "label": "only #statsdash is exposed; other pages are hidden and inert",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "R-agents",
-    "label": "route #agents renders content",
-    "ok": true,
-    "detail": "3033 chars"
-   },
-   {
-    "id": "A11Y-hidden-agents",
-    "label": "only #agents is exposed; other pages are hidden and inert",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "R-datacentre",
-    "label": "route #datacentre renders content",
-    "ok": true,
-    "detail": "6937 chars"
-   },
-   {
-    "id": "A11Y-hidden-datacentre",
-    "label": "only #datacentre is exposed; other pages are hidden and inert",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "R-report",
-    "label": "route #report renders content",
-    "ok": true,
-    "detail": "7962 chars"
-   },
-   {
-    "id": "A11Y-hidden-report",
-    "label": "only #report is exposed; other pages are hidden and inert",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "RESET-1",
-    "label": "Reset Demo opens an explicit confirmation panel with Reset and Cancel",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "RESET-2",
-    "label": "Cancel closes the panel, changes nothing and returns focus",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "RESET-3",
-    "label": "after reset: Balanced, ₹50.00 Cr, automatic, sample portfolio, no filters",
-    "ok": true,
-    "detail": "{\"schemaVersion\":2,\"preset\":\"balanced\",\"weights\":null,\"investmentCr\":null,\"governanceOverride\":false,\"selectionMode\":\"auto\",\"manualTargetId\":null,\"filters\":null}"
-   },
-   {
-    "id": "RESET-4",
-    "label": "the Overview immediately shows a valid candidate and ₹50.00 Cr",
-    "ok": true,
-    "detail": "#overview"
-   },
-   {
-    "id": "RESET-5",
-    "label": "focus lands on the current analysis heading",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "SYNC-balanced-target",
-    "label": "balanced: Overview, Screener, Diversification, Agents and Report name the same target (MKT-016)",
-    "ok": true,
-    "detail": "{\"overview\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"screener\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"diversification\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"agents\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"report\":{\"id\":\"MKT-016\",\"mode\":\"auto\"}}"
-   },
-   {
-    "id": "SYNC-balanced-candidate",
-    "label": "balanced: the target is the run's shortlist candidate in automatic mode",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "SYNC-balanced-projection",
-    "label": "balanced: Diversification and Report show identical 3-year projections",
-    "ok": true,
-    "detail": "692.84 / 692.84"
-   },
-   {
-    "id": "SYNC-balanced-rent",
-    "label": "balanced: year-0 rent uses the target's own yield",
-    "ok": true,
-    "detail": "36.789 vs 36.789"
-   },
-   {
-    "id": "SYNC-balanced-top3",
-    "label": "balanced: Diversification's raw-score table is the active preset's",
-    "ok": true,
-    "detail": "Ambattur, Chennai"
-   },
-   {
-    "id": "SYNC-balanced-report",
-    "label": "balanced: Report shows both tables and the candidate's row",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "SYNC-incomeFocused-target",
-    "label": "incomeFocused: Overview, Screener, Diversification, Agents and Report name the same target (MKT-024)",
-    "ok": true,
-    "detail": "{\"overview\":{\"id\":\"MKT-024\",\"mode\":\"auto\"},\"screener\":{\"id\":\"MKT-024\",\"mode\":\"auto\"},\"diversification\":{\"id\":\"MKT-024\",\"mode\":\"auto\"},\"agents\":{\"id\":\"MKT-024\",\"mode\":\"auto\"},\"report\":{\"id\":\"MKT-024\",\"mode\":\"auto\"}}"
-   },
-   {
-    "id": "SYNC-incomeFocused-candidate",
-    "label": "incomeFocused: the target is the run's shortlist candidate in automatic mode",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "SYNC-incomeFocused-projection",
-    "label": "incomeFocused: Diversification and Report show identical 3-year projections",
-    "ok": true,
-    "detail": "692.84 / 692.84"
-   },
-   {
-    "id": "SYNC-incomeFocused-rent",
-    "label": "incomeFocused: year-0 rent uses the target's own yield",
-    "ok": true,
-    "detail": "36.773 vs 36.773"
-   },
-   {
-    "id": "SYNC-incomeFocused-top3",
-    "label": "incomeFocused: Diversification's raw-score table is the active preset's",
-    "ok": true,
-    "detail": "GIFT City, Ahmedabad"
-   },
-   {
-    "id": "SYNC-incomeFocused-report",
-    "label": "incomeFocused: Report shows both tables and the candidate's row",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "SYNC-growthFocused-target",
-    "label": "growthFocused: Overview, Screener, Diversification, Agents and Report name the same target (MKT-012)",
-    "ok": true,
-    "detail": "{\"overview\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"screener\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"diversification\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"agents\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"report\":{\"id\":\"MKT-012\",\"mode\":\"auto\"}}"
-   },
-   {
-    "id": "SYNC-growthFocused-candidate",
-    "label": "growthFocused: the target is the run's shortlist candidate in automatic mode",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "SYNC-growthFocused-projection",
-    "label": "growthFocused: Diversification and Report show identical 3-year projections",
-    "ok": true,
-    "detail": "692.84 / 692.84"
-   },
-   {
-    "id": "SYNC-growthFocused-rent",
-    "label": "growthFocused: year-0 rent uses the target's own yield",
-    "ok": true,
-    "detail": "34.607 vs 34.607"
-   },
-   {
-    "id": "SYNC-growthFocused-top3",
-    "label": "growthFocused: Diversification's raw-score table is the active preset's",
-    "ok": true,
-    "detail": "Banjara Hills, Hyderabad"
-   },
-   {
-    "id": "SYNC-growthFocused-report",
-    "label": "growthFocused: Report shows both tables and the candidate's row",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "SYNC-diversFocused-target",
-    "label": "diversFocused: Overview, Screener, Diversification, Agents and Report name the same target (MKT-012)",
-    "ok": true,
-    "detail": "{\"overview\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"screener\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"diversification\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"agents\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"report\":{\"id\":\"MKT-012\",\"mode\":\"auto\"}}"
-   },
-   {
-    "id": "SYNC-diversFocused-candidate",
-    "label": "diversFocused: the target is the run's shortlist candidate in automatic mode",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "SYNC-diversFocused-projection",
-    "label": "diversFocused: Diversification and Report show identical 3-year projections",
-    "ok": true,
-    "detail": "692.84 / 692.84"
-   },
-   {
-    "id": "SYNC-diversFocused-rent",
-    "label": "diversFocused: year-0 rent uses the target's own yield",
-    "ok": true,
-    "detail": "34.607 vs 34.607"
-   },
-   {
-    "id": "SYNC-diversFocused-top3",
-    "label": "diversFocused: Diversification's raw-score table is the active preset's",
-    "ok": true,
-    "detail": "New Town (Rajarhat), Kolkata"
-   },
-   {
-    "id": "SYNC-diversFocused-report",
-    "label": "diversFocused: Report shows both tables and the candidate's row",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "MANUAL-1",
-    "label": "a manual selection is used by every page and labelled manual",
-    "ok": true,
-    "detail": "{\"overview\":{\"id\":\"MKT-036\",\"mode\":\"manual\"},\"screener\":{\"id\":\"MKT-036\",\"mode\":\"manual\"},\"diversification\":{\"id\":\"MKT-036\",\"mode\":\"manual\"},\"agents\":{\"id\":\"MKT-036\",\"mode\":\"manual\"},\"report\":{\"id\":\"MKT-036\",\"mode\":\"manual\"}}"
-   },
-   {
-    "id": "MANUAL-2",
-    "label": "the Overview labels it 'Manually selected target'",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "MANUAL-3",
-    "label": "after a preset change the manual target is kept and a warning names the new candidate",
-    "ok": true,
-    "detail": "Manually selected target: Ambattur, Chennai. The current shortlist candidate under these settings is Aerocity, Delhi NCR"
-   },
-   {
-    "id": "MANUAL-4",
-    "label": "Return to automatic restores the current candidate",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "CACHE-1",
-    "label": "static mode offers the matching pre-generated analysis",
-    "ok": true,
-    "detail": "Show Pre-generated Analysis"
-   },
-   {
-    "id": "CACHE-2",
-    "label": "four cards, each labelled as stored text for the Balanced preset",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "CACHE-3",
-    "label": "every card passes the deterministic consistency check",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "CACHE-4",
-    "label": "the button now reads 'Hide Pre-generated Analysis'",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "CACHE-5",
-    "label": "the Report includes the commentary for this run, with provenance",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "CACHE-6",
-    "label": "changing the investment amount rejects the stored analysis and says why",
-    "ok": true,
-    "detail": "No pre-generated commentary matches this configuration — it differs from the stored analysis by: investment amount. Commentary written for a"
-   },
-   {
-    "id": "CACHE-7",
-    "label": "the Report no longer prints commentary from the previous configuration",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "CACHE-8",
-    "label": "restoring ₹50 Cr makes the stored analysis available again",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "SYSCHECK",
-    "label": "System Check: every check passes",
-    "ok": true,
-    "detail": "10/10"
-   },
-   {
-    "id": "SYSCHECK-state",
-    "label": "running the System Check did not change the analysis",
-    "ok": true,
-    "detail": ""
-   },
-   {
-    "id": "CSV-1",
-    "label": "valid fixture: all 6 rows accepted",
-    "ok": true,
-    "detail": "{\"ok\":6,\"rejected\":0}"
-   },
-   {
-    "id": "CSV-2",
-    "label": "invalid fixture: every row rejected with a stated reason",
-    "ok": true,
-    "detail": "{\"ok\":0,\"rejected\":6,\"warnings\":0}"
-   },
-   {
-    "id": "FOCUS-1",
-    "label": "focus moves into the Add Asset form",
-    "ok": true,
-    "detail": "f-assetId"
-   },
-   {
-    "id": "FOCUS-2",
-    "label": "Escape closes the form and returns focus to the opening button",
-    "ok": true,
-    "detail": "pf-start-blank"
-   },
-   {
-    "id": "A11Y-tables",
-    "label": "every principal table has a caption or an accessible name",
-    "ok": true,
-    "detail": ""
-   }
-  ]
- },
- "mobile": {
-  "summary": "72 / 72 acceptance checks passed (mobile, 390 px)",
-  "passed": 72,
-  "total": 72,
-  "viewport": {
-   "width": 390,
-   "height": 844
+  "desktop": {
+    "width": 1440,
+    "summary": "76 / 76 acceptance checks passed (1440 px)",
+    "passed": 76,
+    "total": 76,
+    "results": [
+      {
+        "id": "R-overview",
+        "label": "route #overview renders content",
+        "ok": true,
+        "detail": "6836 chars"
+      },
+      {
+        "id": "A11Y-hidden-overview",
+        "label": "only #overview is exposed; other pages are hidden and inert",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "R-portfolio",
+        "label": "route #portfolio renders content",
+        "ok": true,
+        "detail": "2303 chars"
+      },
+      {
+        "id": "A11Y-hidden-portfolio",
+        "label": "only #portfolio is exposed; other pages are hidden and inert",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "R-screener",
+        "label": "route #screener renders content",
+        "ok": true,
+        "detail": "4391 chars"
+      },
+      {
+        "id": "A11Y-hidden-screener",
+        "label": "only #screener is exposed; other pages are hidden and inert",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "R-diversification",
+        "label": "route #diversification renders content",
+        "ok": true,
+        "detail": "6308 chars"
+      },
+      {
+        "id": "A11Y-hidden-diversification",
+        "label": "only #diversification is exposed; other pages are hidden and inert",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "R-statsdash",
+        "label": "route #statsdash renders content",
+        "ok": true,
+        "detail": "10547 chars"
+      },
+      {
+        "id": "A11Y-hidden-statsdash",
+        "label": "only #statsdash is exposed; other pages are hidden and inert",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "R-agents",
+        "label": "route #agents renders content",
+        "ok": true,
+        "detail": "3029 chars"
+      },
+      {
+        "id": "A11Y-hidden-agents",
+        "label": "only #agents is exposed; other pages are hidden and inert",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "R-datacentre",
+        "label": "route #datacentre renders content",
+        "ok": true,
+        "detail": "7422 chars"
+      },
+      {
+        "id": "A11Y-hidden-datacentre",
+        "label": "only #datacentre is exposed; other pages are hidden and inert",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "R-report",
+        "label": "route #report renders content",
+        "ok": true,
+        "detail": "8332 chars"
+      },
+      {
+        "id": "A11Y-hidden-report",
+        "label": "only #report is exposed; other pages are hidden and inert",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "RESET-1",
+        "label": "Reset Demo opens an explicit confirmation panel with Reset and Cancel",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "RESET-2",
+        "label": "Cancel closes the panel, changes nothing and returns focus",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "RESET-3",
+        "label": "after reset: Balanced, ₹50.00 Cr, automatic, sample portfolio, no filters",
+        "ok": true,
+        "detail": "{\"schemaVersion\":2,\"preset\":\"balanced\",\"weights\":null,\"investmentCr\":null,\"governanceOverride\":false,\"selectionMode\":\"auto\",\"manualTargetId\":null,\"filters\":null}"
+      },
+      {
+        "id": "RESET-4",
+        "label": "the Overview immediately shows a valid candidate and ₹50.00 Cr",
+        "ok": true,
+        "detail": "#overview"
+      },
+      {
+        "id": "RESET-5",
+        "label": "focus lands on the current analysis heading",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "SYNC-balanced-target",
+        "label": "balanced: Overview, Screener, Diversification, Agents and Report name the same target (MKT-016)",
+        "ok": true,
+        "detail": "{\"overview\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"screener\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"diversification\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"agents\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"report\":{\"id\":\"MKT-016\",\"mode\":\"auto\"}}"
+      },
+      {
+        "id": "SYNC-balanced-candidate",
+        "label": "balanced: the target is the run's shortlist candidate in automatic mode",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "SYNC-balanced-projection",
+        "label": "balanced: Diversification and Report show identical 3-year projections",
+        "ok": true,
+        "detail": "692.84 / 692.84"
+      },
+      {
+        "id": "SYNC-balanced-rent",
+        "label": "balanced: year-0 rent uses the target's own yield",
+        "ok": true,
+        "detail": "36.789 vs 36.789"
+      },
+      {
+        "id": "SYNC-balanced-top3",
+        "label": "balanced: Diversification's raw-score table is the active preset's",
+        "ok": true,
+        "detail": "Ambattur, Chennai"
+      },
+      {
+        "id": "SYNC-balanced-report",
+        "label": "balanced: Report shows both tables and the candidate's row",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "SYNC-incomeFocused-target",
+        "label": "incomeFocused: Overview, Screener, Diversification, Agents and Report name the same target (MKT-024)",
+        "ok": true,
+        "detail": "{\"overview\":{\"id\":\"MKT-024\",\"mode\":\"auto\"},\"screener\":{\"id\":\"MKT-024\",\"mode\":\"auto\"},\"diversification\":{\"id\":\"MKT-024\",\"mode\":\"auto\"},\"agents\":{\"id\":\"MKT-024\",\"mode\":\"auto\"},\"report\":{\"id\":\"MKT-024\",\"mode\":\"auto\"}}"
+      },
+      {
+        "id": "SYNC-incomeFocused-candidate",
+        "label": "incomeFocused: the target is the run's shortlist candidate in automatic mode",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "SYNC-incomeFocused-projection",
+        "label": "incomeFocused: Diversification and Report show identical 3-year projections",
+        "ok": true,
+        "detail": "692.84 / 692.84"
+      },
+      {
+        "id": "SYNC-incomeFocused-rent",
+        "label": "incomeFocused: year-0 rent uses the target's own yield",
+        "ok": true,
+        "detail": "36.773 vs 36.773"
+      },
+      {
+        "id": "SYNC-incomeFocused-top3",
+        "label": "incomeFocused: Diversification's raw-score table is the active preset's",
+        "ok": true,
+        "detail": "GIFT City, Ahmedabad"
+      },
+      {
+        "id": "SYNC-incomeFocused-report",
+        "label": "incomeFocused: Report shows both tables and the candidate's row",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "SYNC-growthFocused-target",
+        "label": "growthFocused: Overview, Screener, Diversification, Agents and Report name the same target (MKT-012)",
+        "ok": true,
+        "detail": "{\"overview\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"screener\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"diversification\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"agents\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"report\":{\"id\":\"MKT-012\",\"mode\":\"auto\"}}"
+      },
+      {
+        "id": "SYNC-growthFocused-candidate",
+        "label": "growthFocused: the target is the run's shortlist candidate in automatic mode",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "SYNC-growthFocused-projection",
+        "label": "growthFocused: Diversification and Report show identical 3-year projections",
+        "ok": true,
+        "detail": "692.84 / 692.84"
+      },
+      {
+        "id": "SYNC-growthFocused-rent",
+        "label": "growthFocused: year-0 rent uses the target's own yield",
+        "ok": true,
+        "detail": "34.607 vs 34.607"
+      },
+      {
+        "id": "SYNC-growthFocused-top3",
+        "label": "growthFocused: Diversification's raw-score table is the active preset's",
+        "ok": true,
+        "detail": "Banjara Hills, Hyderabad"
+      },
+      {
+        "id": "SYNC-growthFocused-report",
+        "label": "growthFocused: Report shows both tables and the candidate's row",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "SYNC-diversFocused-target",
+        "label": "diversFocused: Overview, Screener, Diversification, Agents and Report name the same target (MKT-012)",
+        "ok": true,
+        "detail": "{\"overview\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"screener\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"diversification\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"agents\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"report\":{\"id\":\"MKT-012\",\"mode\":\"auto\"}}"
+      },
+      {
+        "id": "SYNC-diversFocused-candidate",
+        "label": "diversFocused: the target is the run's shortlist candidate in automatic mode",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "SYNC-diversFocused-projection",
+        "label": "diversFocused: Diversification and Report show identical 3-year projections",
+        "ok": true,
+        "detail": "692.84 / 692.84"
+      },
+      {
+        "id": "SYNC-diversFocused-rent",
+        "label": "diversFocused: year-0 rent uses the target's own yield",
+        "ok": true,
+        "detail": "34.607 vs 34.607"
+      },
+      {
+        "id": "SYNC-diversFocused-top3",
+        "label": "diversFocused: Diversification's raw-score table is the active preset's",
+        "ok": true,
+        "detail": "New Town (Rajarhat), Kolkata"
+      },
+      {
+        "id": "SYNC-diversFocused-report",
+        "label": "diversFocused: Report shows both tables and the candidate's row",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "MANUAL-1",
+        "label": "a manual selection is used by every page and labelled manual",
+        "ok": true,
+        "detail": "{\"overview\":{\"id\":\"MKT-036\",\"mode\":\"manual\"},\"screener\":{\"id\":\"MKT-036\",\"mode\":\"manual\"},\"diversification\":{\"id\":\"MKT-036\",\"mode\":\"manual\"},\"agents\":{\"id\":\"MKT-036\",\"mode\":\"manual\"},\"report\":{\"id\":\"MKT-036\",\"mode\":\"manual\"}}"
+      },
+      {
+        "id": "MANUAL-2",
+        "label": "the Overview labels it 'Manually selected target'",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "MANUAL-3",
+        "label": "after a preset change the manual target is kept and a warning names the new candidate",
+        "ok": true,
+        "detail": "Manually selected target: Ambattur, Chennai. The current shortlist candidate under these settings is Aerocity, Delhi NCR"
+      },
+      {
+        "id": "MANUAL-4",
+        "label": "Return to automatic restores the current candidate",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "CACHE-1",
+        "label": "static mode offers the matching pre-generated analysis",
+        "ok": true,
+        "detail": "Show Pre-generated Analysis"
+      },
+      {
+        "id": "CACHE-2",
+        "label": "four cards, each labelled as stored text for the Balanced preset",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "CACHE-3",
+        "label": "every card passes the deterministic consistency check",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "CACHE-4",
+        "label": "the button now reads 'Hide Pre-generated Analysis'",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "CACHE-5",
+        "label": "the Report includes the commentary for this run, with provenance",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "CACHE-6",
+        "label": "changing the investment amount rejects the stored analysis and says why",
+        "ok": true,
+        "detail": "No pre-generated commentary matches this configuration — it differs from the stored analysis by: investment amount. Commentary written for a"
+      },
+      {
+        "id": "CACHE-7",
+        "label": "the Report no longer prints commentary from the previous configuration",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "CACHE-8",
+        "label": "restoring ₹50 Cr makes the stored analysis available again",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "SYSCHECK",
+        "label": "System Check: every check passes",
+        "ok": true,
+        "detail": "10/10"
+      },
+      {
+        "id": "SYSCHECK-state",
+        "label": "running the System Check did not change the analysis",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "CSV-1",
+        "label": "valid fixture: all 6 rows accepted",
+        "ok": true,
+        "detail": "{\"ok\":6,\"rejected\":0}"
+      },
+      {
+        "id": "CSV-2",
+        "label": "invalid fixture: every row rejected with a stated reason",
+        "ok": true,
+        "detail": "{\"ok\":0,\"rejected\":6,\"warnings\":0}"
+      },
+      {
+        "id": "FOCUS-1",
+        "label": "focus moves into the Add Asset form",
+        "ok": true,
+        "detail": "f-assetId"
+      },
+      {
+        "id": "FOCUS-2",
+        "label": "Escape closes the form and returns focus to the opening button",
+        "ok": true,
+        "detail": "pf-start-blank"
+      },
+      {
+        "id": "EX-A1",
+        "label": "₹75 Cr typed into the amount: same candidate and score, city HHI 0.3293, asset-type HHI 0.6711",
+        "ok": true,
+        "detail": "0.3293 / 0.6711"
+      },
+      {
+        "id": "EX-A2",
+        "label": "a weight total of 110% is held as a draft: shown in red, not applied to the analysis",
+        "ok": true,
+        "detail": "Total: 110% — weights must sum to 100% before they are applied. Every page still shows the last valid analysis."
+      },
+      {
+        "id": "EX-A3",
+        "label": "35/25/20/10/10 applies as Custom: candidate raw rank 6 (64.64), GIFT City the raw leader (75.87) failing the screen",
+        "ok": true,
+        "detail": "GIFT City, Ahmedabad 75.87; candidate rank 6"
+      },
+      {
+        "id": "EX-A4",
+        "label": "Overview, Screener, Diversification, Agents and Report name the same target for Exercise A",
+        "ok": true,
+        "detail": "{\"overview\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"screener\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"diversification\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"agents\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"report\":{\"id\":\"MKT-016\",\"mode\":\"auto\"}}"
+      },
+      {
+        "id": "EX-INVALID",
+        "label": "a negative amount is not applied and the page says why",
+        "ok": true,
+        "detail": "“-5” is not a valid amount. Enter a positive number of ₹ crore (up to 1,00,000). The analysis keeps ₹75 Cr."
+      },
+      {
+        "id": "EX-B1",
+        "label": "the custom portfolio is active: ₹100.00 Cr, city and asset-type HHI 0.4600 before",
+        "ok": true,
+        "detail": "custom 100 0.4600"
+      },
+      {
+        "id": "EX-B2",
+        "label": "an amount the user typed (₹75 Cr) is kept when the portfolio changes; city HHI after 0.3339",
+        "ok": true,
+        "detail": "75 / 0.3339"
+      },
+      {
+        "id": "EX-B3",
+        "label": "with the default amount it is 10% of the custom portfolio (₹10 Cr): HHI after 0.3884 / 0.4876, year-0 rent ₹7.403 Cr",
+        "ok": true,
+        "detail": "10 0.3884"
+      },
+      {
+        "id": "EX-RESET",
+        "label": "Reset Demo after the exercises restores Balanced, ₹50 Cr, sample portfolio, automatic selection",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "CSV-3",
+        "label": "a file of 300 and 250 sq ft shops keeps 300 and 250 sq ft (no unit is inferred from small numbers)",
+        "ok": true,
+        "detail": "300,250"
+      },
+      {
+        "id": "CSV-4",
+        "label": "a generic area column without a unit is rejected with the reason; choosing square metres converts it once",
+        "ok": true,
+        "detail": "area unit not stated: add an areaUnit column (sqft or sqm), write the unit after the number, or choose the unit when importing | 1076"
+      },
+      {
+        "id": "CSV-5",
+        "label": "the import page offers the unit choice and states that units are never guessed",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "A11Y-tables",
+        "label": "every principal table has a caption or an accessible name",
+        "ok": true,
+        "detail": ""
+      }
+    ]
   },
-  "failed": [],
-  "overflow": {
-   "overview": "overflow 0 px",
-   "portfolio": "overflow 0 px",
-   "screener": "overflow 0 px",
-   "diversification": "overflow 0 px",
-   "statsdash": "overflow 0 px",
-   "agents": "overflow 0 px",
-   "datacentre": "overflow 0 px",
-   "report": "overflow 0 px"
+  "mobile": {
+    "width": 390,
+    "summary": "84 / 84 acceptance checks passed (mobile, 390 px)",
+    "passed": 84,
+    "total": 84,
+    "results": [
+      {
+        "id": "R-overview",
+        "label": "route #overview renders content",
+        "ok": true,
+        "detail": "6836 chars"
+      },
+      {
+        "id": "A11Y-hidden-overview",
+        "label": "only #overview is exposed; other pages are hidden and inert",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "MOBILE-overview",
+        "label": "no horizontal page overflow on #overview at 390 px",
+        "ok": true,
+        "detail": "overflow 0 px"
+      },
+      {
+        "id": "R-portfolio",
+        "label": "route #portfolio renders content",
+        "ok": true,
+        "detail": "2303 chars"
+      },
+      {
+        "id": "A11Y-hidden-portfolio",
+        "label": "only #portfolio is exposed; other pages are hidden and inert",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "MOBILE-portfolio",
+        "label": "no horizontal page overflow on #portfolio at 390 px",
+        "ok": true,
+        "detail": "overflow 0 px"
+      },
+      {
+        "id": "R-screener",
+        "label": "route #screener renders content",
+        "ok": true,
+        "detail": "4391 chars"
+      },
+      {
+        "id": "A11Y-hidden-screener",
+        "label": "only #screener is exposed; other pages are hidden and inert",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "MOBILE-screener",
+        "label": "no horizontal page overflow on #screener at 390 px",
+        "ok": true,
+        "detail": "overflow 0 px"
+      },
+      {
+        "id": "R-diversification",
+        "label": "route #diversification renders content",
+        "ok": true,
+        "detail": "6308 chars"
+      },
+      {
+        "id": "A11Y-hidden-diversification",
+        "label": "only #diversification is exposed; other pages are hidden and inert",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "MOBILE-diversification",
+        "label": "no horizontal page overflow on #diversification at 390 px",
+        "ok": true,
+        "detail": "overflow 0 px"
+      },
+      {
+        "id": "R-statsdash",
+        "label": "route #statsdash renders content",
+        "ok": true,
+        "detail": "10547 chars"
+      },
+      {
+        "id": "A11Y-hidden-statsdash",
+        "label": "only #statsdash is exposed; other pages are hidden and inert",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "MOBILE-statsdash",
+        "label": "no horizontal page overflow on #statsdash at 390 px",
+        "ok": true,
+        "detail": "overflow 0 px"
+      },
+      {
+        "id": "R-agents",
+        "label": "route #agents renders content",
+        "ok": true,
+        "detail": "3029 chars"
+      },
+      {
+        "id": "A11Y-hidden-agents",
+        "label": "only #agents is exposed; other pages are hidden and inert",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "MOBILE-agents",
+        "label": "no horizontal page overflow on #agents at 390 px",
+        "ok": true,
+        "detail": "overflow 0 px"
+      },
+      {
+        "id": "R-datacentre",
+        "label": "route #datacentre renders content",
+        "ok": true,
+        "detail": "7422 chars"
+      },
+      {
+        "id": "A11Y-hidden-datacentre",
+        "label": "only #datacentre is exposed; other pages are hidden and inert",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "MOBILE-datacentre",
+        "label": "no horizontal page overflow on #datacentre at 390 px",
+        "ok": true,
+        "detail": "overflow 0 px"
+      },
+      {
+        "id": "R-report",
+        "label": "route #report renders content",
+        "ok": true,
+        "detail": "8332 chars"
+      },
+      {
+        "id": "A11Y-hidden-report",
+        "label": "only #report is exposed; other pages are hidden and inert",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "MOBILE-report",
+        "label": "no horizontal page overflow on #report at 390 px",
+        "ok": true,
+        "detail": "overflow 0 px"
+      },
+      {
+        "id": "RESET-1",
+        "label": "Reset Demo opens an explicit confirmation panel with Reset and Cancel",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "RESET-2",
+        "label": "Cancel closes the panel, changes nothing and returns focus",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "RESET-3",
+        "label": "after reset: Balanced, ₹50.00 Cr, automatic, sample portfolio, no filters",
+        "ok": true,
+        "detail": "{\"schemaVersion\":2,\"preset\":\"balanced\",\"weights\":null,\"investmentCr\":null,\"governanceOverride\":false,\"selectionMode\":\"auto\",\"manualTargetId\":null,\"filters\":null}"
+      },
+      {
+        "id": "RESET-4",
+        "label": "the Overview immediately shows a valid candidate and ₹50.00 Cr",
+        "ok": true,
+        "detail": "#overview"
+      },
+      {
+        "id": "RESET-5",
+        "label": "focus lands on the current analysis heading",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "SYNC-balanced-target",
+        "label": "balanced: Overview, Screener, Diversification, Agents and Report name the same target (MKT-016)",
+        "ok": true,
+        "detail": "{\"overview\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"screener\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"diversification\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"agents\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"report\":{\"id\":\"MKT-016\",\"mode\":\"auto\"}}"
+      },
+      {
+        "id": "SYNC-balanced-candidate",
+        "label": "balanced: the target is the run's shortlist candidate in automatic mode",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "SYNC-balanced-projection",
+        "label": "balanced: Diversification and Report show identical 3-year projections",
+        "ok": true,
+        "detail": "692.84 / 692.84"
+      },
+      {
+        "id": "SYNC-balanced-rent",
+        "label": "balanced: year-0 rent uses the target's own yield",
+        "ok": true,
+        "detail": "36.789 vs 36.789"
+      },
+      {
+        "id": "SYNC-balanced-top3",
+        "label": "balanced: Diversification's raw-score table is the active preset's",
+        "ok": true,
+        "detail": "Ambattur, Chennai"
+      },
+      {
+        "id": "SYNC-balanced-report",
+        "label": "balanced: Report shows both tables and the candidate's row",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "SYNC-incomeFocused-target",
+        "label": "incomeFocused: Overview, Screener, Diversification, Agents and Report name the same target (MKT-024)",
+        "ok": true,
+        "detail": "{\"overview\":{\"id\":\"MKT-024\",\"mode\":\"auto\"},\"screener\":{\"id\":\"MKT-024\",\"mode\":\"auto\"},\"diversification\":{\"id\":\"MKT-024\",\"mode\":\"auto\"},\"agents\":{\"id\":\"MKT-024\",\"mode\":\"auto\"},\"report\":{\"id\":\"MKT-024\",\"mode\":\"auto\"}}"
+      },
+      {
+        "id": "SYNC-incomeFocused-candidate",
+        "label": "incomeFocused: the target is the run's shortlist candidate in automatic mode",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "SYNC-incomeFocused-projection",
+        "label": "incomeFocused: Diversification and Report show identical 3-year projections",
+        "ok": true,
+        "detail": "692.84 / 692.84"
+      },
+      {
+        "id": "SYNC-incomeFocused-rent",
+        "label": "incomeFocused: year-0 rent uses the target's own yield",
+        "ok": true,
+        "detail": "36.773 vs 36.773"
+      },
+      {
+        "id": "SYNC-incomeFocused-top3",
+        "label": "incomeFocused: Diversification's raw-score table is the active preset's",
+        "ok": true,
+        "detail": "GIFT City, Ahmedabad"
+      },
+      {
+        "id": "SYNC-incomeFocused-report",
+        "label": "incomeFocused: Report shows both tables and the candidate's row",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "SYNC-growthFocused-target",
+        "label": "growthFocused: Overview, Screener, Diversification, Agents and Report name the same target (MKT-012)",
+        "ok": true,
+        "detail": "{\"overview\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"screener\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"diversification\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"agents\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"report\":{\"id\":\"MKT-012\",\"mode\":\"auto\"}}"
+      },
+      {
+        "id": "SYNC-growthFocused-candidate",
+        "label": "growthFocused: the target is the run's shortlist candidate in automatic mode",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "SYNC-growthFocused-projection",
+        "label": "growthFocused: Diversification and Report show identical 3-year projections",
+        "ok": true,
+        "detail": "692.84 / 692.84"
+      },
+      {
+        "id": "SYNC-growthFocused-rent",
+        "label": "growthFocused: year-0 rent uses the target's own yield",
+        "ok": true,
+        "detail": "34.607 vs 34.607"
+      },
+      {
+        "id": "SYNC-growthFocused-top3",
+        "label": "growthFocused: Diversification's raw-score table is the active preset's",
+        "ok": true,
+        "detail": "Banjara Hills, Hyderabad"
+      },
+      {
+        "id": "SYNC-growthFocused-report",
+        "label": "growthFocused: Report shows both tables and the candidate's row",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "SYNC-diversFocused-target",
+        "label": "diversFocused: Overview, Screener, Diversification, Agents and Report name the same target (MKT-012)",
+        "ok": true,
+        "detail": "{\"overview\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"screener\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"diversification\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"agents\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"report\":{\"id\":\"MKT-012\",\"mode\":\"auto\"}}"
+      },
+      {
+        "id": "SYNC-diversFocused-candidate",
+        "label": "diversFocused: the target is the run's shortlist candidate in automatic mode",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "SYNC-diversFocused-projection",
+        "label": "diversFocused: Diversification and Report show identical 3-year projections",
+        "ok": true,
+        "detail": "692.84 / 692.84"
+      },
+      {
+        "id": "SYNC-diversFocused-rent",
+        "label": "diversFocused: year-0 rent uses the target's own yield",
+        "ok": true,
+        "detail": "34.607 vs 34.607"
+      },
+      {
+        "id": "SYNC-diversFocused-top3",
+        "label": "diversFocused: Diversification's raw-score table is the active preset's",
+        "ok": true,
+        "detail": "New Town (Rajarhat), Kolkata"
+      },
+      {
+        "id": "SYNC-diversFocused-report",
+        "label": "diversFocused: Report shows both tables and the candidate's row",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "MANUAL-1",
+        "label": "a manual selection is used by every page and labelled manual",
+        "ok": true,
+        "detail": "{\"overview\":{\"id\":\"MKT-036\",\"mode\":\"manual\"},\"screener\":{\"id\":\"MKT-036\",\"mode\":\"manual\"},\"diversification\":{\"id\":\"MKT-036\",\"mode\":\"manual\"},\"agents\":{\"id\":\"MKT-036\",\"mode\":\"manual\"},\"report\":{\"id\":\"MKT-036\",\"mode\":\"manual\"}}"
+      },
+      {
+        "id": "MANUAL-2",
+        "label": "the Overview labels it 'Manually selected target'",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "MANUAL-3",
+        "label": "after a preset change the manual target is kept and a warning names the new candidate",
+        "ok": true,
+        "detail": "Manually selected target: Ambattur, Chennai. The current shortlist candidate under these settings is Aerocity, Delhi NCR"
+      },
+      {
+        "id": "MANUAL-4",
+        "label": "Return to automatic restores the current candidate",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "CACHE-1",
+        "label": "static mode offers the matching pre-generated analysis",
+        "ok": true,
+        "detail": "Show Pre-generated Analysis"
+      },
+      {
+        "id": "CACHE-2",
+        "label": "four cards, each labelled as stored text for the Balanced preset",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "CACHE-3",
+        "label": "every card passes the deterministic consistency check",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "CACHE-4",
+        "label": "the button now reads 'Hide Pre-generated Analysis'",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "CACHE-5",
+        "label": "the Report includes the commentary for this run, with provenance",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "CACHE-6",
+        "label": "changing the investment amount rejects the stored analysis and says why",
+        "ok": true,
+        "detail": "No pre-generated commentary matches this configuration — it differs from the stored analysis by: investment amount. Commentary written for a"
+      },
+      {
+        "id": "CACHE-7",
+        "label": "the Report no longer prints commentary from the previous configuration",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "CACHE-8",
+        "label": "restoring ₹50 Cr makes the stored analysis available again",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "SYSCHECK",
+        "label": "System Check: every check passes",
+        "ok": true,
+        "detail": "10/10"
+      },
+      {
+        "id": "SYSCHECK-state",
+        "label": "running the System Check did not change the analysis",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "CSV-1",
+        "label": "valid fixture: all 6 rows accepted",
+        "ok": true,
+        "detail": "{\"ok\":6,\"rejected\":0}"
+      },
+      {
+        "id": "CSV-2",
+        "label": "invalid fixture: every row rejected with a stated reason",
+        "ok": true,
+        "detail": "{\"ok\":0,\"rejected\":6,\"warnings\":0}"
+      },
+      {
+        "id": "FOCUS-1",
+        "label": "focus moves into the Add Asset form",
+        "ok": true,
+        "detail": "f-assetId"
+      },
+      {
+        "id": "FOCUS-2",
+        "label": "Escape closes the form and returns focus to the opening button",
+        "ok": true,
+        "detail": "pf-start-blank"
+      },
+      {
+        "id": "EX-A1",
+        "label": "₹75 Cr typed into the amount: same candidate and score, city HHI 0.3293, asset-type HHI 0.6711",
+        "ok": true,
+        "detail": "0.3293 / 0.6711"
+      },
+      {
+        "id": "EX-A2",
+        "label": "a weight total of 110% is held as a draft: shown in red, not applied to the analysis",
+        "ok": true,
+        "detail": "Total: 110% — weights must sum to 100% before they are applied. Every page still shows the last valid analysis."
+      },
+      {
+        "id": "EX-A3",
+        "label": "35/25/20/10/10 applies as Custom: candidate raw rank 6 (64.64), GIFT City the raw leader (75.87) failing the screen",
+        "ok": true,
+        "detail": "GIFT City, Ahmedabad 75.87; candidate rank 6"
+      },
+      {
+        "id": "EX-A4",
+        "label": "Overview, Screener, Diversification, Agents and Report name the same target for Exercise A",
+        "ok": true,
+        "detail": "{\"overview\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"screener\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"diversification\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"agents\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"report\":{\"id\":\"MKT-016\",\"mode\":\"auto\"}}"
+      },
+      {
+        "id": "EX-INVALID",
+        "label": "a negative amount is not applied and the page says why",
+        "ok": true,
+        "detail": "“-5” is not a valid amount. Enter a positive number of ₹ crore (up to 1,00,000). The analysis keeps ₹75 Cr."
+      },
+      {
+        "id": "EX-B1",
+        "label": "the custom portfolio is active: ₹100.00 Cr, city and asset-type HHI 0.4600 before",
+        "ok": true,
+        "detail": "custom 100 0.4600"
+      },
+      {
+        "id": "EX-B2",
+        "label": "an amount the user typed (₹75 Cr) is kept when the portfolio changes; city HHI after 0.3339",
+        "ok": true,
+        "detail": "75 / 0.3339"
+      },
+      {
+        "id": "EX-B3",
+        "label": "with the default amount it is 10% of the custom portfolio (₹10 Cr): HHI after 0.3884 / 0.4876, year-0 rent ₹7.403 Cr",
+        "ok": true,
+        "detail": "10 0.3884"
+      },
+      {
+        "id": "EX-RESET",
+        "label": "Reset Demo after the exercises restores Balanced, ₹50 Cr, sample portfolio, automatic selection",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "CSV-3",
+        "label": "a file of 300 and 250 sq ft shops keeps 300 and 250 sq ft (no unit is inferred from small numbers)",
+        "ok": true,
+        "detail": "300,250"
+      },
+      {
+        "id": "CSV-4",
+        "label": "a generic area column without a unit is rejected with the reason; choosing square metres converts it once",
+        "ok": true,
+        "detail": "area unit not stated: add an areaUnit column (sqft or sqm), write the unit after the number, or choose the unit when importing | 1076"
+      },
+      {
+        "id": "CSV-5",
+        "label": "the import page offers the unit choice and states that units are never guessed",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "id": "A11Y-tables",
+        "label": "every principal table has a caption or an accessible name",
+        "ok": true,
+        "detail": ""
+      }
+    ]
   },
-  "note": "The same 64 checks as desktop plus eight horizontal-overflow checks, one per route."
- },
- "liveMode": {
-  "testedThrough": "http://localhost:3001",
-  "configuration": "Diversification Focused, ₹75 Cr (no stored commentary)",
-  "model": "gemini-3.1-flash-lite",
-  "agents": 4,
-  "seconds": 12,
-  "consistencyChecksPassed": 4,
-  "reportProvenance": "Live Gemini call made during this session for this exact run",
-  "consoleMessages": 0,
-  "recorded": "2026-10-04, before the visual redesign; not re-run since (it needs the proxy and an API key)"
- }
+  "liveMode": {
+    "what": "Fresh live Gemini run on a configuration with no stored commentary (runbook Exercise A2)",
+    "configuration": {
+      "preset": "custom",
+      "weights": "yield 35 / growth 25 / diversification 20 / demand 10 / low risk 10",
+      "investmentCr": 75,
+      "portfolio": "sample",
+      "selection": "automatic"
+    },
+    "scenarioKey": "f49bb7b8",
+    "startedUtc": "2026-10-05T13:22:32.095Z",
+    "durationMs": 24318,
+    "model": "gemini-3.1-flash-lite",
+    "agents": {
+      "dataStatistical": "live; first reply failed the consistency check, sent back once with the problems, revision passed",
+      "marketScreening": "live; passed",
+      "portfolioRisk": "live; passed",
+      "orchestrator": "live; passed"
+    },
+    "deterministicGate": "All 8 deterministic checks passed",
+    "keyExposure": "none: the key is read only by the proxy; it is not in this file, the page, the screenshots or the proxy log"
+  },
+  "agentFailureHandling": "tests/evidence/agent-failure-handling-20261005.json",
+  "staleCommentary": "tests/evidence/stale-commentary-20261005.json",
+  "previousRun": {
+    "note": "Browser acceptance results for the final submission (5 October 2026), after the visual redesign, the Overview customer section and the expanded limitations list. Produced by tests/browserAcceptance.js run inside the application (static mode, repository root served on localhost) in the built-in browser; tests/browserSmokeTest.js regenerates this file with Playwright.",
+    "runAt": "2026-10-05",
+    "mode": "static (no proxy)",
+    "consoleMessages": {
+      "desktop": 0,
+      "mobile": 0
+    },
+    "desktop": {
+      "summary": "64 / 64 acceptance checks passed (1440 px)",
+      "passed": 64,
+      "total": 64,
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "results": [
+        {
+          "id": "R-overview",
+          "label": "route #overview renders content",
+          "ok": true,
+          "detail": "6681 chars"
+        },
+        {
+          "id": "A11Y-hidden-overview",
+          "label": "only #overview is exposed; other pages are hidden and inert",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "R-portfolio",
+          "label": "route #portfolio renders content",
+          "ok": true,
+          "detail": "2301 chars"
+        },
+        {
+          "id": "A11Y-hidden-portfolio",
+          "label": "only #portfolio is exposed; other pages are hidden and inert",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "R-screener",
+          "label": "route #screener renders content",
+          "ok": true,
+          "detail": "4300 chars"
+        },
+        {
+          "id": "A11Y-hidden-screener",
+          "label": "only #screener is exposed; other pages are hidden and inert",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "R-diversification",
+          "label": "route #diversification renders content",
+          "ok": true,
+          "detail": "6331 chars"
+        },
+        {
+          "id": "A11Y-hidden-diversification",
+          "label": "only #diversification is exposed; other pages are hidden and inert",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "R-statsdash",
+          "label": "route #statsdash renders content",
+          "ok": true,
+          "detail": "10568 chars"
+        },
+        {
+          "id": "A11Y-hidden-statsdash",
+          "label": "only #statsdash is exposed; other pages are hidden and inert",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "R-agents",
+          "label": "route #agents renders content",
+          "ok": true,
+          "detail": "3033 chars"
+        },
+        {
+          "id": "A11Y-hidden-agents",
+          "label": "only #agents is exposed; other pages are hidden and inert",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "R-datacentre",
+          "label": "route #datacentre renders content",
+          "ok": true,
+          "detail": "6937 chars"
+        },
+        {
+          "id": "A11Y-hidden-datacentre",
+          "label": "only #datacentre is exposed; other pages are hidden and inert",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "R-report",
+          "label": "route #report renders content",
+          "ok": true,
+          "detail": "8176 chars"
+        },
+        {
+          "id": "A11Y-hidden-report",
+          "label": "only #report is exposed; other pages are hidden and inert",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "RESET-1",
+          "label": "Reset Demo opens an explicit confirmation panel with Reset and Cancel",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "RESET-2",
+          "label": "Cancel closes the panel, changes nothing and returns focus",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "RESET-3",
+          "label": "after reset: Balanced, ₹50.00 Cr, automatic, sample portfolio, no filters",
+          "ok": true,
+          "detail": "{\"schemaVersion\":2,\"preset\":\"balanced\",\"weights\":null,\"investmentCr\":null,\"governanceOverride\":false,\"selectionMode\":\"auto\",\"manualTargetId\":null,\"filters\":null}"
+        },
+        {
+          "id": "RESET-4",
+          "label": "the Overview immediately shows a valid candidate and ₹50.00 Cr",
+          "ok": true,
+          "detail": "#overview"
+        },
+        {
+          "id": "RESET-5",
+          "label": "focus lands on the current analysis heading",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "SYNC-balanced-target",
+          "label": "balanced: Overview, Screener, Diversification, Agents and Report name the same target (MKT-016)",
+          "ok": true,
+          "detail": "{\"overview\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"screener\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"diversification\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"agents\":{\"id\":\"MKT-016\",\"mode\":\"auto\"},\"report\":{\"id\":\"MKT-016\",\"mode\":\"auto\"}}"
+        },
+        {
+          "id": "SYNC-balanced-candidate",
+          "label": "balanced: the target is the run's shortlist candidate in automatic mode",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "SYNC-balanced-projection",
+          "label": "balanced: Diversification and Report show identical 3-year projections",
+          "ok": true,
+          "detail": "692.84 / 692.84"
+        },
+        {
+          "id": "SYNC-balanced-rent",
+          "label": "balanced: year-0 rent uses the target's own yield",
+          "ok": true,
+          "detail": "36.789 vs 36.789"
+        },
+        {
+          "id": "SYNC-balanced-top3",
+          "label": "balanced: Diversification's raw-score table is the active preset's",
+          "ok": true,
+          "detail": "Ambattur, Chennai"
+        },
+        {
+          "id": "SYNC-balanced-report",
+          "label": "balanced: Report shows both tables and the candidate's row",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "SYNC-incomeFocused-target",
+          "label": "incomeFocused: Overview, Screener, Diversification, Agents and Report name the same target (MKT-024)",
+          "ok": true,
+          "detail": "{\"overview\":{\"id\":\"MKT-024\",\"mode\":\"auto\"},\"screener\":{\"id\":\"MKT-024\",\"mode\":\"auto\"},\"diversification\":{\"id\":\"MKT-024\",\"mode\":\"auto\"},\"agents\":{\"id\":\"MKT-024\",\"mode\":\"auto\"},\"report\":{\"id\":\"MKT-024\",\"mode\":\"auto\"}}"
+        },
+        {
+          "id": "SYNC-incomeFocused-candidate",
+          "label": "incomeFocused: the target is the run's shortlist candidate in automatic mode",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "SYNC-incomeFocused-projection",
+          "label": "incomeFocused: Diversification and Report show identical 3-year projections",
+          "ok": true,
+          "detail": "692.84 / 692.84"
+        },
+        {
+          "id": "SYNC-incomeFocused-rent",
+          "label": "incomeFocused: year-0 rent uses the target's own yield",
+          "ok": true,
+          "detail": "36.773 vs 36.773"
+        },
+        {
+          "id": "SYNC-incomeFocused-top3",
+          "label": "incomeFocused: Diversification's raw-score table is the active preset's",
+          "ok": true,
+          "detail": "GIFT City, Ahmedabad"
+        },
+        {
+          "id": "SYNC-incomeFocused-report",
+          "label": "incomeFocused: Report shows both tables and the candidate's row",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "SYNC-growthFocused-target",
+          "label": "growthFocused: Overview, Screener, Diversification, Agents and Report name the same target (MKT-012)",
+          "ok": true,
+          "detail": "{\"overview\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"screener\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"diversification\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"agents\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"report\":{\"id\":\"MKT-012\",\"mode\":\"auto\"}}"
+        },
+        {
+          "id": "SYNC-growthFocused-candidate",
+          "label": "growthFocused: the target is the run's shortlist candidate in automatic mode",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "SYNC-growthFocused-projection",
+          "label": "growthFocused: Diversification and Report show identical 3-year projections",
+          "ok": true,
+          "detail": "692.84 / 692.84"
+        },
+        {
+          "id": "SYNC-growthFocused-rent",
+          "label": "growthFocused: year-0 rent uses the target's own yield",
+          "ok": true,
+          "detail": "34.607 vs 34.607"
+        },
+        {
+          "id": "SYNC-growthFocused-top3",
+          "label": "growthFocused: Diversification's raw-score table is the active preset's",
+          "ok": true,
+          "detail": "Banjara Hills, Hyderabad"
+        },
+        {
+          "id": "SYNC-growthFocused-report",
+          "label": "growthFocused: Report shows both tables and the candidate's row",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "SYNC-diversFocused-target",
+          "label": "diversFocused: Overview, Screener, Diversification, Agents and Report name the same target (MKT-012)",
+          "ok": true,
+          "detail": "{\"overview\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"screener\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"diversification\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"agents\":{\"id\":\"MKT-012\",\"mode\":\"auto\"},\"report\":{\"id\":\"MKT-012\",\"mode\":\"auto\"}}"
+        },
+        {
+          "id": "SYNC-diversFocused-candidate",
+          "label": "diversFocused: the target is the run's shortlist candidate in automatic mode",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "SYNC-diversFocused-projection",
+          "label": "diversFocused: Diversification and Report show identical 3-year projections",
+          "ok": true,
+          "detail": "692.84 / 692.84"
+        },
+        {
+          "id": "SYNC-diversFocused-rent",
+          "label": "diversFocused: year-0 rent uses the target's own yield",
+          "ok": true,
+          "detail": "34.607 vs 34.607"
+        },
+        {
+          "id": "SYNC-diversFocused-top3",
+          "label": "diversFocused: Diversification's raw-score table is the active preset's",
+          "ok": true,
+          "detail": "New Town (Rajarhat), Kolkata"
+        },
+        {
+          "id": "SYNC-diversFocused-report",
+          "label": "diversFocused: Report shows both tables and the candidate's row",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "MANUAL-1",
+          "label": "a manual selection is used by every page and labelled manual",
+          "ok": true,
+          "detail": "{\"overview\":{\"id\":\"MKT-036\",\"mode\":\"manual\"},\"screener\":{\"id\":\"MKT-036\",\"mode\":\"manual\"},\"diversification\":{\"id\":\"MKT-036\",\"mode\":\"manual\"},\"agents\":{\"id\":\"MKT-036\",\"mode\":\"manual\"},\"report\":{\"id\":\"MKT-036\",\"mode\":\"manual\"}}"
+        },
+        {
+          "id": "MANUAL-2",
+          "label": "the Overview labels it 'Manually selected target'",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "MANUAL-3",
+          "label": "after a preset change the manual target is kept and a warning names the new candidate",
+          "ok": true,
+          "detail": "Manually selected target: Ambattur, Chennai. The current shortlist candidate under these settings is Aerocity, Delhi NCR"
+        },
+        {
+          "id": "MANUAL-4",
+          "label": "Return to automatic restores the current candidate",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "CACHE-1",
+          "label": "static mode offers the matching pre-generated analysis",
+          "ok": true,
+          "detail": "Show Pre-generated Analysis"
+        },
+        {
+          "id": "CACHE-2",
+          "label": "four cards, each labelled as stored text for the Balanced preset",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "CACHE-3",
+          "label": "every card passes the deterministic consistency check",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "CACHE-4",
+          "label": "the button now reads 'Hide Pre-generated Analysis'",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "CACHE-5",
+          "label": "the Report includes the commentary for this run, with provenance",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "CACHE-6",
+          "label": "changing the investment amount rejects the stored analysis and says why",
+          "ok": true,
+          "detail": "No pre-generated commentary matches this configuration — it differs from the stored analysis by: investment amount. Commentary written for a"
+        },
+        {
+          "id": "CACHE-7",
+          "label": "the Report no longer prints commentary from the previous configuration",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "CACHE-8",
+          "label": "restoring ₹50 Cr makes the stored analysis available again",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "SYSCHECK",
+          "label": "System Check: every check passes",
+          "ok": true,
+          "detail": "10/10"
+        },
+        {
+          "id": "SYSCHECK-state",
+          "label": "running the System Check did not change the analysis",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "id": "CSV-1",
+          "label": "valid fixture: all 6 rows accepted",
+          "ok": true,
+          "detail": "{\"ok\":6,\"rejected\":0}"
+        },
+        {
+          "id": "CSV-2",
+          "label": "invalid fixture: every row rejected with a stated reason",
+          "ok": true,
+          "detail": "{\"ok\":0,\"rejected\":6,\"warnings\":0}"
+        },
+        {
+          "id": "FOCUS-1",
+          "label": "focus moves into the Add Asset form",
+          "ok": true,
+          "detail": "f-assetId"
+        },
+        {
+          "id": "FOCUS-2",
+          "label": "Escape closes the form and returns focus to the opening button",
+          "ok": true,
+          "detail": "pf-start-blank"
+        },
+        {
+          "id": "A11Y-tables",
+          "label": "every principal table has a caption or an accessible name",
+          "ok": true,
+          "detail": ""
+        }
+      ]
+    },
+    "mobile": {
+      "summary": "72 / 72 acceptance checks passed (mobile, 390 px)",
+      "passed": 72,
+      "total": 72,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "failed": [],
+      "overflow": {
+        "overview": "overflow 0 px",
+        "portfolio": "overflow 0 px",
+        "screener": "overflow 0 px",
+        "diversification": "overflow 0 px",
+        "statsdash": "overflow 0 px",
+        "agents": "overflow 0 px",
+        "datacentre": "overflow 0 px",
+        "report": "overflow 0 px"
+      },
+      "note": "The same 64 checks as desktop plus eight horizontal-overflow checks, one per route."
+    },
+    "liveMode": {
+      "recorded": "2026-10-05, after the visual redesign",
+      "testedThrough": "http://localhost:3001 (node server/server.js)",
+      "configuration": "Diversification Focused, ₹75 Cr, sample portfolio, automatic selection (no stored commentary; scenario key 883fda7e)",
+      "model": "gemini-3.1-flash-lite",
+      "agents": 4,
+      "seconds": 13.3,
+      "consistencyChecksPassed": 4,
+      "activityTrail": "all five steps Completed, including the deterministic validation step",
+      "deterministicChecks": "All 8 deterministic checks passed.",
+      "reportProvenance": "Live Gemini call made during this session for this exact run",
+      "reportFigures": "Banjara Hills, Hyderabad; composite score 72.82; city HHI 0.4130 → 0.3429; asset-type HHI 0.6316 → 0.5132",
+      "consoleMessages": 0,
+      "keyExposure": "No key-shaped string in the page DOM, the loaded scripts, /api/health, browser storage or the proxy log",
+      "evidence": [
+        "docs/screenshots/live-agent-context.jpg",
+        "docs/screenshots/live-agent-output.jpg",
+        "docs/screenshots/live-report-commentary.jpg"
+      ],
+      "previousRun": {
+        "testedThrough": "http://localhost:3001",
+        "configuration": "Diversification Focused, ₹75 Cr (no stored commentary)",
+        "model": "gemini-3.1-flash-lite",
+        "agents": 4,
+        "seconds": 12,
+        "consistencyChecksPassed": 4,
+        "reportProvenance": "Live Gemini call made during this session for this exact run",
+        "consoleMessages": 0,
+        "recorded": "2026-10-04, before the visual redesign; not re-run since (it needs the proxy and an API key)"
+      }
+    }
+  },
+  "publicSiteMode": {
+    "what": "The same page loaded with ?publicSite=1 (the behaviour the GitHub Pages host gets)",
+    "navigation": "Overview, Portfolio, Market Screener, Diversification, Data Centre, Statistics, Decision Report — no Agent Output",
+    "agentsHash": "#agents falls back to the Overview",
+    "overview": "Agent Output listed as 'local copy only', not linked",
+    "report": "'No agent commentary on the public site.' with the reason",
+    "systemCheck": "10 / 10",
+    "overflowAt390px": "none on Portfolio, Market Screener, Diversification or Decision Report",
+    "consoleErrors": 0
+  }
 }

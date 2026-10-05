@@ -1448,14 +1448,17 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
       typeof pts[0].grossYield === 'number');
   }());
 
-  /* ── T62: DataCleaner — area unit detection ──────────────────── */
+  /* ── T62: DataCleaner — area unit is never inferred from the numbers ──
+   * (Superseded behaviour: a file whose median area was below 500 used to be
+   * read as square metres, which multiplied genuine small sq ft areas by 10.76.) */
   (function () {
-    var sqmRows = [100, 120, 90, 110, 95].map(function (a) { return { _rawArea: a }; });
-    var sqftRows = [1000, 1200, 900, 1100, 950].map(function (a) { return { _rawArea: a }; });
-    assert("T62a", "detectAreaUnit: < 500 median → sqm",
-      DataCleaner._detectAreaUnit(sqmRows) === 'sqm');
-    assert("T62b", "detectAreaUnit: > 500 median → sqft",
-      DataCleaner._detectAreaUnit(sqftRows) === 'sqft');
+    assert("T62a", "no heuristic unit detector remains in the cleaner",
+      typeof DataCleaner._detectAreaUnit === 'undefined' &&
+      !/median\s*<\s*500/.test(require('fs').readFileSync(require('path').join(__dirname, '../public/js/dataCleaner.js'), 'utf8')));
+    var small = [100, 120, 90, 110, 95].map(function (a) { return { _rawArea: a }; });
+    var res = DataCleaner._resolveArea({ areaSqFt: '95' });
+    assert("T62b", "an areaSqFt value of 95 is read as 95 sq ft",
+      res.areaSqFt === 95 && res.sourceUnit === 'sqft', JSON.stringify(res) + ' (' + small.length + ' rows)');
   }());
 
   /* ── T63: markets.json structure ────────────────────────────── */
@@ -1991,14 +1994,15 @@ console.log("\n── T36-T45 Backend / agent correctness (Node-testable aspects
       'T85-F2b', 'Fixture 2 — pricePerSqFt derived from crore notation');
   }());
 
-  // ── Fixture 3: sq-m area conversion ────────────────────────────────────────
+  // ── Fixture 3: a square-metre value in the square-feet column ──────────────
+  // The column says square feet and the value says square metres: a conflict,
+  // rejected with the reason, rather than silently converted or silently trusted.
   (function () {
     var rows = [makeRow({ areaSqFt: '100 sqm' })];
     var r = DataCleaner.cleanRecords(rows);
-    // Should be converted to ~1076.39 sq ft and accepted
-    assert(r.records[0].validationStatus !== 'rejected'
-        || r.records[0].exclusionReason.indexOf('area') === -1,
-      'T85-F3a', 'Fixture 3 — sq-m area either converted or rejection noted in exclusionReason');
+    assert(r.records[0].validationStatus === 'rejected'
+        && /area unit conflict/.test(r.records[0].exclusionReason),
+      'T85-F3a', 'Fixture 3 — "100 sqm" in areaSqFt is rejected as a unit conflict, with the reason');
     assert(r.records.length === 1,
       'T85-F3b', 'Fixture 3 — record still present (not silently deleted)');
   }());
@@ -3426,23 +3430,25 @@ console.log("\n── T-159 Source verification honesty ────────
     "header = " + header.join(","));
 
   /*
-   * The constraint that matters. A source may be marked Verified only when a
-   * figure used by this project was traced to the cited document — not because
-   * its URL opens. No source currently meets that bar, so no row may claim it.
-   *
-   * This test will fail the day someone upgrades a row without doing the work,
-   * which is exactly when it should fail. If a figure IS ever genuinely traced,
-   * this assertion must be updated together with the report that records the
-   * tracing, so the claim and its evidence move at the same time.
+   * The constraint that matters. A source may be marked Verified or Partially
+   * supported only when a figure used by this project was traced to the cited
+   * document — not because its URL opens. (Superseded form of this test: it
+   * required zero verified sources for ever, which would have failed a genuine
+   * tracing as readily as a false claim.) Now: any such claim must name a row
+   * of data-pipeline/benchmark_checks.csv whose document is that source.
    */
   var rows = text.split(/\r?\n/).slice(1).filter(function (l) { return l.trim(); });
-  var claimingVerified = rows.filter(function (line) {
-    var status = (line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)[6] || "").replace(/"/g, "").trim();
-    return /^verified$/i.test(status);
+  var benchText = fs.existsSync(path.join(repo, "data-pipeline", "benchmark_checks.csv"))
+    ? fs.readFileSync(path.join(repo, "data-pipeline", "benchmark_checks.csv"), "utf8") : "";
+  var unsupported = rows.filter(function (line) {
+    var cells = line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/);
+    var status = (cells[6] || "").replace(/"/g, "").trim();
+    if (!/^(verified|partially supported)$/i.test(status)) { return false; }
+    return benchText.indexOf("relationship_to_register") === -1 || benchText.indexOf("cited document " + cells[0]) === -1;
   });
-  assert("T-159c", "no source claims plain 'Verified' — none has had a figure traced",
-    claimingVerified.length === 0,
-    claimingVerified.length + " row(s) claim Verified; see docs/SOURCE_VERIFICATION_REPORT.md");
+  assert("T-159c", "a source is marked Verified or Partially supported only with a traced figure in benchmark_checks.csv",
+    unsupported.length === 0,
+    unsupported.length + " row(s) claim verification without traced evidence; see docs/SOURCE_VERIFICATION_REPORT.md");
 
   assert("T-159d", "every external source has a non-empty verification status",
     rows.every(function (line) {
@@ -3777,8 +3783,10 @@ console.log("\n── T-160–T-166 Shared analysis run: acceptance tests ──
       var code = t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\{ pattern: \/central limit theorem\/i[^}]*\}/, "");
       return !/approximately normal|central limit/i.test(code) && !/rests on documented evidence/i.test(t);
     }));
-  assert("T-166f", "the screen is described as a project convention, not a statistical threshold",
-    /project governance convention for simulation precision, not a regulatory or universal statistical threshold/.test(AM.GOVERNANCE.rationale));
+  assert("T-166f", "the screen is described as a chosen project convention, not a statistical threshold, and not as narrowing the P10–P90 spread",
+    /project convention chosen by the authors, not a regulatory or universal statistical threshold/.test(AM.GOVERNANCE.rationale) &&
+    /do not narrow the P10–P90 spread/.test(AM.GOVERNANCE.rationale) &&
+    !/reasonably narrow|spread of a segment's simulated medians/.test(AM.GOVERNANCE.rationale));
   var userFacing = ["overview.js", "marketScreen.js", "report.js", "dataCentre.js", "diversification.js", "agents.js"]
     .map(function (f) { return src(f).replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, ""); }).join("\n");
   assert("T-166g", "pages do not use the retired evidence vocabulary",
@@ -3934,7 +3942,9 @@ console.log("\n── T-167–T-171 Documentation synchronisation and repository
   var readme = fs.readFileSync(path.join(repo, "README.md"), "utf8");
   assert("T-168b", "the README's clone command uses the real repository and directory",
     readme.indexOf("git clone " + AM.PROJECT.repoUrl + ".git") !== -1 && /cd reit-target-ai\b/.test(readme));
-  var report = fs.readFileSync(path.join(repo, "docs", "project-report-draft.md"), "utf8");
+  /* The report was finalised on 5 October 2026 (docs/project-report.md); the
+   * draft it replaced is preserved in archive/project-report-draft-20261005.md. */
+  var report = fs.readFileSync(path.join(repo, "docs", "project-report.md"), "utf8");
   assert("T-168c", "the project report names the author from AppMeta and the institution",
     report.indexOf(AM.PROJECT.author) !== -1 && /NMIMS/.test(report));
 
@@ -4019,6 +4029,7 @@ console.log("\n── T-172 Visual system ────────────�
     "reit-validation-panel": "wrapper; its children are styled",
     "reit-agent-offline-expl": "wrapper; its children are styled",
     "reit-asset-form": "form element hook used for focus management",
+    "reit-csv-area-unit": "element id of the CSV area-unit select, used by its label and the acceptance tests",
     "reit-breakdown-header": "header row; styled through its th cells",
     "reit-support-pass": "a passing badge keeps the tier's default style",
     "reit-trail-pending-icon": "a pending step keeps the default icon style",
@@ -4057,6 +4068,375 @@ console.log("\n── T-172 Visual system ────────────�
     !/\b(AnalysisRun|ReitState|localStorage)\b/.test(motion) &&
     !/\.(setAttribute|removeAttribute)\s*\(/.test(motion),
     "motion.js may only add classes, custom properties and transforms");
+}());
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   T-173  Customer, business problem and use cases — stated once, shown on the
+          Overview, carried into the README and the report
+   T-174  Stated limitations agree across the website, the report and
+          docs/limitations.md
+
+   Both are stated in code (AppMeta.CUSTOMER, Validator.LIMITATIONS), copied
+   into meta.json by buildMeta.js and rendered into generated documentation
+   blocks; T-167 then fails if any block is stale. These checks make sure the
+   statements, and the blocks that carry them, cannot quietly disappear.
+   ═══════════════════════════════════════════════════════════════════════════ */
+console.log("\n── T-173–T-174 Customer, use cases and limitations ───────────────────────");
+(function () {
+  var fs = require("fs");
+  var repo = path.join(__dirname, "..");
+  var AM = require(path.join(repo, "public", "js", "appMeta.js"));
+  var V = require(path.join(repo, "public", "js", "validator.js"));
+  var meta = JSON.parse(fs.readFileSync(path.join(repo, "public", "data", "meta.json"), "utf8"));
+  var html = fs.readFileSync(path.join(repo, "public", "index.html"), "utf8");
+  function read(rel) { var p = path.join(repo, rel); return fs.existsSync(p) ? fs.readFileSync(p, "utf8") : ""; }
+  function strip(t) { return t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'])\/\/[^\n]*/g, "$1"); }
+  var C = AM.CUSTOMER || {};
+
+  assert("T-173a", "the primary user and business problem are stated as agreed",
+    C.primaryUser === "REIT investment analysts and acquisition committees evaluating where a proposed new investment should be allocated." &&
+    C.businessProblem === "A REIT must balance income, growth, demand, risk and portfolio diversification when choosing " +
+      "its next target market, while understanding the reliability and limitations of the supporting data.");
+  var required = [/concentration in the existing portfolio/, /adjustable business priorities/,
+                  /highest raw-score market with the highest-ranked market passing the simulation-support screen/,
+                  /yield, concentration and scenario effects/, /deterministic validation and Gemini-assisted interpretation/,
+                  /printable decision report/];
+  assert("T-173b", "six core use cases, in order, each naming the pages where it is carried out",
+    Array.isArray(C.useCases) && C.useCases.length === 6 &&
+    C.useCases.every(function (u, i) {
+      return required[i].test(u.text) && u.pages.length > 0 &&
+        u.pages.every(function (p) { return html.indexOf('data-page="' + p + '"') !== -1; });
+    }));
+  var ov = strip(read("public/js/overview.js"));
+  assert("T-173c", "the Overview renders the customer section from AppMeta.CUSTOMER",
+    /function buildCustomer\(\)/.test(ov) && /AppMeta\.CUSTOMER/.test(ov) &&
+    /root\.appendChild\(buildCustomer\(\)\)/.test(ov) && /"customer"\)/.test(ov));
+  assert("T-173d", "meta.json carries the same customer statement as AppMeta",
+    JSON.stringify(meta.customer) === JSON.stringify(C), "run node data-pipeline/scripts/buildMeta.js");
+  /* README and report mark the block (T-167 keeps it current); CANONICAL_FACTS.md
+   * is generated whole, so it is checked for the statements themselves. */
+  [["README.md", true], ["docs/project-report.md", true], ["docs/CANONICAL_FACTS.md", false]].forEach(function (d, i) {
+    var t = read(d[0]);
+    var marked = /<!-- canonical:BEGIN customer-and-use-cases -->[\s\S]*<!-- canonical:END customer-and-use-cases -->/.test(t);
+    assert("T-173e" + (i + 1), d[0] + " states the customer, the problem and all six use cases" +
+      (d[1] ? " in the generated block" : ""),
+      (!d[1] || marked) && t.indexOf(C.primaryUser) !== -1 && t.indexOf(C.businessProblem) !== -1 &&
+      (C.useCases || []).every(function (u) { return t.indexOf(u.text) !== -1; }));
+  });
+
+  assert("T-174a", "meta.json carries the application's stated limitations unchanged",
+    JSON.stringify(meta.limitations) === JSON.stringify(V.LIMITATIONS), "run node data-pipeline/scripts/buildMeta.js");
+  ["docs/limitations.md", "docs/project-report.md", "docs/CANONICAL_FACTS.md"].forEach(function (rel, i) {
+    var t = read(rel);
+    assert("T-174b" + (i + 1), rel + " lists every limitation the application states, word for word",
+      V.LIMITATIONS.every(function (l) { return t.indexOf(l) !== -1; }));
+  });
+  var topics = [/synthetic/i, /Gross yield only/, /book value/, /not forecasts/, /SEBI/, /neither verifies nor recalculates/,
+                /External calibration is Unverified/, /project convention/, /due diligence/, /public site does not offer the Agent Output page.*local copy.*local proxy/];
+  assert("T-174c", "the stated limitations cover every required topic, including forecasts and static versus live",
+    topics.every(function (re) { return V.LIMITATIONS.some(function (l) { return re.test(l); }); }));
+  assert("T-174d", "the Overview, Agent Output and Decision Report all take the list from validator.js",
+    /Validator\.LIMITATIONS/.test(strip(read("public/js/overview.js"))) &&
+    /v\.limitations/.test(strip(read("public/js/agents.js"))) &&
+    /Validator\.LIMITATIONS/.test(strip(read("public/js/report.js"))));
+}());
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   T-175  Every relative link in the current documents resolves
+
+   The report was renamed and documents were reorganised for the final
+   submission; a link that silently points nowhere is the kind of defect an
+   examiner finds first. External (http) links and in-page anchors are not
+   checked here.
+   ═══════════════════════════════════════════════════════════════════════════ */
+console.log("\n── T-175 Document links ───────────────────────────────────────────────────");
+(function () {
+  var fs = require("fs");
+  var repo = path.join(__dirname, "..");
+  function md(dir) {
+    var d = path.join(repo, dir);
+    return fs.existsSync(d) ? fs.readdirSync(d).filter(function (f) { return /\.md$/i.test(f); })
+                                .map(function (f) { return path.join(dir, f); }) : [];
+  }
+  var docs = ["README.md", "HANDOFF.md"].concat(md("docs"), md("data-pipeline/docs"), md("docs/screenshots"));
+  var broken = [];
+  docs.forEach(function (rel) {
+    var text = fs.readFileSync(path.join(repo, rel), "utf8");
+    var re = /!?\[[^\]]*\]\(([^)\s]+)\)/g, m;
+    while ((m = re.exec(text)) !== null) {
+      var href = m[1];
+      if (/^(https?:|mailto:|#)/.test(href)) { continue; }
+      var target = path.join(repo, path.dirname(rel), href.split("#")[0]);
+      if (!fs.existsSync(target)) { broken.push(rel + " → " + href); }
+    }
+  });
+  assert("T-175a", "every relative link and image in README, HANDOFF and the docs resolves to a file",
+    broken.length === 0, broken.slice(0, 6).join("; "));
+}());
+
+/* ── T-176  CSV area units: explicit, converted once, never inferred ────────
+ * Regression for the removed "median area below 500 means square metres" rule. */
+console.log("\n── T-176 CSV area units ───────────────────────────────────────────────────");
+(function () {
+  var D = require("../public/js/dataCleaner.js");
+  var fs = require("fs");
+  function row(extra) {
+    return Object.assign({ city: "Mumbai", locality: "Kala Ghoda", propertyType: "Retail",
+      askingPriceINR: "90 lakh", monthlyRentINR: "45000" }, extra);
+  }
+  // 1. Small genuine square-foot properties stay in square feet, alone or as a whole file.
+  var small = D.cleanRecords([row({ areaSqFt: "300" }), row({ areaSqFt: "250" }), row({ areaSqFt: "180" })]);
+  assert("T-176a", "a file of 300, 250 and 180 sq ft properties keeps 300, 250 and 180 sq ft, all accepted",
+    small.records.map(function (r) { return r.areaSqFt; }).join() === "300,250,180" &&
+    small.report.ok === 3 && small.report.areaUnit === "sqft", small.records.map(function (r) { return r.areaSqFt; }).join());
+  var p300 = small.records[0];
+  assert("T-176b", "price and rent per sq ft use the unconverted 300 sq ft",
+    Math.abs(p300.pricePerSqFt - 9000000 / 300) < 1e-9 && Math.abs(p300.rentPerSqFt - 45000 / 300) < 1e-9);
+  // 2. Explicit square metres convert exactly once, by 1 / 0.3048² (independent arithmetic).
+  var factor = 1 / (0.3048 * 0.3048);
+  var sqm = D.cleanRecords([row({ areaSqM: "100" }), row({ area: "50", areaUnit: "m²" }), row({ area: "300 sq m" })]);
+  assert("T-176c", "areaSqM 100, area 50 m² and area \"300 sq m\" become 100, 50 and 300 × 10.7639… sq ft",
+    sqm.records.every(function (r, i) { return Math.abs(r.areaSqFt - [100, 50, 300][i] * factor) < 1e-9 && r.areaSourceUnit === "sqm"; }) &&
+    sqm.report.ok === 3 && sqm.report.areaUnit === "sqm",
+    sqm.records.map(function (r) { return r.areaSqFt + " " + r.exclusionReason; }).join(" | "));
+  assert("T-176d", "conversion is applied once: the converted area divided by the factor returns the input",
+    Math.abs(sqm.records[0].areaSqFt / factor - 100) < 1e-9 && Math.abs(D.SQFT_PER_SQM - factor) < 1e-12);
+  // 3. The user's import choice applies to a generic area column without a stated unit.
+  var chosenFt = D.cleanRecords([row({ area: "300" })], { areaUnit: "sqft" });
+  var chosenM = D.cleanRecords([row({ area: "300" })], { areaUnit: "sqm" });
+  assert("T-176e", "a generic area of 300 is 300 sq ft when the user chooses square feet and 300 × 10.7639… when square metres",
+    chosenFt.records[0].areaSqFt === 300 && Math.abs(chosenM.records[0].areaSqFt - 300 * factor) < 1e-9);
+  // 4. Missing, conflicting and mixed declarations are rejected with a reason; rows are kept.
+  var bad = D.cleanRecords([
+    row({ areaSqFt: "100 sqm" }),                           // column says ft², value says m²
+    row({ area: "300", areaUnit: "sqft" }),                 // fine on its own …
+    row({ areaSqFt: "500", areaSqM: "100" }),               // two columns, different areas
+    row({ area: "120", areaUnit: "acres" })                 // unit not recognised
+  ], { areaUnit: "sqm" });                                  // … but conflicts with the import choice
+  var st = bad.records.map(function (r) { return r.validationStatus; }).join();
+  assert("T-176f", "conflicting, disagreeing and unrecognised units are each rejected with the reason; no row is dropped",
+    bad.records.length === 4 && st === "rejected,rejected,rejected,rejected" &&
+    /conflict/.test(bad.records[0].exclusionReason) && /conflict/.test(bad.records[1].exclusionReason) &&
+    /disagree/.test(bad.records[2].exclusionReason) && /not sqft or sqm/.test(bad.records[3].exclusionReason), st);
+  var none = D.cleanRecords([row({ area: "300" })]);
+  assert("T-176g", "a generic area with no unit and no import choice is rejected as 'area unit not stated'",
+    none.records[0].validationStatus === "rejected" && /area unit not stated/.test(none.records[0].exclusionReason));
+  var same = D.cleanRecords([row({ areaSqFt: "1076.39", areaSqM: "100" })]);
+  assert("T-176h", "areaSqFt and areaSqM describing the same floor area (within 1%) are accepted",
+    same.records[0].validationStatus === "ok" && same.records[0].areaSqFt === 1076.39);
+  var mixed = D.cleanRecords([row({ areaSqFt: "300" }), row({ areaSqM: "30" })]);
+  assert("T-176i", "a file mixing square-foot and square-metre rows reports 'mixed' and converts only the m² row",
+    mixed.report.areaUnit === "mixed" && mixed.records[0].areaSqFt === 300 &&
+    Math.abs(mixed.records[1].areaSqFt - 30 * factor) < 1e-9);
+  // 5. The existing fixtures keep their behaviour.
+  var fx = path.join(__dirname, "fixtures");
+  var validRows = D.parseCSV(fs.readFileSync(path.join(fx, "markets-valid.csv"), "utf8"));
+  var invalidRows = D.parseCSV(fs.readFileSync(path.join(fx, "markets-invalid.csv"), "utf8"));
+  var v = D.cleanRecords(validRows), iv = D.cleanRecords(invalidRows);
+  assert("T-176j", "the valid fixture is fully accepted with its areas unchanged, the invalid fixture fully rejected",
+    v.report.ok === validRows.length && v.records.every(function (r, i) { return r.areaSqFt === parseFloat(validRows[i].areaSqFt); }) &&
+    iv.report.rejected === invalidRows.length);
+  // 6. The template, the page and the documents describe the explicit rule.
+  var dc = fs.readFileSync(path.join(__dirname, "../public/js/dataCentre.js"), "utf8");
+  var docs = ["README.md", "docs/data-documentation.md", "docs/test-report.md"].map(function (r) {
+    return fs.readFileSync(path.join(__dirname, "..", r), "utf8");
+  }).join("\n");
+  assert("T-176k", "the import page offers the unit choice and no document describes the removed below-500 rule",
+    /reit-csv-area-unit/.test(dc) && /never guessed/.test(dc) && !/median area is below 500/.test(docs) &&
+    /areaSqM/.test(docs), "");
+}());
+
+/* ── T-177  Provenance notes agree with sourceIds; benchmark checks are complete ── */
+console.log("\n── T-177 Source provenance and benchmark checks ─────────────────────────────");
+(function () {
+  var fs = require("fs");
+  var repo = path.join(__dirname, "..");
+  var mk = JSON.parse(fs.readFileSync(path.join(repo, "public/data/markets.json"), "utf8")).markets;
+  function csv(rel) {
+    var t = fs.readFileSync(path.join(repo, rel), "utf8"), rows = [], row = [], f = "", qd = false;
+    for (var i = 0; i < t.length; i++) {
+      var c = t[i];
+      if (qd) { if (c === '"' && t[i + 1] === '"') { f += '"'; i++; } else if (c === '"') { qd = false; } else { f += c; } }
+      else if (c === '"') { qd = true; } else if (c === ",") { row.push(f); f = ""; }
+      else if (c === "\n") { row.push(f); rows.push(row); row = []; f = ""; } else if (c !== "\r") { f += c; }
+    }
+    if (f || row.length) { row.push(f); rows.push(row); }
+    var h = rows.shift();
+    return rows.filter(function (r) { return r.length > 1; }).map(function (r) { var o = {}; h.forEach(function (k, j) { o[k] = r[j]; }); return o; });
+  }
+  var reg = {}; csv("data-pipeline/source_register.csv").forEach(function (r) { reg[r.source_id] = r; });
+  var publishers = Object.keys(reg).map(function (k) { return reg[k].publisher; }).filter(Boolean);
+  var bad = mk.filter(function (m) {
+    var own = (m.sourceIds || []).map(function (id) { return reg[id] && reg[id].publisher; });
+    var named = publishers.filter(function (p) { return m.methodologyNote.indexOf(p) !== -1; });
+    return named.some(function (p) { return own.indexOf(p) === -1; }) ||
+      /parameteri[sz]ed on|calibrated to|derived from REIT annual-report disclosures/i.test(m.methodologyNote + " " + m.classificationNote);
+  });
+  assert("T-177a", "every methodologyNote names only the publishers of its own sourceIds and makes no calibration claim",
+    bad.length === 0, bad.slice(0, 3).map(function (m) { return m.marketId; }).join(", "));
+  var sup = path.join(repo, "data-pipeline/provenance_notes.superseded-20261005.csv");
+  assert("T-177b", "the superseded notes are kept for the audit trail (50 rows, with the original 'parameterised on' wording)",
+    fs.existsSync(sup) && csv("data-pipeline/provenance_notes.superseded-20261005.csv").length === 50 &&
+    /parameterised on/.test(fs.readFileSync(sup, "utf8")));
+  var B = csv("data-pipeline/benchmark_checks.csv");
+  var need = ["segment_id", "parameter", "project_central", "units", "publisher", "document_title", "document_date", "url",
+              "page_or_table", "geography", "property_type", "figure_quoted", "period", "relation", "relationship_to_register"];
+  var ids = {}; mk.forEach(function (m) { ids[m.marketId] = m; });
+  var incomplete = B.filter(function (b) {
+    return need.some(function (k) { return !b[k] || !String(b[k]).trim(); }) || !ids[b.segment_id] ||
+      !/^https:\/\//.test(b.url) || !/^(consistent|partly consistent|below|above|context only)/.test(b.relation) ||
+      !/\d/.test(b.figure_quoted);
+  });
+  assert("T-177c", "every benchmark check records publisher, title, date, URL, page, geography, type, quoted figure, units, period and relation",
+    B.length > 0 && incomplete.length === 0, B.length + " rows; incomplete: " + incomplete.map(function (b) { return b.check_id; }).join(","));
+  assert("T-177d", "benchmark checks never change a segment's external calibration: every segment stays Unverified",
+    mk.every(function (m) { return (m.externalCalibrationStatus || "Unverified") === "Unverified"; }) &&
+    JSON.parse(fs.readFileSync(path.join(repo, "public/data/meta.json"), "utf8")).counts.externalCalibrationStatus === "Unverified");
+  var lo = B.filter(function (b) { return b.segment_id === "MKT-001" && /monthly rent \(Grade A/.test(b.parameter); })[0];
+  assert("T-177e", "the BKC rent check records that the project's range is below the source (independent of the generator)",
+    !!lo && lo.relation === "below" && parseFloat(lo.project_upper) < 229 && /229–427/.test(lo.figure_quoted));
+}());
+
+/* ── T-178  Runbook figures: independent recomputation ────────────────────────
+ * Recomputes concentration, weighted yield, year-0 rent and the 3-year base value
+ * for the runbook exercises from the raw data files with code written here, not
+ * analysisRun.js, and compares with data-pipeline/generated/runbook_expected.json
+ * (which the application's own code produced) and with the runbook's text. */
+console.log("\n── T-178 Runbook figures, independent route ───────────────────────────────");
+(function () {
+  var fs = require("fs");
+  var repo = path.join(__dirname, "..");
+  var expPath = path.join(repo, "data-pipeline/generated/runbook_expected.json");
+  assert("T-178a", "runbook_expected.json exists (node data-pipeline/scripts/runbookExpected.js)", fs.existsSync(expPath));
+  if (!fs.existsSync(expPath)) { return; }
+  var exp = JSON.parse(fs.readFileSync(expPath, "utf8"));
+  var E = {}; exp.exercises.forEach(function (e) { E[e.id] = e; });
+  var sample = JSON.parse(fs.readFileSync(path.join(repo, "public/data/portfolio.json"), "utf8")).assets;
+  var M = {}; JSON.parse(fs.readFileSync(path.join(repo, "public/data/markets.json"), "utf8")).markets.forEach(function (m) { M[m.marketId] = m; });
+  function gy(id) { return M[id].medianMonthlyRentPerSqFt * 12 / M[id].medianCapitalValuePerSqFt; }
+  function hhi(list, key) {
+    var tot = 0, by = {};
+    list.forEach(function (a) { tot += a.propertyValue; by[a[key]] = (by[a[key]] || 0) + a.propertyValue; });
+    return Object.keys(by).reduce(function (s, k) { var x = by[k] / tot; return s + x * x; }, 0);
+  }
+  function indep(assets, id, cr) {
+    var inv = { city: M[id].city, assetType: M[id].propertyType, propertyValue: cr * 1e7, annualRent: cr * 1e7 * gy(id) };
+    var all = assets.concat([inv]);
+    var v = all.reduce(function (s, a) { return s + a.propertyValue; }, 0), r = all.reduce(function (s, a) { return s + a.annualRent; }, 0);
+    return { cityAfter: hhi(all, "city"), typeAfter: hhi(all, "assetType"), wy: r / v, y0: r, b3: v * Math.pow(1.08, 3) };
+  }
+  var cases = [["A1", sample, "MKT-016", 75], ["B", exp.customPortfolio, "MKT-016", 10], ["B-explicit", exp.customPortfolio, "MKT-016", 75],
+               ["C1", sample, "MKT-036", 50], ["live", sample, "MKT-012", 75]];
+  var mism = cases.filter(function (c) {
+    var a = indep(c[1], c[2], c[3]), e = E[c[0]];
+    var close = function (x, y) { return Math.abs(x - y) <= 1e-9 * Math.max(1, Math.abs(y)); };
+    return !(e.selected.id === c[2] && close(a.cityAfter, e.hhi.cityAfter) && close(a.typeAfter, e.hhi.typeAfter) &&
+             close(a.wy, e.hhi.weightedYieldAfter) && close(a.y0, e.year0RentRs) && close(a.b3, e.base3yValueRs));
+  });
+  assert("T-178b", "HHI, weighted yield, year-0 rent and 3-year value recomputed independently match the application for exercises A, B, C and the live run",
+    mism.length === 0, mism.map(function (c) { return c[0]; }).join(", "));
+  // The expected file is current: the application still produces it.
+  var AR = require(path.join(repo, "public/js/analysisRun.js"));
+  var meta = JSON.parse(fs.readFileSync(path.join(repo, "public/data/meta.json"), "utf8"));
+  var fresh = AR.compute(E.A2.inputs, { marketsDoc: JSON.parse(fs.readFileSync(path.join(repo, "public/data/markets.json"), "utf8")),
+    sampleAssets: sample, portfolioMode: "sample", customAssets: [], statisticsDoc: JSON.parse(fs.readFileSync(path.join(repo, "public/data/statistics.json"), "utf8")),
+    sourceOutcomes: meta.sourceVerification.outcomes });
+  assert("T-178c", "runbook_expected.json is current (a fresh run of Exercise A2 gives the same target, rank, score and scenario key)",
+    AR.selected(fresh).marketId === E.A2.selected.id && AR.selected(fresh).rank === E.A2.selected.rawRank &&
+    AR.selected(fresh).totalScore === E.A2.selected.score && fresh.scenarioKey === E.A2.scenarioKey, fresh.scenarioKey);
+  var rb = fs.readFileSync(path.join(repo, "docs/LIVE_DEMO_RUNBOOK.md"), "utf8");
+  var quotes = [E.A1.hhi.cityAfter.toFixed(4), E.A1.hhi.typeAfter.toFixed(4), (E.A1.year0RentRs / 1e7).toFixed(3),
+                (E.A1.base3yValueRs / 1e7).toFixed(2), E.A2.selected.score.toFixed(2), E.B.hhi.cityAfter.toFixed(4),
+                E.B.hhi.typeAfter.toFixed(4), (E.B.year0RentRs / 1e7).toFixed(3), E["B-explicit"].hhi.cityAfter.toFixed(4),
+                (E.C1.year0RentRs / 1e7).toFixed(3), (E.C1.selected.grossYield * 100).toFixed(4), (E.A1.selected.grossYield * 100).toFixed(4)];
+  var missing = quotes.filter(function (x) { return rb.indexOf(x) === -1; });
+  assert("T-178d", "the runbook quotes the computed values, with yields at full working precision", missing.length === 0, missing.join(", "));
+}());
+
+/* ── T-179  Screen sensitivity analysis is current and says what it shows ──── */
+console.log("\n── T-179 Screen sensitivity ───────────────────────────────────────────────");
+(function () {
+  var fs = require("fs");
+  var repo = path.join(__dirname, "..");
+  var p = path.join(repo, "data-pipeline/generated/screen_sensitivity.json");
+  assert("T-179a", "screen_sensitivity.json exists (node data-pipeline/scripts/screenSensitivity.js)", fs.existsSync(p));
+  if (!fs.existsSync(p)) { return; }
+  var s = JSON.parse(fs.readFileSync(p, "utf8"));
+  var AM = require(path.join(repo, "public/js/appMeta.js"));
+  assert("T-179b", "the default screen is unchanged (30 observations, grade C) and is the run marked default",
+    AM.GOVERNANCE.MIN_OBSERVATIONS === 30 && AM.GOVERNANCE.MIN_GRADE === "C" &&
+    s.thresholds.filter(function (r) { return r.isDefault; }).every(function (r) { return r.minObservations === 30 && r.minGrade === "C"; }));
+  var meta = JSON.parse(fs.readFileSync(path.join(repo, "public/data/meta.json"), "utf8"));
+  var agree = meta.presets.every(function (pr) {
+    var r = s.thresholds.filter(function (x) { return x.isDefault && x.preset === pr.key; })[0];
+    return r && r.marketId === pr.candidate.marketId && r.eligibleCount === pr.eligibleCount;
+  });
+  assert("T-179c", "at the default thresholds the sensitivity runs reproduce the application's four preset candidates", agree);
+  assert("T-179d", "6 threshold settings × 4 presets were run, and every run states its eligible count and a candidate or 'none'",
+    s.thresholds.length === 24 && s.thresholds.every(function (r) { return typeof r.eligibleCount === "number" && (r.candidate || r.note); }));
+  var w = s.medianPrecision.withinSegmentSubsamples;
+  var first = w[0], last = w[w.length - 1];
+  assert("T-179e", "within the same segments, more draws tighten the median's bootstrap interval but not the P10–P90 spread",
+    last.meanBootstrap90Pp < first.meanBootstrap90Pp && Math.abs(last.meanSpreadPp - first.meanSpreadPp) < 0.25 * first.meanSpreadPp,
+    JSON.stringify(w));
+  var doc = fs.readFileSync(path.join(repo, "docs/SCREEN_SENSITIVITY.md"), "utf8");
+  assert("T-179f", "the sensitivity page says the outcome reflects the generator's construction, not market validation",
+    /property of how the synthetic data was built, not an empirical finding/.test(doc) && /not a confidence interval/.test(doc));
+}());
+
+/* ── T-180  Agent replies that fail the check are quarantined; proxy defaults ── */
+console.log("\n── T-180 Quarantine, fallback labelling and proxy defaults ─────────────────");
+(function () {
+  var fs = require("fs");
+  var repo = path.join(__dirname, "..");
+  var ag = fs.readFileSync(path.join(repo, "public/js/agents.js"), "utf8");
+  var rp = fs.readFileSync(path.join(repo, "public/js/report.js"), "utf8");
+  var sv = fs.readFileSync(path.join(repo, "server/server.js"), "utf8");
+  var ex = fs.readFileSync(path.join(repo, "server/.env.example"), "utf8");
+  assert("T-180a", "a failed live reply is sent back once with its problems, and quarantined if the revision fails",
+    /revisionNotes: revisionNotes\(first\)/.test(ag) && /res\.quarantined = true/.test(ag) && (ag.match(/callLive\(/g) || []).length === 3);
+  assert("T-180b", "later agents and the Decision Report receive only replies that passed the check",
+    /out\.ds = usable\(ds\)/.test(ag) && /out\.mk = usable\(mk\)/.test(ag) && /out\.rk = usable\(rk\)/.test(ag) &&
+    /r\.output && !r\.quarantined/.test(ag) && /failed the consistency check ' \+\s*'and is withheld/.test(rp));
+  assert("T-180c", "a failed live call is labelled 'fresh generation was unavailable' and stored commentary is not substituted",
+    /Fresh generation was unavailable/.test(ag) && /stored commentary is not substituted/.test(ag));
+  assert("T-180d", "the proxy listens on loopback unless REIT_HOST is set explicitly",
+    /var HOST\s*=\s*process\.env\.REIT_HOST \|\| "127\.0\.0\.1"/.test(sv) && /server\.listen\(PORT, HOST,/.test(sv) && /REIT_HOST/.test(ex));
+  var defModel = (sv.match(/GEMINI_MODEL\s*\|\|\s*"([^"]+)"/) || [])[1], exModel = (ex.match(/^GEMINI_MODEL=(.+)$/m) || [])[1];
+  assert("T-180e", "the proxy's default model is the one .env.example names", !!defModel && defModel === exModel, defModel + " / " + exModel);
+  var ev = ["tests/evidence/live-gemini-run-20261005.json", "tests/evidence/agent-failure-handling-20261005.json", "tests/evidence/stale-commentary-20261005.json"];
+  var evOk = ev.every(function (r) { return fs.existsSync(path.join(repo, r)); });
+  var fail = evOk ? JSON.parse(fs.readFileSync(path.join(repo, ev[1]), "utf8")).results : {};
+  assert("T-180f", "recorded browser evidence: quarantined replies withheld from the report and the next agent; failures labelled unavailable",
+    evOk && fail.repairAttempted === true && fail.publishedOrchestrator === false && fail.reportWithheld === true &&
+    fail.reportShowsBadText === false && fail.dataWithheldFromNextAgent === true &&
+    fail.network.every(function (x) { return /UNAVAILABLE/.test(x); }) && fail.quota.every(function (x) { return /UNAVAILABLE/.test(x); }));
+  var all = ev.map(function (r) { return evOk ? fs.readFileSync(path.join(repo, r), "utf8") : ""; }).join("");
+  assert("T-180g", "no evidence file contains a key-shaped string", evOk && !/AIza[0-9A-Za-z_\-]{20,}/.test(all));
+}());
+
+/* ── T-181  The Agent Output page is offered only on a local copy ─────────── */
+console.log("\n── T-181 Agent Output on local copies only ─────────────────────────────────");
+(function () {
+  var fs = require("fs");
+  var repo = path.join(__dirname, "..");
+  var AM = require(path.join(repo, "public/js/appMeta.js"));
+  function loc(u) { var m = u.match(/^(\w+:)\/\/([^/:?]*)(?::\d+)?[^?]*(\?.*)?$/) || []; return { protocol: m[1], hostname: m[2], search: m[3] || "" }; }
+  assert("T-181a", "local copies offer the agents; the public site and ?publicSite=1 do not",
+    AM.agentsAvailable(loc("http://localhost:3001/")) && AM.agentsAvailable(loc("http://127.0.0.1:8080/index.html")) &&
+    AM.agentsAvailable({ protocol: "file:", hostname: "", search: "" }) &&
+    !AM.agentsAvailable(loc("https://visheshjain0603-design.github.io/reit-target-ai/")) &&
+    !AM.agentsAvailable(loc("http://localhost:8778/public/index.html?publicSite=1")));
+  var html = fs.readFileSync(path.join(repo, "public/index.html"), "utf8");
+  var iMeta = html.indexOf('js/appMeta.js'), iMode = html.indexOf('js/siteMode.js'), iUi = html.indexOf('js/uiHelpers.js');
+  assert("T-181b", "siteMode.js loads after appMeta.js and before the router (uiHelpers.js), so the hidden page is never routed",
+    iMeta > -1 && iMode > iMeta && iUi > iMode);
+  var sm = fs.readFileSync(path.join(repo, "public/js/siteMode.js"), "utf8");
+  var ov = fs.readFileSync(path.join(repo, "public/js/overview.js"), "utf8");
+  var rp = fs.readFileSync(path.join(repo, "public/js/report.js"), "utf8");
+  assert("T-181c", "on the public site the nav link and page are removed, the Overview does not link to them, and the report says why there is no commentary",
+    /removeChild\(link\.parentNode\)/.test(sm) && /getElementById\("page-agents"\)/.test(sm) &&
+    (ov.match(/agentsAvailable\(\)/g) || []).length >= 3 && /No agent commentary on the public site/.test(rp));
 }());
 
 /* ── T-170  The documented test count is this run's count ──────────────────

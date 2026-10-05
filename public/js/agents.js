@@ -189,15 +189,51 @@
                              provenance: "cache", scenarioLabel: entry.label });
   }
 
-  function step(agentKey, ctx) {
-    var call = state.mode === "live" ? callLive(agentKey, ctx) : fromCache(agentKey);
-    return call.then(function (res) {
-      res.check = AgentOutputCheck.check(agentKey, res.output, ctx, universe());
-      return res;
-    }).catch(function (err) {
-      return { output: null, provenance: "deterministic", error: err.message };
+  /* Specific problems found by the output check, sent back to the model once. */
+  function revisionNotes(check) {
+    return check.issues.map(function (i) {
+      return (i.field ? i.field + ": " : "") + i.message + (i.text ? " (in: \u201c" + String(i.text).slice(0, 160) + "\u201d)" : "");
     });
   }
+
+  /*
+   * One agent call. A reply that fails the consistency check is never shown as
+   * authoritative commentary and never passed on to a later agent or to the
+   * Decision Report:
+   *   live  — sent back once with the specific problems (a bounded repair);
+   *           if the revision still fails, the reply is quarantined.
+   *   cache — stored replies passed the check when the cache was built; one
+   *           that fails now is quarantined (no repair is possible offline).
+   * A failed live call is reported as unavailable; stored commentary is never
+   * substituted for it, because stored text is not evidence of a live run.
+   */
+  function step(agentKey, ctx) {
+    var live = state.mode === "live";
+    var call = live ? callLive(agentKey, ctx) : fromCache(agentKey);
+    return call.then(function (res) {
+      res.check = AgentOutputCheck.check(agentKey, res.output, ctx, universe());
+      if (res.check.ok || !live) { return res; }
+      var first = res.check;
+      return callLive(agentKey, Object.assign({}, ctx, { revisionNotes: revisionNotes(first) })).then(function (rev) {
+        rev.check = AgentOutputCheck.check(agentKey, rev.output, ctx, universe());
+        rev.revised = true;
+        rev.firstCheck = first;
+        return rev;
+      }, function () { return res; });
+    }).then(function (res) {
+      if (!res.check.ok) { res.quarantined = true; }
+      return res;
+    }).catch(function (err) {
+      return { output: null, provenance: "deterministic", unavailable: live,
+               error: live ? "Fresh generation was unavailable (" + err.message + "). No AI interpretation is " +
+                             "shown and stored commentary is not substituted; the deterministic figures above are unaffected."
+                           : err.message };
+    });
+  }
+
+  /* What a later agent may build on: only a reply that passed the check. */
+  function usable(res) { return res && res.output && !res.quarantined ? res.output : null; }
+  function stepStatus(res) { return res.error || res.quarantined ? "failed" : "completed"; }
 
   function start(mode) {
     var root = document.getElementById(ROOT_ID);
@@ -216,19 +252,19 @@
 
     set("data", "running");
     step("dataStatistical", base).then(function (ds) {
-      state.results.dataStatistical = ds; out.ds = ds.output;
-      set("data", ds.error ? "failed" : "completed");
+      state.results.dataStatistical = ds; out.ds = usable(ds);
+      set("data", stepStatus(ds));
       set("screening", "running");
       return step("marketScreening", Object.assign({}, base, { dataStatisticalOutput: out.ds || null }));
     }).then(function (mk) {
-      state.results.marketScreening = mk; out.mk = mk.output;
-      set("screening", mk.error ? "failed" : "completed");
+      state.results.marketScreening = mk; out.mk = usable(mk);
+      set("screening", stepStatus(mk));
       set("simulation", "running");
       return step("portfolioRisk", Object.assign({}, base, {
         dataStatisticalOutput: out.ds || null, marketScreeningOutput: out.mk || null }));
     }).then(function (rk) {
-      state.results.portfolioRisk = rk; out.rk = rk.output;
-      set("simulation", rk.error ? "failed" : "completed");
+      state.results.portfolioRisk = rk; out.rk = usable(rk);
+      set("simulation", stepStatus(rk));
 
       // ── Deterministic gate. No model, no network, no quota. ──
       var v = run.validation;
@@ -252,7 +288,7 @@
         }
       })).then(function (or) {
         state.results.orchestrator = or;
-        set("recommend", or.error ? "failed" : "completed");
+        set("recommend", stepStatus(or));
       });
     }).then(function () {
       state.running = false;
@@ -274,10 +310,11 @@
     if (!state.resultsKey || !Object.keys(state.results).length) {
       window._reitAgentOutputs = undefined;
     } else {
-      var pub = { scenarioKey: state.resultsKey, _provenance: {}, _checks: {} };
+      var pub = { scenarioKey: state.resultsKey, _provenance: {}, _checks: {}, _quarantined: {} };
       Object.keys(state.results).forEach(function (k) {
         var r = state.results[k];
-        if (r && r.output) { pub[k] = r.output; }
+        if (r && r.output && !r.quarantined) { pub[k] = r.output; }   // withheld text never reaches the report
+        pub._quarantined[k] = !!(r && r.quarantined);
         pub._provenance[k] = r ? r.provenance : null;
         pub._checks[k] = r && r.check ? r.check : null;
       });
@@ -603,10 +640,32 @@
       return card;
     }
 
+    if (res.quarantined) {
+      var q = el("div", "reit-check-warn reit-check-quarantine");
+      q.setAttribute("role", "note");
+      q.appendChild(el("p", null, "⚠ Withheld: this reply failed the consistency check" +
+        (res.revised ? " even after one revision" : "") + ". It is not used by later agents or the Decision Report, " +
+        "and the figures above are authoritative."));
+      var qul = el("ul");
+      res.check.issues.slice(0, 8).forEach(function (i) {
+        qul.appendChild(el("li", null, (AgentOutputCheck.FIELD_LABELS[i.field.replace(/\[\d+\]$/, "")] || i.field) + ": " + i.message));
+      });
+      q.appendChild(qul);
+      var det = document.createElement("details");
+      det.className = "reit-quarantine-text";
+      det.appendChild(el("summary", null, "Show the withheld text (not authoritative)"));
+      det.appendChild(renderOutput(agentKey, res.output));
+      q.appendChild(det);
+      card.appendChild(q);
+      return card;
+    }
+
     if (res.check) {
       if (res.check.ok) {
         card.appendChild(el("p", "reit-check-ok",
-          "✓ Consistency check passed — no market, rank, figure or exclusion reason in this text contradicts " +
+          "✓ Consistency check passed" + (res.revised ? " after one revision (the first reply had " +
+          res.firstCheck.issues.length + " problem(s) and was sent back with them)" : "") +
+          " — no market, rank, figure or exclusion reason in this text contradicts " +
           "the analysis. The check finds specific kinds of error; it cannot prove the prose true."));
       } else {
         var warn = el("div", "reit-check-warn");

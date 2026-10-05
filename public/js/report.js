@@ -406,6 +406,13 @@
         disclaimer('Consistency check: ' + agentOutputs._checks.orchestrator.issues.length +
           ' statement(s) in this commentary did not match the deterministic figures; see the Agent Output page.', s5);
       }
+    } else if (agentOutputs && run && agentOutputs.scenarioKey === run.scenarioKey &&
+               agentOutputs._quarantined && agentOutputs._quarantined.orchestrator) {
+      s5.appendChild(txt('p', 'The Investment Orchestrator\u2019s reply for this run failed the consistency check ' +
+        'and is withheld, so no commentary is printed. Sections 1 to 4 do not depend on it.', 'reit-text-muted'));
+    } else if (!AppMeta.agentsAvailable()) {
+      s5.appendChild(txt('p', 'No agent commentary on the public site. ' + AppMeta.AGENTS_LOCAL_ONLY +
+        ' Sections 1 to 4 and the checks below do not depend on it.', 'reit-text-muted'));
     } else {
       s5.appendChild(txt('p', agentOutputs && agentOutputs.orchestrator
         ? 'The agent commentary in memory was produced for a different configuration, so it is not ' +

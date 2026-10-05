@@ -1,0 +1,110 @@
+{
+ "what": "Fresh live Gemini run on a configuration with no stored commentary (runbook Exercise A2)",
+ "configuration": {
+  "preset": "custom",
+  "weights": "yield 35 / growth 25 / diversification 20 / demand 10 / low risk 10",
+  "investmentCr": 75,
+  "portfolio": "sample",
+  "selection": "automatic"
+ },
+ "scenarioKey": "f49bb7b8",
+ "startedUtc": "2026-10-05T13:22:32.095Z",
+ "durationMs": 24318,
+ "model": "gemini-3.1-flash-lite",
+ "browser": "WebKit (WKWebView, macOS 15.5) driven by a local script",
+ "served": "node server/server.js on 127.0.0.1:3001 (loopback)",
+ "agents": {
+  "dataStatistical": "live; first reply failed the consistency check, sent back once with the problems, revision passed",
+  "marketScreening": "live; passed",
+  "portfolioRisk": "live; passed",
+  "orchestrator": "live; passed"
+ },
+ "deterministicGate": "All 8 deterministic checks passed",
+ "quarantined": {
+  "dataStatistical": false,
+  "marketScreening": false,
+  "portfolioRisk": false,
+  "orchestrator": false
+ },
+ "keyExposure": "none: the key is read only by the proxy; it is not in this file, the page, the screenshots or the proxy log",
+ "outputs": {
+  "dataStatistical": {
+   "datasetSummary": "The market-segment dataset is a synthetic collection of 50 candidate market segments containing 2156 simulated market observations.",
+   "simulationSupportNotes": [
+    "There are 10 segments that fall below the simulation-support screen threshold.",
+    "The smallest number of simulated observations for any segment is 26.",
+    "Segments below the observation threshold are distributed as follows: Ahmedabad 2, Hyderabad 1, Pune 2, Chennai 1, Kolkata 3, and Delhi NCR 1."
+   ],
+   "dispersionNotes": [
+    "The median of segment gross yields is 7.90%.",
+    "The range of segment gross yields spans from a minimum of 2.66% to a maximum of 9.87%."
+   ],
+   "segmentOutlierNotes": [
+    "Segment-median outliers are defined using Tukey 1.5×IQR fences applied to segment median gross yield and capital value for cities with at least 4 segments.",
+    "In Delhi NCR, there is 1 yield outlier segment.",
+    "In Mumbai, there is 1 yield outlier segment.",
+    "In Pune, there is 1 capital value outlier segment."
+   ],
+   "knownAnomalyNote": "There are 24 known synthetic anomalies inserted deliberately by the generator, representing a contamination of 1.113%.",
+   "caveats": [
+    "The data is SYNTHETIC and does not describe real properties, markets or transactions.",
+    "Simulation support is not evidence; more simulated observations increase precision around the assumed distribution but do not narrow the P10–P90 spread or prove real-market accuracy.",
+    "External calibration is Unverified for every segment.",
+    "The P10–P90 range is the spread of the simulated observations, not a confidence interval."
+   ],
+   "disclaimer": "This is an academic demonstration system and does not constitute investment advice."
+  },
+  "marketScreening": {
+   "candidateExplanation": "Gurugram — Cyber Hub, Delhi NCR achieved its score through a balanced performance across all factors, with its highest contribution coming from rental yield (21.19). It also benefited from strong demand (9.13) and low market risk (7.40) contributions, reflecting its robust profile within the dataset.",
+   "dominantFactor": "rental yield",
+   "comparisonWithAlternative": "Compared to the highest raw-score alternative, GIFT City, Ahmedabad, the selected target has a lower raw rank of 6 versus 1, but it successfully passed the simulation-support screen, whereas the alternative failed due to having only 26 simulated observations and an Assumption Support Grade D.",
+   "screenOutcome": "The five markets with higher raw scores were excluded because they failed the simulation-support screen: GIFT City, Ahmedabad, Ambattur, Chennai, and Baner, Pune failed on both simulated observations and Assumption Support Grade, while Noida — Sector 62, Delhi NCR and Electronic City Phase 1, Bengaluru failed on Assumption Support Grade alone.",
+   "factorInsights": [
+    "The selected target has a rental yield factor score of 60.55.",
+    "The selected target has a rental growth factor score of 59.69.",
+    "The selected target has a demand factor score of 91.27.",
+    "The selected target has a low market risk factor score of 74.00."
+   ],
+   "watchPoints": [
+    "External calibration is Unverified for all segments.",
+    "The P10–P90 range for the selected target's gross yield is 6.52% to 7.44%.",
+    "The simulation-support screen is a project convention, not a statistical guarantee of real-market performance."
+   ],
+   "disclaimer": "This is an academic demonstration system and does not constitute investment advice. The data is SYNTHETIC and does not describe real properties, markets or transactions."
+  },
+  "portfolioRisk": {
+   "cityConcentration": "The city HHI was 0.4130 before the investment and is 0.3293 after.",
+   "assetTypeConcentration": "The asset-type HHI was 0.6316 before the investment and is 0.6711 after.",
+   "residualConcentration": "After the investment, the city HHI is 0.3293 and the asset-type HHI is 0.6711.",
+   "yieldImpact": "The portfolio weighted yield was 6.655% before the investment and is 6.704% after.",
+   "scenarioInterpretation": "Assuming flat growth, no leverage, tax, fees or transaction costs, the three-year projections show a potential portfolio value increase ranging from 12.5% in the conservative scenario to 40.5% in the optimistic scenario, with the base scenario projecting a 26.0% increase.",
+   "projectionCaveats": [
+    "The data is SYNTHETIC and does not describe real properties, markets or transactions.",
+    "Projections assume flat growth rates.",
+    "Projections assume no leverage, tax, fees or transaction costs.",
+    "Effective yield applies the scenario occupancy."
+   ],
+   "overallAssessment": "The investment in the selected target results in a decrease in city concentration from 0.4130 to 0.3293, moving the portfolio toward a more diversified state, while the asset-type concentration remains concentrated at 0.6711.",
+   "disclaimer": "This is an academic demonstration system and does not constitute investment advice."
+  },
+  "orchestrator": {
+   "recommendationSummary": "The selected target is Gurugram — Cyber Hub, Delhi NCR, which is the shortlist candidate.",
+   "screeningBasis": "The simulation-support screen produced this candidate because it met the requirement of at least 30 simulated observations and an Assumption Support Grade of C or better. The five markets with higher raw scores were excluded: GIFT City, Ahmedabad, Ambattur, Chennai, and Baner, Pune failed on both simulated observations and Assumption Support Grade, while Noida — Sector 62, Delhi NCR and Electronic City Phase 1, Bengaluru failed on Assumption Support Grade alone.",
+   "concentrationEffect": "The investment results in a decrease in city HHI from 0.4130 to 0.3293, while the asset-type HHI moves from 0.6316 to 0.6711.",
+   "keyStrengths": [
+    "Balanced performance across all factors with a rental yield contribution of 21.19",
+    "Strong demand factor score of 91.27",
+    "Low market risk factor score of 74.00",
+    "High simulation support level with 73 simulated observations and an Assumption Support Grade of B"
+   ],
+   "importantRisks": [
+    "The data is SYNTHETIC and does not describe real properties, markets or transactions.",
+    "Simulation support is not evidence; the simulation-support screen is a project convention, not a statistical guarantee of real-market performance.",
+    "External calibration is Unverified for all segments, meaning no source figures have been traced or validated.",
+    "The P10–P90 range of 6.52% to 7.44% for the selected target's gross yield represents the spread of simulated observations, not a confidence interval."
+   ],
+   "nextSteps": "External calibration remains unverified and further evidence collection and due diligence are required before any real decision.",
+   "disclaimer": "This is an academic demonstration system and does not constitute investment advice."
+  }
+ }
+}

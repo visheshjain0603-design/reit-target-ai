@@ -17,7 +17,7 @@
 
 ## 1. Test Execution Summary
 
-Validation suite: `tests/dataPipeline.test.js`  
+Validation suite: `data-pipeline/tests/dataPipeline.test.js`  
 Run command: `node tests/dataPipeline.test.js` (from `data-pipeline/`)
 
 | Outcome | Count |

@@ -36,7 +36,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv). Benchmark comparison: BMK-01 below, BMK-02 below, BMK-12 below, BMK-14 context only (data-pipeline/benchmark_checks.csv); a comparison does not verify the citation or the other parameters.",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -64,7 +64,7 @@
           "basis": "Empirical P10-P90 of 76 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate derived from REIT annual-report disclosures using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Derived' records the authors' intended assumption basis: the authors intended to anchor this locality to a REIT disclosure. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (B, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -101,7 +101,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -129,7 +129,7 @@
           "basis": "Empirical P10-P90 of 47 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (B, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -166,7 +166,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL India Retail Outlook 2024 and CBRE India Retail H2 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-003 (Brookfield India Real Estate Trust, Brookfield India REIT Annual Report 2024-25); SRC-004 (Nexus Select Trust, Nexus Select Trust Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -194,7 +194,7 @@
           "basis": "Empirical P10-P90 of 66 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (C, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -231,7 +231,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -259,7 +259,7 @@
           "basis": "Empirical P10-P90 of 31 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (B, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -296,7 +296,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv). Benchmark comparison: BMK-06 below (data-pipeline/benchmark_checks.csv); a comparison does not verify the citation or the other parameters.",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -324,7 +324,7 @@
           "basis": "Empirical P10-P90 of 42 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (C, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -361,7 +361,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on Knight Frank India Residential 2024 and ANAROCK Rental Yield Report 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-005 (JLL India, India Office Market Report Q4 2024); SRC-006 (CBRE South Asia, India Real Estate Market Outlook 2025). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv). Benchmark comparison: BMK-07 below (data-pipeline/benchmark_checks.csv); a comparison does not verify the citation or the other parameters.",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -389,7 +389,7 @@
           "basis": "Empirical P10-P90 of 30 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (C, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -426,7 +426,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -454,7 +454,7 @@
           "basis": "Empirical P10-P90 of 40 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate derived from REIT annual-report disclosures using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Derived' records the authors' intended assumption basis: the authors intended to anchor this locality to a REIT disclosure. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (B, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -491,7 +491,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on Knight Frank India Residential 2024 and ANAROCK Rental Yield Report 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-005 (JLL India, India Office Market Report Q4 2024); SRC-006 (CBRE South Asia, India Real Estate Market Outlook 2025). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv). Benchmark comparison: BMK-09 consistent (city level only) (data-pipeline/benchmark_checks.csv); a comparison does not verify the citation or the other parameters.",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -519,7 +519,7 @@
           "basis": "Empirical P10-P90 of 40 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (C, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -556,7 +556,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL India Retail Outlook 2024 and CBRE India Retail H2 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-003 (Brookfield India Real Estate Trust, Brookfield India REIT Annual Report 2024-25); SRC-004 (Nexus Select Trust, Nexus Select Trust Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -584,7 +584,7 @@
           "basis": "Empirical P10-P90 of 57 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (C, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -621,7 +621,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv). Benchmark comparison: BMK-05 partly consistent, BMK-10 consistent (one asset) (data-pipeline/benchmark_checks.csv); a comparison does not verify the citation or the other parameters.",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -649,7 +649,7 @@
           "basis": "Empirical P10-P90 of 36 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate derived from REIT annual-report disclosures using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Derived' records the authors' intended assumption basis: the authors intended to anchor this locality to a REIT disclosure. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (B, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -686,7 +686,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on Knight Frank India Residential 2024 and ANAROCK Rental Yield Report 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-005 (JLL India, India Office Market Report Q4 2024); SRC-006 (CBRE South Asia, India Real Estate Market Outlook 2025). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -714,7 +714,7 @@
           "basis": "Empirical P10-P90 of 42 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (C, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -751,7 +751,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on Knight Frank India Residential 2024 and ANAROCK Rental Yield Report 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-005 (JLL India, India Office Market Report Q4 2024); SRC-006 (CBRE South Asia, India Real Estate Market Outlook 2025). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -779,7 +779,7 @@
           "basis": "Empirical P10-P90 of 47 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (C, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -816,7 +816,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -844,7 +844,7 @@
           "basis": "Empirical P10-P90 of 34 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (C, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -881,7 +881,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL India Retail Outlook 2024 and CBRE India Retail H2 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-003 (Brookfield India Real Estate Trust, Brookfield India REIT Annual Report 2024-25); SRC-004 (Nexus Select Trust, Nexus Select Trust Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -909,7 +909,7 @@
           "basis": "Empirical P10-P90 of 47 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (C, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -946,7 +946,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on Knight Frank India Residential 2024 and ANAROCK Rental Yield Report 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-005 (JLL India, India Office Market Report Q4 2024); SRC-006 (CBRE South Asia, India Real Estate Market Outlook 2025). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -974,7 +974,7 @@
           "basis": "Empirical P10-P90 of 37 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (D, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -1011,7 +1011,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv). Benchmark comparison: BMK-04 partly consistent (data-pipeline/benchmark_checks.csv); a comparison does not verify the citation or the other parameters.",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -1039,7 +1039,7 @@
           "basis": "Empirical P10-P90 of 73 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (B, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -1076,7 +1076,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL India Retail Outlook 2024 and CBRE India Retail H2 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-003 (Brookfield India Real Estate Trust, Brookfield India REIT Annual Report 2024-25); SRC-004 (Nexus Select Trust, Nexus Select Trust Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "Locality name 'Noida — Sector 62' also used by MKT-023 (Commercial Office). Property types differ; scores not directly comparable.",
       "uncertainty": {
         "grossYieldPct": {
@@ -1104,7 +1104,7 @@
           "basis": "Empirical P10-P90 of 44 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (C, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -1141,7 +1141,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -1169,7 +1169,7 @@
           "basis": "Empirical P10-P90 of 26 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (C, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -1206,7 +1206,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -1234,7 +1234,7 @@
           "basis": "Empirical P10-P90 of 35 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (D, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_synthetic).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -1271,7 +1271,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -1299,7 +1299,7 @@
           "basis": "Empirical P10-P90 of 51 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (D, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_synthetic).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -1336,7 +1336,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv). Benchmark comparison: BMK-11 consistent (one asset) (data-pipeline/benchmark_checks.csv); a comparison does not verify the citation or the other parameters.",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -1364,7 +1364,7 @@
           "basis": "Empirical P10-P90 of 44 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate derived from REIT annual-report disclosures using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Derived' records the authors' intended assumption basis: the authors intended to anchor this locality to a REIT disclosure. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (C, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_tier3).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -1401,7 +1401,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -1429,7 +1429,7 @@
           "basis": "Empirical P10-P90 of 69 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (C, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_tier3).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -1466,7 +1466,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "Locality name 'Noida — Sector 62' also used by MKT-017 (Retail). Property types differ; scores not directly comparable.",
       "uncertainty": {
         "grossYieldPct": {
@@ -1494,7 +1494,7 @@
           "basis": "Empirical P10-P90 of 43 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (D, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_synthetic).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -1531,7 +1531,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -1559,7 +1559,7 @@
           "basis": "Empirical P10-P90 of 75 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (C, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_tier3).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -1596,7 +1596,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -1624,7 +1624,7 @@
           "basis": "Empirical P10-P90 of 55 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (D, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_synthetic).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -1661,7 +1661,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv). Benchmark comparison: BMK-03 consistent (data-pipeline/benchmark_checks.csv); a comparison does not verify the citation or the other parameters.",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -1689,7 +1689,7 @@
           "basis": "Empirical P10-P90 of 54 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate derived from REIT annual-report disclosures using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Derived' records the authors' intended assumption basis: the authors intended to anchor this locality to a REIT disclosure. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (B, the authors' A–E simulation convention) and from the legacy sourceType label (reported_tier1).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -1726,7 +1726,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -1754,7 +1754,7 @@
           "basis": "Empirical P10-P90 of 41 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (D, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_synthetic).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -1791,7 +1791,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -1819,7 +1819,7 @@
           "basis": "Empirical P10-P90 of 41 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (D, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_synthetic).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -1856,7 +1856,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -1884,7 +1884,7 @@
           "basis": "Empirical P10-P90 of 50 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate derived from REIT annual-report disclosures using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Derived' records the authors' intended assumption basis: the authors intended to anchor this locality to a REIT disclosure. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (C, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_tier3).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -1921,7 +1921,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -1949,7 +1949,7 @@
           "basis": "Empirical P10-P90 of 39 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate derived from REIT annual-report disclosures using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Derived' records the authors' intended assumption basis: the authors intended to anchor this locality to a REIT disclosure. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (D, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_synthetic).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -1986,7 +1986,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv). Benchmark comparison: BMK-13 above (data-pipeline/benchmark_checks.csv); a comparison does not verify the citation or the other parameters.",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -2014,7 +2014,7 @@
           "basis": "Empirical P10-P90 of 26 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Peripheral micro-market; no independent published rental benchmark. Values are pipeline extrapolations from city-level assumptions.",
+      "classificationNote": "dataClassification 'Synthetic' records the authors' intended assumption basis: the authors had no anchor in mind for this locality. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (E, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -2051,7 +2051,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -2079,7 +2079,7 @@
           "basis": "Empirical P10-P90 of 34 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate derived from REIT annual-report disclosures using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Derived' records the authors' intended assumption basis: the authors intended to anchor this locality to a REIT disclosure. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (D, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_synthetic).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -2116,7 +2116,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -2144,7 +2144,7 @@
           "basis": "Empirical P10-P90 of 30 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (D, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_synthetic).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -2181,7 +2181,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -2209,7 +2209,7 @@
           "basis": "Empirical P10-P90 of 26 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (D, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_synthetic).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -2246,7 +2246,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -2274,7 +2274,7 @@
           "basis": "Empirical P10-P90 of 41 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (C, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_tier3).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -2311,7 +2311,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -2339,7 +2339,7 @@
           "basis": "Empirical P10-P90 of 26 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Peripheral micro-market; no independent published rental benchmark. Values are pipeline extrapolations from city-level assumptions.",
+      "classificationNote": "dataClassification 'Synthetic' records the authors' intended assumption basis: the authors had no anchor in mind for this locality. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (D, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_synthetic).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -2376,7 +2376,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -2404,7 +2404,7 @@
           "basis": "Empirical P10-P90 of 29 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (C, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_tier3).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -2441,7 +2441,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -2469,7 +2469,7 @@
           "basis": "Empirical P10-P90 of 26 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (D, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_synthetic).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -2506,7 +2506,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL/CBRE India Office Research Q4 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-001 (Embassy Office Parks REIT, Embassy REIT Annual Report 2024-25); SRC-002 (Mindspace Business Parks REIT, Mindspace REIT Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -2534,7 +2534,7 @@
           "basis": "Empirical P10-P90 of 26 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Peripheral micro-market; no independent published rental benchmark. Values are pipeline extrapolations from city-level assumptions.",
+      "classificationNote": "dataClassification 'Synthetic' records the authors' intended assumption basis: the authors had no anchor in mind for this locality. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (E, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -2571,7 +2571,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL India Retail Outlook 2024 and CBRE India Retail H2 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-003 (Brookfield India Real Estate Trust, Brookfield India REIT Annual Report 2024-25); SRC-004 (Nexus Select Trust, Nexus Select Trust Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -2599,7 +2599,7 @@
           "basis": "Empirical P10-P90 of 61 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (D, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_synthetic).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -2636,7 +2636,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL India Retail Outlook 2024 and CBRE India Retail H2 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-003 (Brookfield India Real Estate Trust, Brookfield India REIT Annual Report 2024-25); SRC-004 (Nexus Select Trust, Nexus Select Trust Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -2664,7 +2664,7 @@
           "basis": "Empirical P10-P90 of 64 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (C, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_tier3).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -2701,7 +2701,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL India Retail Outlook 2024 and CBRE India Retail H2 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-003 (Brookfield India Real Estate Trust, Brookfield India REIT Annual Report 2024-25); SRC-004 (Nexus Select Trust, Nexus Select Trust Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -2729,7 +2729,7 @@
           "basis": "Empirical P10-P90 of 50 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (D, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_synthetic).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -2766,7 +2766,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL India Retail Outlook 2024 and CBRE India Retail H2 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-003 (Brookfield India Real Estate Trust, Brookfield India REIT Annual Report 2024-25); SRC-004 (Nexus Select Trust, Nexus Select Trust Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -2794,7 +2794,7 @@
           "basis": "Empirical P10-P90 of 43 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (D, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_synthetic).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -2831,7 +2831,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL India Retail Outlook 2024 and CBRE India Retail H2 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-003 (Brookfield India Real Estate Trust, Brookfield India REIT Annual Report 2024-25); SRC-004 (Nexus Select Trust, Nexus Select Trust Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -2859,7 +2859,7 @@
           "basis": "Empirical P10-P90 of 26 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (D, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_synthetic).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -2896,7 +2896,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on JLL India Retail Outlook 2024 and CBRE India Retail H2 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-003 (Brookfield India Real Estate Trust, Brookfield India REIT Annual Report 2024-25); SRC-004 (Nexus Select Trust, Nexus Select Trust Annual Report 2024-25). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -2924,7 +2924,7 @@
           "basis": "Empirical P10-P90 of 58 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (C, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_tier3).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -2961,7 +2961,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on Knight Frank India Residential 2024 and ANAROCK Rental Yield Report 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-005 (JLL India, India Office Market Report Q4 2024); SRC-006 (CBRE South Asia, India Real Estate Market Outlook 2025). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -2989,7 +2989,7 @@
           "basis": "Empirical P10-P90 of 55 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (C, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_tier3).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -3026,7 +3026,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on Knight Frank India Residential 2024 and ANAROCK Rental Yield Report 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-005 (JLL India, India Office Market Report Q4 2024); SRC-006 (CBRE South Asia, India Real Estate Market Outlook 2025). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -3054,7 +3054,7 @@
           "basis": "Empirical P10-P90 of 39 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (D, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_synthetic).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -3091,7 +3091,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on Knight Frank India Residential 2024 and ANAROCK Rental Yield Report 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-005 (JLL India, India Office Market Report Q4 2024); SRC-006 (CBRE South Asia, India Real Estate Market Outlook 2025). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv). Benchmark comparison: BMK-08 below (data-pipeline/benchmark_checks.csv); a comparison does not verify the citation or the other parameters.",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -3119,7 +3119,7 @@
           "basis": "Empirical P10-P90 of 26 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (E, the authors' A–E simulation convention) and from the legacy sourceType label (synthetic_academic_placeholder).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -3156,7 +3156,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on Knight Frank India Residential 2024 and ANAROCK Rental Yield Report 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-005 (JLL India, India Office Market Report Q4 2024); SRC-006 (CBRE South Asia, India Real Estate Market Outlook 2025). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -3184,7 +3184,7 @@
           "basis": "Empirical P10-P90 of 26 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (D, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_synthetic).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",
@@ -3221,7 +3221,7 @@
         "ASM-047",
         "ASM-048"
       ],
-      "methodologyNote": "Market estimates derived from triangular distributions parameterised on Knight Frank India Residential 2024 and ANAROCK Rental Yield Report 2024. Seed 20260919.",
+      "methodologyNote": "Synthetic draws (generator 2.0.0, seed 20260919) around the authors' assumed lower, central and upper values in data-pipeline/market_estimates_long.csv. Cited in the source register: SRC-005 (JLL India, India Office Market Report Q4 2024); SRC-006 (CBRE South Asia, India Real Estate Market Outlook 2025). None of these documents has been located and no figure has been traced to them, so the assumptions remain the authors' own. An earlier version of this note named other publications as the basis of the estimates; that recorded the authors' intended benchmark, not a calibration (original wording kept in data-pipeline/provenance_notes.superseded-20261005.csv).",
       "comparabilityWarning": "None",
       "uncertainty": {
         "grossYieldPct": {
@@ -3249,7 +3249,7 @@
           "basis": "Empirical P10-P90 of 32 generated observations (seeded, reproducible)"
         }
       },
-      "classificationNote": "Locality estimate calibrated to JLL/CBRE city-level benchmarks using documented locality-class multiplier.",
+      "classificationNote": "dataClassification 'Estimated' records the authors' intended assumption basis: the authors intended to extrapolate this locality from a city-level benchmark. No such anchor has been located, so it describes intent, not evidence. It is separate from the Assumption Support Grade (D, the authors' A–E simulation convention) and from the legacy sourceType label (estimated_synthetic).",
       "derivedFrom": {
         "source": "data-pipeline/generated/observations.v2.json",
         "generatorVersion": "2.0.0",

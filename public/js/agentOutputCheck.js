@@ -327,6 +327,12 @@
         if (/\b30\b[^.]{0,80}\b(ensur|guarant|reliab|robust|statistic|valid|confiden)/i.test(sn) && !negated) {
           flag(t.field, "Overstates what 30 simulated observations establish.", sn);
         }
+        if (/P10[^.]{0,60}confidence interval|confidence interval[^.]{0,60}P10/i.test(sn) && !negated) {
+          flag(t.field, "Calls the P10–P90 spread a confidence interval; it is the spread of the simulated observations.", sn);
+        }
+        if (/\b(narrow|tighten|shrink)\w*[^.]{0,50}\b(P10|spread)\b/i.test(sn) && !negated) {
+          flag(t.field, "More draws do not narrow the P10–P90 spread; they make the estimated median more precise.", sn);
+        }
         if (/\b(is|are|was|were|been|externally|independently)\s+verified\b/i.test(sn) && !negated) {
           flag(t.field, "Claims verification; external calibration is Unverified.", sn);
         }
